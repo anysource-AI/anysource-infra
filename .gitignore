@@ -1,0 +1,94 @@
+# ========================================
+# PRIVATE CONFIGURATION FILES
+# ========================================
+# Exclude environment-specific configurations
+production.tfvars
+staging.tfvars
+development.tfvars
+prod.tfvars
+staging.tfvars
+dev.tfvars
+**/prod.tfvars
+**/staging.tfvars
+**/dev.tfvars
+
+# ========================================
+# TERRAFORM STATE FILES (SENSITIVE)
+# ========================================
+# These contain sensitive infrastructure state
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+
+# ========================================
+# LOCAL TERRAFORM FILES
+# ========================================
+# Local cache and lock files
+.terraform/
+.terraform.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ========================================
+# SECRETS AND CREDENTIALS
+# ========================================
+# Any files containing secrets
+.env
+.env.*
+secrets.yml
+secrets.yaml
+credentials.yml
+credentials.yaml
+
+# Files with sensitive patterns in name
+*private*
+*internal*
+*secret*
+*credential*
+*password*
+*key*
+
+# ========================================
+# BACKUP AND TEMPORARY FILES
+# ========================================
+*.bak
+*.backup
+*.tmp
+*.temp
+*~
+
+# ========================================
+# OS AND EDITOR FILES
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.vim
+
+# ========================================
+# LOGS AND DEBUG FILES
+# ========================================
+*.log
+terraform.log
+crash.log
+debug.log
