@@ -156,6 +156,14 @@ variable "services_configurations" {
   }
 }
 
+# HuggingFace Configuration
+variable "hf_token" {
+  type        = string
+  description = "HuggingFace token for downloading models (used by prompt protection)"
+  default     = "" # Must be provided via tfvars or environment variable
+  sensitive   = true
+}
+
 # Optional Global Environment Variables
 variable "env_vars" {
   type        = map(string)

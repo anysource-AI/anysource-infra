@@ -110,6 +110,9 @@ secret_vars = {
   API_KEY      = "your-api-key"
 }
 
+# HuggingFace Configuration (required for prompt protection models)
+hf_token = "hf_your_huggingface_token_here"  # Required: Replace with your actual token
+
 # ========================================
 # OPTIONAL SERVICES
 # ========================================

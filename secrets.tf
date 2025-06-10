@@ -36,5 +36,6 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     FIRST_SUPERUSER_PASSWORD = random_password.superuser_password.result
     FRONTEND_HOST            = "https://${var.domain_name}"
     BACKEND_CORS_ORIGINS     = "https://${var.domain_name}"
+    HF_TOKEN                 = var.hf_token
   })
 }
