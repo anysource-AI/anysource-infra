@@ -22,3 +22,8 @@ output "alb_zone_id" {
   description = "Zone ID of the Application Load Balancer"
   value       = aws_lb.alb.zone_id
 }
+
+output "alb_arn_suffix" {
+  description = "ARN suffix of the Application Load Balancer (for CloudWatch metrics)"
+  value       = aws_lb.alb.arn_suffix
+}

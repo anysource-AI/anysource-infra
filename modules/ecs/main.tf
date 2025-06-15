@@ -15,7 +15,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   network_mode             = "awsvpc"
   memory                   = each.value.memory
   cpu                      = each.value.cpu
-  task_role_arn= "arn:aws:iam::${var.account}:role/${var.project}-${var.environment}-${each.key}"
+  task_role_arn            = "arn:aws:iam::${var.account}:role/${var.project}-${var.environment}-${each.key}"
   container_definitions = jsonencode([
     {
       name      = each.key
@@ -70,7 +70,7 @@ resource "aws_ecs_service" "private_service" {
   launch_type     = "FARGATE"
   desired_count   = each.value.desired_count
   network_configuration {
-    subnets         = var.private_subnets
+    subnets = var.private_subnets
     security_groups = [
       module.sg_private_alb.security_group_id
     ]
@@ -93,7 +93,7 @@ resource "aws_appautoscaling_target" "service_autoscaling" {
   resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.private_service[each.key].name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
-  depends_on = [aws_ecs_cluster.ecs_cluster, aws_ecs_service.private_service]
+  depends_on         = [aws_ecs_cluster.ecs_cluster, aws_ecs_service.private_service]
 }
 
 resource "aws_appautoscaling_policy" "ecs_policy_memory" {
@@ -140,7 +140,7 @@ module "sg_private_alb" {
       from_port       = 0
       to_port         = 0
       protocol        = "-1"
-      cidr_blocks     = ["0.0.0.0/0"]
+      cidr_blocks     = []
       security_groups = [var.public_alb_security_group.security_group_id]
     }
   ]

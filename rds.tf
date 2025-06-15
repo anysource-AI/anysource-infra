@@ -1,8 +1,7 @@
 # Simplified RDS configuration with smart defaults
 locals {
-  # Merge legacy rds_conf with new database_config for backward compatibility
-  # Prefer new database_config if both are provided
-  merged_db_config = length(var.rds_conf) > 0 ? var.rds_conf : {
+  # Use new database_config structure
+  db_config = {
     (var.database_name) = {
       engine_version = var.database_config.engine_version
       min_capacity   = var.database_config.min_capacity
@@ -16,7 +15,7 @@ locals {
 }
 
 module "rds" {
-  for_each            = local.merged_db_config
+  for_each            = local.db_config
   source              = "./modules/rds"
   environment         = var.environment
   project             = var.project

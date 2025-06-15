@@ -190,17 +190,34 @@ variable "buckets_conf_new" {
   default     = {}
 }
 
-# Legacy variables (keeping for backward compatibility)
-variable "rds_conf" {
-  type = map(object({
-    engine_version = optional(string, "16.6")
-    min_capacity   = optional(number, 2)
-    max_capacity   = optional(number, 16)
-    count_replicas = optional(number, 2)
-  }))
-  description = "Legacy RDS configuration (deprecated - use database_config instead)"
-  default     = {}
+# Monitoring and Alerting Configuration
+variable "enable_monitoring" {
+  description = "Enable CloudWatch monitoring and alarms"
+  type        = bool
+  default     = false
 }
+
+variable "enable_chatbot_alerts" {
+  description = "Enable monitoring alerts via AWS Chatbot (much simpler than SNS for enterprise)"
+  type        = bool
+  default     = false
+}
+
+variable "slack_channel_id" {
+  description = "Slack channel ID for alerts (e.g., C1234567890)"
+  type        = string
+  default     = ""
+}
+
+variable "slack_team_id" {
+  description = "Slack team/workspace ID (e.g., T1234567890)"
+  type        = string
+  default     = ""
+}
+
+
+
+# Legacy variables removed - use database_config instead
 
 variable "suffix_secret_hash" {
   type        = string
