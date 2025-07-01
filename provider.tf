@@ -12,11 +12,10 @@ terraform {
     }
   }
 
-  # optional - if you want terraform state bucket
-  # backend "s3" {
-  #   bucket  = var.terraform_state_bucket
-  #   key     = var.terraform_state_key
-  #   region  = var.region
-  #   profile = var.profile
-  # }
+  backend "s3" {
+    bucket  = "anysource-infra-tfstate-j8cv7ypcdboj"
+    key     = "anysource-production-infra/terraform.tfstate"
+    region  = "us-east-1"
+    profile = var.profile
+  }
 }
