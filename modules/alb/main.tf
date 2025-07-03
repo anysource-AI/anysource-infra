@@ -25,20 +25,17 @@ resource "aws_lb_target_group" "alb_target_group" {
   }
 }
 
-resource "aws_lb_listener" "alb_listener" {
+resource "aws_lb_listener" "alb_listener_http" {
   load_balancer_arn = aws_lb.alb.id
   port              = 80
   protocol          = "HTTP"
-  # Temporarily comment out SSL settings
-  # ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  # certificate_arn   = var.certificate_arn
 
   default_action {
-    type = "fixed-response"
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "No routes defined"
-      status_code  = "200"
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
     }
   }
 }
@@ -60,23 +57,10 @@ resource "aws_lb_listener" "alb_listener_https" {
   }
 }
 
-resource "aws_lb_listener_rule" "alb_listener_rule" {
-  for_each     = var.target_groups
-  listener_arn = aws_lb_listener.alb_listener.arn
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.alb_target_group[each.key].arn
-  }
-  condition {
-    path_pattern {
-      values = each.value.path_pattern
-    }
-  }
-}
-
 resource "aws_lb_listener_rule" "alb_listener_rule_https" {
   for_each     = var.target_groups
   listener_arn = aws_lb_listener.alb_listener_https.arn
+  priority     = lookup(each.value, "priority", null)
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.alb_target_group[each.key].arn

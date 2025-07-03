@@ -5,7 +5,7 @@ output "target_groups" {
 
 output "alb_listener" {
   description = "ALB listener for handling incoming requests"
-  value       = aws_lb_listener.alb_listener
+  value       = aws_lb_listener.alb_listener_http
 }
 
 output "alb_arn" {

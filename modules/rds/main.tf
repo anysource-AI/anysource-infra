@@ -8,7 +8,7 @@ resource "aws_rds_cluster" "rds_cluster" {
   engine_mode        = "provisioned"
   engine_version     = var.engine_version
   availability_zones = var.availability_zones
-  database_name      = "postgres"
+  database_name      = var.name
   master_username    = jsondecode(data.aws_secretsmanager_secret_version.secret_credentials.secret_string)["PLATFORM_DB_USERNAME"]
   master_password    = jsondecode(data.aws_secretsmanager_secret_version.secret_credentials.secret_string)["PLATFORM_DB_PASSWORD"]
   storage_encrypted  = true

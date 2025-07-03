@@ -23,7 +23,7 @@ variable "availability_zones" {
 }
 variable "name" {
   type        = string
-  default     = "default"
+  default     = "anysource"
   description = "The name of the database"
 }
 

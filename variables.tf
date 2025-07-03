@@ -133,25 +133,31 @@ variable "services_configurations" {
     host_port                         = optional(number, 8000)
     container_port                    = optional(number, 8000)
     desired_count                     = optional(number, 2)  # Production-ready default
-    max_capacity                      = optional(number, 10) # Allow scaling
+    max_capacity                      = optional(number, 2) # Allow scaling
     min_capacity                      = optional(number, 2)
     cpu_auto_scalling_target_value    = optional(number, 70)
     memory_auto_scalling_target_value = optional(number, 80)
+    priority                          = optional(number)      # Priority for ALB listener rules
     env_vars                          = optional(map(string), {})
     secret_vars                       = optional(map(string), {})
   }))
   default = {
     "backend" = {
+      name              = "backend"
       path_pattern      = ["/api/*"]
       health_check_path = "/api/v1/utils/health-check/"
       container_port    = 8000
       host_port         = 8000
+      port              = 8000
+      priority          = 1
     }
     "frontend" = {
+      name              = "frontend"
       path_pattern      = ["/*"]
       health_check_path = "/"
       container_port    = 80
       host_port         = 80
+      priority          = 2
     }
   }
 }

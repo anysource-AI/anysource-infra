@@ -72,7 +72,7 @@ resource "aws_ecs_service" "private_service" {
   network_configuration {
     subnets = var.private_subnets
     security_groups = [
-      module.sg_private_alb.security_group_id
+      each.key == "backend" ? module.sg_backend.security_group_id : module.sg_frontend.security_group_id
     ]
   }
 
@@ -130,18 +130,49 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
   }
 }
 
-module "sg_private_alb" {
+module "sg_backend" {
   source      = "../security-group"
-  name        = "${var.project}-services-security-group-sg"
-  description = "${var.project}-services-security-group-sg"
+  name        = "${var.project}-backend-security-group-sg"
+  description = "${var.project}-backend-security-group-sg"
   vpc_id      = var.vpc_id
   ingress_rules = [
     {
-      from_port       = 0
-      to_port         = 0
-      protocol        = "-1"
-      cidr_blocks     = []
-      security_groups = [var.public_alb_security_group.security_group_id]
+      from_port       = var.services_configurations["backend"].container_port
+      to_port         = var.services_configurations["backend"].container_port
+      protocol        = "tcp"
+      cidr_blocks     = [var.cidr]
+      security_groups = []
+    }
+  ]
+  egress_rules = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+}
+
+module "sg_frontend" {
+  source      = "../security-group"
+  name        = "${var.project}-frontend-security-group-sg"
+  description = "${var.project}-frontend-security-group-sg"
+  vpc_id      = var.vpc_id
+  ingress_rules = [
+    {
+      from_port       = 80
+      to_port         = 80
+      protocol        = "tcp"
+      cidr_blocks     = [var.cidr]
+      security_groups = []
+    },
+    {
+      from_port       = 443
+      to_port         = 443
+      protocol        = "tcp"
+      cidr_blocks     = [var.cidr]
+      security_groups = []
     }
   ]
   egress_rules = [

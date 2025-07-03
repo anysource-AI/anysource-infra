@@ -4,6 +4,7 @@ module "ecs" {
   environment                 = var.environment
   region                      = var.region
   vpc_id                      = module.vpc.vpc_id
+  cidr                        = var.cidr
   services_configurations     = var.services_configurations
   services_names              = keys(var.services_configurations)
   account                     = var.account // for ECR
