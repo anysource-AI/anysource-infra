@@ -140,7 +140,7 @@ module "sg_backend" {
       from_port       = var.services_configurations["backend"].container_port
       to_port         = var.services_configurations["backend"].container_port
       protocol        = "tcp"
-      cidr_blocks     = [var.cidr]
+      cidr_blocks     = [var.vpc_cidr]
       security_groups = []
     }
   ]
@@ -164,14 +164,14 @@ module "sg_frontend" {
       from_port       = 80
       to_port         = 80
       protocol        = "tcp"
-      cidr_blocks     = [var.cidr]
+      cidr_blocks     = [var.vpc_cidr]
       security_groups = []
     },
     {
       from_port       = 443
       to_port         = 443
       protocol        = "tcp"
-      cidr_blocks     = [var.cidr]
+      cidr_blocks     = [var.vpc_cidr]
       security_groups = []
     }
   ]

@@ -41,7 +41,7 @@ variable "account" {
 }
 
 # VPC Configuration with Smart Defaults
-variable "cidr" {
+variable "vpc_cidr" {
   type        = string
   description = "VPC CIDR"
   default     = "10.0.0.0/16"

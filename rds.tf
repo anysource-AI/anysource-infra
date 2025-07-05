@@ -29,6 +29,7 @@ module "rds" {
   vpc_id              = module.vpc.vpc_id
   count_replicas      = each.value.count_replicas
   secret_arn          = aws_secretsmanager_secret.app_secrets.arn
+  vpc_cidr            = var.vpc_cidr
 }
 
 # Auto-populate availability zones if not provided

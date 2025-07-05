@@ -10,13 +10,13 @@ module "sg_private_alb" {
       from_port   = 80
       to_port     = 80
       protocol    = "tcp"
-      cidr_blocks = var.alb_access_type == "private" ? [var.cidr] : var.alb_allowed_cidrs
+      cidr_blocks = var.alb_access_type == "private" ? [var.vpc_cidr] : var.alb_allowed_cidrs
     },
     {
       from_port   = 443
       to_port     = 443
       protocol    = "tcp"
-      cidr_blocks = var.alb_access_type == "private" ? [var.cidr] : var.alb_allowed_cidrs
+      cidr_blocks = var.alb_access_type == "private" ? [var.vpc_cidr] : var.alb_allowed_cidrs
     }
   ]
 

@@ -67,3 +67,8 @@ variable "performance_insights_kms_key_id" {
   description = "The ARN of the KMS key to encrypt Performance Insights data"
   default     = null
 }
+
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
+  type        = string
+}
