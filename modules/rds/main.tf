@@ -9,15 +9,15 @@ resource "aws_rds_cluster" "rds_cluster" {
   engine_version     = var.engine_version
   availability_zones = var.availability_zones
   database_name      = var.name
-  master_username    = jsondecode(data.aws_secretsmanager_secret_version.secret_credentials.secret_string)["PLATFORM_DB_USERNAME"]
-  master_password    = jsondecode(data.aws_secretsmanager_secret_version.secret_credentials.secret_string)["PLATFORM_DB_PASSWORD"]
+  master_username    = var.db_username
+  master_password    = var.db_password
   storage_encrypted  = true
   serverlessv2_scaling_configuration {
     min_capacity = var.min_capacity
     max_capacity = var.max_capacity
   }
   skip_final_snapshot      = true
-  deletion_protection      = true
+  deletion_protection      = var.deletion_protection
   delete_automated_backups = false
   backup_retention_period  = 10
   vpc_security_group_ids   = [aws_security_group.rds_security_group.id]
@@ -56,10 +56,6 @@ resource "aws_rds_cluster_instance" "rds_cluster_instance" {
   engine_version      = aws_rds_cluster.rds_cluster.engine_version
   publicly_accessible = var.publicly_accessible
   availability_zone   = var.availability_zones[0]
-}
-
-data "aws_secretsmanager_secret_version" "secret_credentials" {
-  secret_id = var.secret_arn
 }
 
 resource "aws_security_group" "rds_security_group" {

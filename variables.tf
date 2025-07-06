@@ -230,3 +230,9 @@ variable "suffix_secret_hash" {
   description = "Suffix for secret names to ensure uniqueness"
   default     = ""
 }
+
+variable "deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection for RDS clusters"
+  default     = true
+}

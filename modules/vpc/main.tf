@@ -17,18 +17,14 @@ resource "aws_vpc" "main" {
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 
-# Use existing internet gateway
-data "aws_internet_gateway" "existing" {
-  filter {
-    name   = "internet-gateway-id"
-    values = ["igw-087933d8675640630"]
-  }
-}
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
 
-# Attach the existing internet gateway to our VPC
-resource "aws_internet_gateway_attachment" "igw_attachment" {
-  internet_gateway_id = data.aws_internet_gateway.existing.id
-  vpc_id              = aws_vpc.main.id
+  tags = {
+    Name        = "${var.project}-${var.environment}"
+    environment = var.environment
+    name        = var.project
+  }
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,7 +93,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = data.aws_internet_gateway.existing.id
+    gateway_id = aws_internet_gateway.main.id
   }
 
   tags = {

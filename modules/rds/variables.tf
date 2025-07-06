@@ -57,11 +57,6 @@ variable "count_replicas" {
   description = "The number of RDS instances to create"
 }
 
-variable "secret_arn" {
-  type        = string
-  description = "The ARN of the AWS Secrets Manager secret containing database credentials"
-}
-
 variable "performance_insights_kms_key_id" {
   type        = string
   description = "The ARN of the KMS key to encrypt Performance Insights data"
@@ -71,4 +66,22 @@ variable "performance_insights_kms_key_id" {
 variable "vpc_cidr" {
   description = "The CIDR block for the VPC"
   type        = string
+}
+
+variable "deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection for the RDS cluster"
+  default     = true
+}
+
+variable "db_username" {
+  description = "Username for the RDS cluster"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_password" {
+  description = "Password for the RDS cluster"
+  type        = string
+  sensitive   = true
 }

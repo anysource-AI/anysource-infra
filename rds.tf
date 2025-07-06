@@ -28,8 +28,10 @@ module "rds" {
   publicly_accessible = var.database_config.publicly_accessible
   vpc_id              = module.vpc.vpc_id
   count_replicas      = each.value.count_replicas
-  secret_arn          = aws_secretsmanager_secret.app_secrets.arn
   vpc_cidr            = var.vpc_cidr
+  deletion_protection = var.deletion_protection
+  db_username         = jsondecode(aws_secretsmanager_secret_version.app_secrets.secret_string)["PLATFORM_DB_USERNAME"]
+  db_password         = jsondecode(aws_secretsmanager_secret_version.app_secrets.secret_string)["PLATFORM_DB_PASSWORD"]
 }
 
 # Auto-populate availability zones if not provided

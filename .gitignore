@@ -11,6 +11,7 @@ dev.tfvars
 **/prod.tfvars
 **/staging.tfvars
 **/dev.tfvars
+*.config
 
 # ========================================
 # TERRAFORM STATE FILES (SENSITIVE)

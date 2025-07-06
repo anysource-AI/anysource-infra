@@ -1,6 +1,13 @@
+# Generate a random suffix for secret name uniqueness
+resource "random_string" "secret_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 # Create the secrets manager secret with proper environment naming
 resource "aws_secretsmanager_secret" "app_secrets" {
-  name        = "${var.project}-${var.environment == "production" ? "prod" : var.environment}"
+  name        = "${var.project}-${var.environment == "production" ? "prod" : var.environment}-${random_string.secret_suffix.result}"
   description = "Application secrets for ${var.project} ${var.environment} environment"
 
   tags = {
