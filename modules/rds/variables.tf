@@ -80,8 +80,8 @@ variable "db_username" {
   sensitive   = true
 }
 
-variable "db_password" {
-  description = "Password for the RDS cluster"
+variable "db_password_secret_name" {
+  description = "Name or ARN of the AWS Secrets Manager secret containing the DB password"
   type        = string
   sensitive   = true
 }

@@ -2,6 +2,15 @@ locals {
   db_engine   = "aurora"
   environment = var.environment == "eu" ? "eu" : (var.environment == "production" ? "prod" : "stg")
 }
+
+data "aws_secretsmanager_secret" "db_password" {
+  name = var.db_password_secret_name
+}
+
+data "aws_secretsmanager_secret_version" "db_password" {
+  secret_id = data.aws_secretsmanager_secret.db_password.id
+}
+
 resource "aws_rds_cluster" "rds_cluster" {
   cluster_identifier = "${local.db_engine}-${var.project}-${local.environment}-cluster"
   engine             = "${local.db_engine}-postgresql"
@@ -10,7 +19,7 @@ resource "aws_rds_cluster" "rds_cluster" {
   availability_zones = var.availability_zones
   database_name      = var.name
   master_username    = var.db_username
-  master_password    = var.db_password
+  master_password    = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["PLATFORM_DB_PASSWORD"]
   storage_encrypted  = true
   serverlessv2_scaling_configuration {
     min_capacity = var.min_capacity
@@ -33,7 +42,7 @@ resource "aws_rds_cluster" "rds_cluster" {
   enabled_cloudwatch_logs_exports = ["postgresql"]
 
   lifecycle {
-    ignore_changes = [availability_zones]
+    ignore_changes = [availability_zones, master_password]
   }
 }
 

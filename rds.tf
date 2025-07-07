@@ -15,23 +15,23 @@ locals {
 }
 
 module "rds" {
-  for_each            = local.db_config
-  source              = "./modules/rds"
-  environment         = var.environment
-  project             = var.project
-  name                = each.key
-  engine_version      = each.value.engine_version
-  min_capacity        = each.value.min_capacity
-  max_capacity        = each.value.max_capacity
-  availability_zones  = length(var.region_az) > 0 ? [var.region_az[0]] : [data.aws_availability_zones.available.names[0]]
-  subnet_ids          = local.db_subnet_ids
-  publicly_accessible = var.database_config.publicly_accessible
-  vpc_id              = module.vpc.vpc_id
-  count_replicas      = each.value.count_replicas
-  vpc_cidr            = var.vpc_cidr
-  deletion_protection = var.deletion_protection
-  db_username         = jsondecode(aws_secretsmanager_secret_version.app_secrets.secret_string)["PLATFORM_DB_USERNAME"]
-  db_password         = jsondecode(aws_secretsmanager_secret_version.app_secrets.secret_string)["PLATFORM_DB_PASSWORD"]
+  for_each                = local.db_config
+  source                  = "./modules/rds"
+  environment             = var.environment
+  project                 = var.project
+  name                    = each.key
+  engine_version          = each.value.engine_version
+  min_capacity            = each.value.min_capacity
+  max_capacity            = each.value.max_capacity
+  availability_zones      = length(var.region_az) > 0 ? [var.region_az[0]] : [data.aws_availability_zones.available.names[0]]
+  subnet_ids              = local.db_subnet_ids
+  publicly_accessible     = var.database_config.publicly_accessible
+  vpc_id                  = module.vpc.vpc_id
+  count_replicas          = each.value.count_replicas
+  vpc_cidr                = var.vpc_cidr
+  deletion_protection     = var.deletion_protection
+  db_username             = jsondecode(aws_secretsmanager_secret_version.app_secrets.secret_string)["PLATFORM_DB_USERNAME"]
+  db_password_secret_name = aws_secretsmanager_secret.app_secrets.name
 }
 
 # Auto-populate availability zones if not provided
