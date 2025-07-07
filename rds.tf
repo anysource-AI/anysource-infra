@@ -23,7 +23,7 @@ module "rds" {
   engine_version          = each.value.engine_version
   min_capacity            = each.value.min_capacity
   max_capacity            = each.value.max_capacity
-  availability_zones      = length(var.region_az) > 0 ? [var.region_az[0]] : [data.aws_availability_zones.available.names[0]]
+  availability_zones      = length(var.region_az) >= 2 ? var.region_az : slice(data.aws_availability_zones.available.names, 0, 2)
   subnet_ids              = local.db_subnet_ids
   publicly_accessible     = var.database_config.publicly_accessible
   vpc_id                  = module.vpc.vpc_id

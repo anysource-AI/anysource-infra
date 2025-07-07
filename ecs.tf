@@ -36,7 +36,7 @@ module "ecs" {
     BACKEND_CORS_ORIGINS     = "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::"
   }
 
-  depends_on = [module.ecr, module.iam, module.vpc, module.sg_private_alb, module.private_alb, module.rds, aws_elasticache_replication_group.redis]
+  depends_on = [module.ecr, module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
 }
 
 module "ecr" {
@@ -44,9 +44,4 @@ module "ecr" {
   project          = var.project
   environment      = var.environment
   ecr_repositories = keys(var.services_configurations)
-}
-
-# Reference the secret version
-data "aws_secretsmanager_secret_version" "app_secrets" {
-  secret_id = aws_secretsmanager_secret.app_secrets.id
 }
