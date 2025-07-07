@@ -2,6 +2,8 @@
 
 Terraform configurations for deploying Anysource on AWS with production-ready defaults.
 
+<!-- Test sync workflow - this comment can be removed after testing -->
+
 ## Quick Start
 
 ### Prerequisites
