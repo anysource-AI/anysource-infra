@@ -5,11 +5,11 @@
 # Everything else will use smart production-ready defaults.
 
 # Required Configuration (only 5 values needed!)
-environment = "production"
-region      = "us-east-1"
-domain_name = "ai.yourcompany.com"
-first_superuser = "admin@yourcompany.com"
-account     = 123456789012
+environment      = "production"
+region           = "us-east-1"
+domain_name      = "ai.yourcompany.com"
+first_superuser  = "admin@yourcompany.com"
+account          = 123456789012
 
 # Secrets (required for security)
 suffix_secret_hash = "PROD2024"

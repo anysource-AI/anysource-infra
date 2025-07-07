@@ -132,12 +132,12 @@ variable "services_configurations" {
     memory                            = optional(number, 1024) # Increased default for production
     host_port                         = optional(number, 8000)
     container_port                    = optional(number, 8000)
-    desired_count                     = optional(number, 2)  # Production-ready default
+    desired_count                     = optional(number, 2) # Production-ready default
     max_capacity                      = optional(number, 2) # Allow scaling
     min_capacity                      = optional(number, 2)
     cpu_auto_scalling_target_value    = optional(number, 70)
     memory_auto_scalling_target_value = optional(number, 80)
-    priority                          = optional(number)      # Priority for ALB listener rules
+    priority                          = optional(number) # Priority for ALB listener rules
     env_vars                          = optional(map(string), {})
     secret_vars                       = optional(map(string), {})
   }))

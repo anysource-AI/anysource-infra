@@ -11,12 +11,12 @@ variable "region" {
   type = string
 }
 variable "env_vars" {
-  type = map(string)
+  type    = map(string)
   default = {}
 }
 
 variable "secret_vars" {
-  type = map(string)
+  type    = map(string)
   default = {}
 }
 variable "environment" {

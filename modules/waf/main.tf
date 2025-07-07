@@ -36,7 +36,7 @@ resource "aws_wafv2_web_acl" "waf" {
   }
 }
 resource "aws_wafv2_web_acl_association" "association" {
-  count = length(var.resources_arn)
+  count        = length(var.resources_arn)
   resource_arn = var.resources_arn[count.index]
   web_acl_arn  = aws_wafv2_web_acl.waf.arn
 }

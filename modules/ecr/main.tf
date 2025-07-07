@@ -1,8 +1,8 @@
 resource "aws_ecr_repository" "ecr_repository" {
-  for_each = toset(var.ecr_repositories)
-  name     = "${each.key}-${var.environment}"
+  for_each             = toset(var.ecr_repositories)
+  name                 = "${each.key}-${var.environment}"
   image_tag_mutability = "IMMUTABLE"
-  force_delete = true
+  force_delete         = true
 
   image_scanning_configuration {
     scan_on_push = true
@@ -18,8 +18,8 @@ resource "aws_ecr_repository_policy" "ecr_repository_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowPull"
-        Effect = "Allow"
+        Sid       = "AllowPull"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "ecr:GetDownloadUrlForLayer",
@@ -32,10 +32,10 @@ resource "aws_ecr_repository_policy" "ecr_repository_policy" {
 }
 
 resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
-  for_each = toset(var.ecr_repositories)
+  for_each   = toset(var.ecr_repositories)
   repository = "${each.key}-${var.environment}"
 
-  policy = <<EOF
+  policy     = <<EOF
 {
   "rules": [
     {
@@ -53,5 +53,5 @@ resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
   ]
 }
 EOF
-depends_on = [aws_ecr_repository.ecr_repository]
+  depends_on = [aws_ecr_repository.ecr_repository]
 }

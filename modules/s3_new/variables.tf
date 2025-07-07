@@ -16,16 +16,16 @@ variable "environment" {
   }
 }
 
-variable name {
+variable "name" {
   type        = string
   description = "The name name"
- }
+}
 
-variable acl {
+variable "acl" {
   type        = string
   description = "acl"
   validation {
     condition     = var.acl == "private" || var.acl == "public-acl"
     error_message = "ACL must be either 'private' or 'public-acl'"
   }
- }
+}

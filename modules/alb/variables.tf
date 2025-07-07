@@ -54,7 +54,7 @@ variable "target_groups" {
     path_pattern      = list(string)
     health_check_path = string
     protocol          = optional(string, "HTTP") // Optional protocol
-    port              = optional(number, 3000)    // Optional port
+    port              = optional(number, 3000)   // Optional port
 
   }))
 

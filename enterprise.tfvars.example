@@ -7,39 +7,39 @@
 # ========================================
 # REQUIRED CONFIGURATION
 # ========================================
-environment = "production"                    # Environment: production, staging, development
-region      = "us-east-1"                    # AWS region
-domain_name = "ai.yourcompany.com"           # Your domain name
-first_superuser = "admin@yourcompany.com"    # Admin email address for first superuser account
-account     = 123456789012                   # Your AWS account ID
+environment        = "production"              # Environment: production, staging, development
+region             = "us-east-1"               # AWS region
+domain_name        = "ai.yourcompany.com"      # Your domain name
+first_superuser    = "admin@yourcompany.com"   # Admin email address for first superuser account
+account            = 123456789012              # Your AWS account ID
 
 # ========================================
 # INFRASTRUCTURE CONFIGURATION
 # ========================================
 
 # Network Configuration (optional - uses smart defaults)
-cidr            = "10.0.0.0/16"                                    # VPC CIDR block
-region_az       = ["us-east-1a", "us-east-1b", "us-east-1c"]     # Availability zones (auto-detected if empty)
-public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"] # Public subnet CIDRs
-private_subnets = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"] # Private subnet CIDRs
+cidr             = "10.0.0.0/16"                                  # VPC CIDR block
+region_az        = ["us-east-1a", "us-east-1b", "us-east-1c"]     # Availability zones (auto-detected if empty)
+public_subnets   = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]  # Public subnet CIDRs
+private_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]  # Private subnet CIDRs
 
 # Database Configuration
-database_name = "anysource_prod"              # Database name
+database_name   = "anysource_prod"     # Database name
 database_config = {
-  engine_version      = "16.6"                # PostgreSQL version
-  min_capacity       = 4                      # Minimum Aurora capacity (ACUs)
-  max_capacity       = 32                     # Maximum Aurora capacity (ACUs)
-  publicly_accessible = false                 # Keep database private (recommended)
-  backup_retention   = 30                     # Backup retention in days
-  subnet_type        = "private"              # Use private subnets (recommended)
+  engine_version      = "16.6"         # PostgreSQL version
+  min_capacity        = 4              # Minimum Aurora capacity (ACUs)
+  max_capacity        = 32             # Maximum Aurora capacity (ACUs)
+  publicly_accessible = false          # Keep database private (recommended)
+  backup_retention    = 30             # Backup retention in days
+  subnet_type         = "private"      # Use private subnets (recommended)
 }
 
 # Security Configuration
-alb_access_type = "public"                    # "public" for internet access, "private" for VPC-only
-alb_allowed_cidrs = [                         # IP ranges allowed to access the application
-  "0.0.0.0/0"                                # Internet access (change to your corporate IPs for security)
-  # "203.0.113.0/24",                        # Example: Your office IP range
-  # "198.51.100.0/24"                        # Example: Your VPN IP range
+alb_access_type    = "public"          # "public" for internet access, "private" for VPC-only
+alb_allowed_cidrs  = [                 # IP ranges allowed to access the application
+  "0.0.0.0/0"                          # Internet access (change to your corporate IPs for security)
+  # "203.0.113.0/24",                  # Example: Your office IP range
+  # "198.51.100.0/24"                  # Example: Your VPN IP range
 ]
 
 # SSL Certificate Configuration
@@ -47,7 +47,7 @@ alb_allowed_cidrs = [                         # IP ranges allowed to access the 
 ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
 
 # Option 2: Let Terraform create a new certificate (comment out ssl_certificate_arn above)
-# create_route53_records = true               # Create DNS records automatically
+# create_route53_records = true              # Create DNS records automatically
 # hosted_zone_id = "Z1234567890ABC"          # Your Route53 hosted zone ID
 
 # ========================================
@@ -57,38 +57,38 @@ ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1
 # Service Configuration (customize for your needs)
 services_configurations = {
   "backend" = {
-    path_pattern      = ["/api/*"]            # API routes
-    health_check_path = "/api/v1/utils/health-check/"
-    desired_count     = 3                     # Number of backend instances
-    min_capacity      = 2                     # Minimum instances for auto-scaling
-    max_capacity      = 10                    # Maximum instances for auto-scaling
-    cpu              = 1024                   # CPU units (1 vCPU = 1024 units)
-    memory           = 2048                   # Memory in MB
-    container_port   = 8000                   # Container port
-    host_port        = 8000                   # Host port
+    path_pattern                     = ["/api/*"]                     # API routes
+    health_check_path                = "/api/v1/utils/health-check/"  # Health check path for backend
+    desired_count                    = 3                              # Number of backend instances
+    min_capacity                     = 2                              # Minimum instances for auto-scaling
+    max_capacity                     = 10                             # Maximum instances for auto-scaling
+    cpu                              = 1024                           # CPU units (1 vCPU = 1024 units)
+    memory                           = 2048                           # Memory in MB
+    container_port                   = 8000                           # Container port
+    host_port                        = 8000                           # Host port
 
     # Auto-scaling thresholds
-    cpu_auto_scalling_target_value    = 70    # Scale out when CPU > 70%
-    memory_auto_scalling_target_value = 80    # Scale out when Memory > 80%
+    cpu_auto_scalling_target_value    = 70                            # Scale out when CPU > 70%
+    memory_auto_scalling_target_value = 80                            # Scale out when Memory > 80%
 
     # Environment variables for backend
     env_vars = {
-      DEBUG = "False"
-      LOG_LEVEL = "INFO"
+      DEBUG                = "False"
+      LOG_LEVEL            = "INFO"
       CORS_ALLOWED_ORIGINS = "https://ai.yourcompany.com"
     }
   }
 
   "frontend" = {
-    path_pattern      = ["/*"]                # All other routes
-    health_check_path = "/"
-    desired_count     = 2                     # Number of frontend instances
-    min_capacity      = 2                     # Minimum instances
-    max_capacity      = 6                     # Maximum instances
-    cpu              = 512                    # CPU units
-    memory           = 1024                   # Memory in MB
-    container_port   = 80                     # Container port
-    host_port        = 80                     # Host port
+    path_pattern                     = ["/*"]                         # All other routes
+    health_check_path                = "/"                            # Health check path for frontend  
+    desired_count                    = 2                              # Number of frontend instances
+    min_capacity                     = 2                              # Minimum instances
+    max_capacity                     = 6                              # Maximum instances
+    cpu                              = 512                            # CPU units
+    memory                           = 1024                           # Memory in MB
+    container_port                   = 80                             # Container port
+    host_port                        = 80                             # Host port
 
     # Auto-scaling thresholds
     cpu_auto_scalling_target_value    = 70
@@ -99,8 +99,8 @@ services_configurations = {
 # Global Environment Variables (applied to all services)
 env_vars = {
   ENVIRONMENT = "production"
-  REGION     = "us-east-1"
-  COMPANY    = "YourCompany"
+  REGION      = "us-east-1"
+  COMPANY     = "YourCompany"
 }
 
 # Global Secret Variables (stored in AWS Secrets Manager)
@@ -130,10 +130,10 @@ buckets_conf = {
 
 # Project and Naming
 project = "anysource"                         # Project name (used in resource naming)
-profile = "default"                          # AWS profile to use
+profile = "default"                           # AWS profile to use
 
 # Secrets Management
-suffix_secret_hash = "PROD2024"              # Unique suffix for secret names
+suffix_secret_hash = "PROD2024"               # Unique suffix for secret names
 
 # Legacy RDS Configuration (for backward compatibility)
 # rds_conf = {
