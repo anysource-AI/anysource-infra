@@ -19,7 +19,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   container_definitions = jsonencode([
     {
       name      = each.key
-      image     = "${var.account}.dkr.ecr.${var.region}.amazonaws.com/${each.key}-${var.environment}:latest"
+      image     = contains(keys(each.value), "public_ecr_image") ? "${each.value.public_ecr_image}:latest" : "${var.account}.dkr.ecr.${var.region}.amazonaws.com/${each.key}-${var.environment}:latest"
       cpu       = each.value.cpu
       memory    = each.value.memory
       essential = true
