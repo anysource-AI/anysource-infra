@@ -14,6 +14,11 @@ output "domain_name" {
 }
 
 output "application_url" {
-  description = "The URL to access the application (domain if provided, otherwise ALB DNS name)"
-  value       = var.domain_name != "" ? "https://${var.domain_name}" : "http://${module.private_alb.alb_dns_name}"
+  description = "The URL to access the application (uses correct protocol based on HTTPS configuration)"
+  value       = "${local.enable_https ? "https" : "http"}://${var.domain_name != "" ? var.domain_name : module.private_alb.alb_dns_name}"
+}
+
+output "https_enabled" {
+  description = "Whether HTTPS is enabled for the application"
+  value       = local.enable_https
 }

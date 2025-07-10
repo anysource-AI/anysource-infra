@@ -1,3 +1,14 @@
+# Validation: Ensure all services have corresponding ECR repository URIs
+locals {
+  missing_ecr_services = [
+    for svc in keys(var.services_configurations) : svc
+    if !contains(keys(var.ecr_repositories), svc)
+  ]
+
+  # This will cause an error if any services are missing ECR URIs
+  validate_ecr_completeness = length(local.missing_ecr_services) == 0 ? true : tobool("ERROR: Missing ECR repository URIs for services: ${join(", ", local.missing_ecr_services)}. All services must have explicit ECR URIs defined in ecr_repositories variable.")
+}
+
 module "ecs" {
   source                      = "./modules/ecs"
   project                     = var.project

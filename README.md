@@ -124,19 +124,39 @@ The infrastructure automatically creates AWS Secrets Manager entries for:
 
 ## Deployment Process
 
-### 1. Plan and Review
+### 1. Initialize Terraform Backend
+
+**For Production (S3 Remote State):**
+
+```bash
+# Copy and configure backend settings
+cp backend.tfvars.example backend.tfvars
+nano backend.tfvars  # Set your S3 bucket, key, and region
+
+# Initialize with remote state
+terraform init -backend-config=backend.tfvars
+```
+
+**For Development (Local State):**
+
+```bash
+# Initialize without backend (local state)
+terraform init -backend=false
+```
+
+### 2. Plan and Review
 
 ```bash
 terraform plan -var-file="production.tfvars"
 ```
 
-### 2. Deploy Infrastructure
+### 3. Deploy Infrastructure
 
 ```bash
 terraform apply -var-file="production.tfvars"
 ```
 
-### 3. Configure Secrets
+### 4. Configure Secrets
 
 ```bash
 # Update secrets in AWS Console or CLI
@@ -145,7 +165,7 @@ aws secretsmanager update-secret \
   --secret-string '{"SECRET_KEY":"your-secret-key","FIRST_SUPERUSER":"admin@company.com"}'
 ```
 
-### 4. Verify Deployment
+### 5. Verify Deployment
 
 ```bash
 # Check ALB endpoint

@@ -11,19 +11,13 @@ terraform {
     }
   }
 
-  # Remote state backend (for production/shared environments)
-  backend "s3" {}
-
-  # Example with specific S3 backend configuration (commented out)
-  #   backend "s3" {
-  #     bucket  = var.terraform_state_bucket
-  #     key     = var.terraform_state_key
-  #     region  = var.region
-  #     profile = var.profile
-  # }
+  # Backend configuration is handled via external files to avoid CI prompts:
+  # 
+  # For S3 remote state (production):
+  #   terraform init -backend-config=backend.tfvars
+  # 
+  # For local state (development):
+  #   terraform init -backend=false
+  # 
+  # See backend.tfvars.example for S3 configuration template
 }
-
-# Uncomment below for local state (for development/testing)
-# backend "local" {
-#   path = "terraform.tfstate"
-# }

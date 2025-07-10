@@ -1,9 +1,4 @@
 # ALB with configurable certificate and access type
-locals {
-  # Always set enable_https based on domain_name (HTTPS enabled only when domain is provided)
-  enable_https = var.domain_name != ""
-}
-
 module "private_alb" {
   source             = "./modules/alb"
   name               = "${var.project}-${var.alb_access_type}-alb-${var.environment}"
