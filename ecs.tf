@@ -15,7 +15,7 @@ module "ecs" {
   public_alb_target_groups    = module.private_alb.target_groups
 
   # Environment variables (non-sensitive)
-  env_vars = {
+  env_vars = merge({
     ENVIRONMENT     = var.environment
     PROJECT_NAME    = var.project
     API_V1_STR      = "/api/v1"
@@ -23,18 +23,23 @@ module "ecs" {
     POSTGRES_PORT   = "5432"
     POSTGRES_DB     = var.database_name
     REDIS_URL       = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
-  }
+    }, var.domain_name == "" ? {
+    # When no domain is provided, set CORS origins to ALB URL as environment variable
+    BACKEND_CORS_ORIGINS = "http://${module.private_alb.alb_dns_name}"
+  } : {})
 
   # Secrets from AWS Secrets Manager (sensitive data)
-  secret_vars = {
+  secret_vars = merge({
     POSTGRES_USER            = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_USERNAME::"
     POSTGRES_PASSWORD        = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_PASSWORD::"
     SECRET_KEY               = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
     FIRST_SUPERUSER          = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER::"
     FIRST_SUPERUSER_PASSWORD = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER_PASSWORD::"
     FRONTEND_HOST            = "${aws_secretsmanager_secret.app_secrets.arn}:FRONTEND_HOST::"
-    BACKEND_CORS_ORIGINS     = var.domain_name != "" ? "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::" : "http://${module.private_alb.alb_dns_name}"
-  }
+    }, var.domain_name != "" ? {
+    # When domain is provided, get CORS origins from secrets manager
+    BACKEND_CORS_ORIGINS = "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::"
+  } : {})
 
   depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
 }
