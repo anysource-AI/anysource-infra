@@ -15,11 +15,10 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   network_mode             = "awsvpc"
   memory                   = each.value.memory
   cpu                      = each.value.cpu
-  task_role_arn            = "arn:aws:iam::${var.account}:role/${var.project}-${var.environment}-${each.key}"
   container_definitions = jsonencode([
     {
       name      = each.key
-      image     = "${var.account}.dkr.ecr.${var.region}.amazonaws.com/${each.key}-${var.environment}:latest"
+      image     = lookup(var.ecr_repositories, each.key, "${each.key}:latest")
       cpu       = each.value.cpu
       memory    = each.value.memory
       essential = true

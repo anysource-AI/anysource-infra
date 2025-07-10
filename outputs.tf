@@ -12,3 +12,8 @@ output "domain_name" {
   description = "The domain name configured for the application"
   value       = var.domain_name
 }
+
+output "application_url" {
+  description = "The URL to access the application (domain if provided, otherwise ALB DNS name)"
+  value       = var.domain_name != "" ? "https://${var.domain_name}" : "http://${module.private_alb.alb_dns_name}"
+}

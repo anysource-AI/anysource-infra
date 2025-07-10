@@ -7,7 +7,7 @@ module "ecs" {
   vpc_cidr                    = var.vpc_cidr
   services_configurations     = var.services_configurations
   services_names              = keys(var.services_configurations)
-  account                     = var.account // for ECR
+  ecr_repositories            = var.ecr_repositories
   ecs_task_execution_role_arn = module.iam.ecs_task_execution_role_arn
   private_subnets             = module.vpc.private_subnets
   public_subnets              = module.vpc.public_subnets
@@ -33,15 +33,8 @@ module "ecs" {
     FIRST_SUPERUSER          = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER::"
     FIRST_SUPERUSER_PASSWORD = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER_PASSWORD::"
     FRONTEND_HOST            = "${aws_secretsmanager_secret.app_secrets.arn}:FRONTEND_HOST::"
-    BACKEND_CORS_ORIGINS     = "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::"
+    BACKEND_CORS_ORIGINS     = var.domain_name != "" ? "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::" : "http://${module.private_alb.alb_dns_name}"
   }
 
-  depends_on = [module.ecr, module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
-}
-
-module "ecr" {
-  source           = "./modules/ecr"
-  project          = var.project
-  environment      = var.environment
-  ecr_repositories = keys(var.services_configurations)
+  depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
 }

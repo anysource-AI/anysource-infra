@@ -28,7 +28,8 @@ variable "environment" {
 
 variable "domain_name" {
   type        = string
-  description = "Domain name for the application"
+  description = "Domain name for the application (optional - if not provided, ALB DNS name will be used)"
+  default     = ""
 }
 
 variable "first_superuser" {
@@ -38,6 +39,21 @@ variable "first_superuser" {
 
 variable "account" {
   type = string
+}
+
+# ECR Configuration
+variable "ecr_repositories" {
+  type        = map(string)
+  description = "Map of service names to their ECR repository URIs"
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for service_name, uri in var.ecr_repositories :
+      can(regex("^(public\\.ecr\\.aws/[^/]+/[^:]+:[^:]+|[0-9]+\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+)$", uri))
+    ])
+    error_message = "ECR repository URIs must be either public ECR (public.ecr.aws/namespace/repo:tag) or private ECR (account.dkr.ecr.region.amazonaws.com/repo:tag) format"
+  }
 }
 
 # VPC Configuration with Smart Defaults
@@ -108,6 +124,8 @@ variable "ssl_certificate_arn" {
   type        = string
   default     = ""
 }
+
+
 
 variable "create_route53_records" {
   description = "Whether to create Route53 DNS records for the domain"

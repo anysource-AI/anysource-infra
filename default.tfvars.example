@@ -1,0 +1,34 @@
+# ========================================
+# DEFAULT ANYSOURCE DEPLOYMENT CONFIGURATION
+# ========================================
+# This is the default configuration - deploys Anysource without a domain.
+# The application will be accessible via the ALB DNS name using HTTP only.
+
+# Required Configuration  
+environment      = "development"
+region           = "us-east-1"
+first_superuser  = "admin@yourcompany.com"
+
+# Note: domain_name is not set (defaults to ""), so HTTPS is automatically disabled
+
+# ECR Configuration (required - provide your ECR repository URIs)
+ecr_repositories = {
+  backend  = "public.ecr.aws/anysource/anysource-api:0.20.0"
+  frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
+}
+
+# Secrets (required for security)
+suffix_secret_hash = "DEV2024"
+
+# Required: HuggingFace token for prompt protection models
+hf_token = "hf_your_token_here"  # Replace with your actual token
+
+# ========================================
+# Default deployment features:
+# ========================================
+# - HTTPS automatically disabled (domain_name defaults to "")
+# - HTTP-only access on port 80
+# - Application accessible via ALB DNS name (output: application_url)
+# - BACKEND_CORS_ORIGINS automatically set to ALB URL
+# - No SSL certificates or Route53 DNS records needed
+# - Perfect for development/testing environments or simple deployments 

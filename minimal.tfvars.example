@@ -2,14 +2,21 @@
 # MINIMAL ANYSOURCE DEPLOYMENT CONFIGURATION
 # ========================================
 # This is the absolute minimum configuration needed to deploy Anysource.
-# Everything else will use smart production-ready defaults.
+# Defaults to HTTP-only deployment. Add domain_name for HTTPS.
 
-# Required Configuration (only 5 values needed!)
+# Required Configuration (only 3 values needed!)
 environment      = "production"
 region           = "us-east-1"
-domain_name      = "ai.yourcompany.com"
 first_superuser  = "admin@yourcompany.com"
-account          = 123456789012
+
+# Optional: Domain Configuration (HTTPS enabled automatically when provided)
+# domain_name    = "mcp.yourcompany.com"  # Uncomment and set your domain for HTTPS
+
+# ECR Configuration (required - provide your ECR repository URIs)
+ecr_repositories = {
+  backend  = "public.ecr.aws/anysource/anysource-api:0.20.0"
+  frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
+}
 
 # Secrets (required for security)
 suffix_secret_hash = "PROD2024"
@@ -22,9 +29,14 @@ hf_token = "hf_your_token_here"  # Replace with your actual token
 # ========================================
 # - Database: Single PostgreSQL "anysource" database in private subnets
 # - Security: Public ALB with internet access, private database
-# - SSL: Automatic ACM certificate creation
+# - SSL: Automatic ACM certificate creation (only if domain_name provided)
 # - Scaling: 2 backend + 2 frontend containers with auto-scaling
 # - Network: 3-AZ VPC with public/private subnets
 # - Resources: Production-ready CPU/memory allocations
 #
-# To customize any of these, see enterprise.tfvars.example
+# Default behavior (HTTP-only access):
+# Without domain_name, HTTPS is automatically disabled
+# Application accessible via ALB DNS name on HTTP port 80
+#
+# To see the complete default config, see default.tfvars.example  
+# To customize advanced settings, see enterprise.tfvars.example

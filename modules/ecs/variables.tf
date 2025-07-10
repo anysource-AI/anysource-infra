@@ -3,8 +3,10 @@ variable "project" {
 }
 
 
-variable "account" {
-  type = number
+variable "ecr_repositories" {
+  type        = map(string)
+  description = "Map of service names to their ECR repository URIs"
+  default     = {}
 }
 
 variable "region" {
