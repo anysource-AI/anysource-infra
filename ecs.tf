@@ -24,7 +24,8 @@ module "ecs" {
     POSTGRES_DB     = var.database_name
     REDIS_URL       = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
     }, var.domain_name == "" ? {
-    # When no domain is provided, set CORS origins to ALB URL as environment variable
+    # When no domain is provided, set frontend host and CORS origins to ALB URL as environment variables
+    FRONTEND_HOST        = "http://${module.private_alb.alb_dns_name}"
     BACKEND_CORS_ORIGINS = "http://${module.private_alb.alb_dns_name}"
   } : {})
 
@@ -35,9 +36,9 @@ module "ecs" {
     SECRET_KEY               = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
     FIRST_SUPERUSER          = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER::"
     FIRST_SUPERUSER_PASSWORD = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER_PASSWORD::"
-    FRONTEND_HOST            = "${aws_secretsmanager_secret.app_secrets.arn}:FRONTEND_HOST::"
     }, var.domain_name != "" ? {
-    # When domain is provided, get CORS origins from secrets manager
+    # When domain is provided, get frontend host and CORS origins from secrets manager
+    FRONTEND_HOST        = "${aws_secretsmanager_secret.app_secrets.arn}:FRONTEND_HOST::"
     BACKEND_CORS_ORIGINS = "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::"
   } : {})
 
