@@ -11,8 +11,8 @@ first_superuser = "admin@yourcompany.com"
 
 # ECR Configuration (required)
 ecr_repositories = {
-  backend  = "<the ECR URI for your backend image here>"
-  frontend = "<the ECR URI for your frontend image here>"
+  backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
+  frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
 }
 
 # Secrets Configuration

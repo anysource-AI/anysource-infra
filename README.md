@@ -5,27 +5,30 @@ Deploy Anysource on AWS with Terraform. Choose from simple HTTP deployments to e
 ## Quick Start
 
 1. **Choose your deployment type:**
+
    - [**No Domain**](examples/no_domain.tfvars) - Simple HTTP deployment (development/testing)
    - [**Custom Domain**](examples/custom_domain.tfvars) - HTTPS with your domain (production)
    - [**Custom Deployment**](examples/custom_deployment.tfvars) - Full enterprise customization
 
 2. **Copy and configure:**
+
    ```bash
    # Choose one based on your needs
    cp examples/no_domain.tfvars terraform.tfvars
    cp examples/custom_domain.tfvars terraform.tfvars
    cp examples/custom_deployment.tfvars terraform.tfvars
-   
+
    # Edit the required values
    nano terraform.tfvars
    ```
 
 3. **Deploy:**
+
    ```bash
    # For development (local state)
    terraform init -backend=false
    terraform apply
-   
+
    # For production (S3 backend) - see Backend Configuration below
    cp examples/backend.tfvars backend.tfvars
    terraform init -backend-config=backend.tfvars
@@ -35,6 +38,7 @@ Deploy Anysource on AWS with Terraform. Choose from simple HTTP deployments to e
 ## Configuration Examples
 
 ### No Domain Deployment (HTTP Only)
+
 Perfect for development and testing environments.
 
 ```hcl
@@ -44,13 +48,15 @@ first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
-  backend  = "public.ecr.aws/anysource/anysource-api:0.20.0"
-  frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
+  backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
+  frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
 }
 ```
+
 **Access:** Via ALB DNS name on HTTP (see `application_url` output)
 
 ### Custom Domain Deployment (HTTPS)
+
 Production-ready with automatic SSL certificates.
 
 ```hcl
@@ -61,11 +67,13 @@ first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
-  backend  = "public.ecr.aws/anysource/anysource-api:0.20.0"
-  frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
+  backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
+  frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
 }
 ```
+
 **Access:** https://mcp.yourcompany.com
+
 - For custom domain deployments, you **must** provide an ACM certificate ARN via the `certificate_arn` variable in your tfvars file. This certificate must cover your chosen domain (e.g., mcp.yourcompany.com). See the `examples/custom_domain.tfvars` for details.
 
 ## Backend Configuration
@@ -94,7 +102,7 @@ terraform apply
        │
 ┌──────▼──────┐
 │ ECS Fargate │ Backend + Frontend containers
-│ Auto-scaling│ 
+│ Auto-scaling│
 └─────┬───────┘
       │
 ┌─────▼─────┐ ┌────────────┐
@@ -104,6 +112,7 @@ terraform apply
 ```
 
 **Infrastructure includes:**
+
 - **Network:** VPC with public/private subnets across 3 AZs
 - **Compute:** ECS Fargate with auto-scaling (2-10 instances)
 - **Database:** Aurora PostgreSQL with automated backups
@@ -115,17 +124,18 @@ terraform apply
 
 All deployments need these values:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `environment` | Environment name | `"production"` |
-| `region` | AWS region | `"us-east-1"` |
-| `first_superuser` | Admin email | `"admin@company.com"` |
-| `hf_token` | HuggingFace token | `"hf_your_token"` |
-| `ecr_repositories` | Container image URIs | See examples |
+| Variable           | Description          | Example               |
+| ------------------ | -------------------- | --------------------- |
+| `environment`      | Environment name     | `"production"`        |
+| `region`           | AWS region           | `"us-east-1"`         |
+| `first_superuser`  | Admin email          | `"admin@company.com"` |
+| `hf_token`         | HuggingFace token    | `"hf_your_token"`     |
+| `ecr_repositories` | Container image URIs | See examples          |
 
 ## Optional Configuration
 
 ### Security Restrictions
+
 ```hcl
 alb_allowed_cidrs = [
   "203.0.113.0/24",    # Office IP range
@@ -134,6 +144,7 @@ alb_allowed_cidrs = [
 ```
 
 ### Database Scaling
+
 ```hcl
 database_config = {
   min_capacity     = 8      # Higher for production
@@ -143,6 +154,7 @@ database_config = {
 ```
 
 ### Application Scaling
+
 ```hcl
 services_configurations = {
   "backend" = {
@@ -158,28 +170,31 @@ services_configurations = {
 
 After deployment, you'll get:
 
-| Output | Description |
-|--------|-------------|
-| `application_url` | Primary application URL |
-| `alb_dns_name` | Load balancer DNS name |
+| Output              | Description                    |
+| ------------------- | ------------------------------ |
+| `application_url`   | Primary application URL        |
+| `alb_dns_name`      | Load balancer DNS name         |
 | `database_endpoint` | PostgreSQL endpoint (internal) |
-| `redis_endpoint` | Redis endpoint (internal) |
+| `redis_endpoint`    | Redis endpoint (internal)      |
 
 ## Deployment Types
 
 ### Development
+
 - HTTP-only access
 - Minimal resources
 - Local Terraform state
 - Cost-optimized
 
 ### Production
+
 - HTTPS with SSL certificates
 - Auto-scaling enabled
 - S3 backend for state
 - High availability
 
 ### Enterprise
+
 - Network security restrictions
 - Advanced scaling configuration
 - Multiple environments
@@ -188,6 +203,7 @@ After deployment, you'll get:
 ## Maintenance
 
 ### Update Application
+
 ```bash
 # Images auto-update from public ECR
 # Force service refresh:
@@ -196,6 +212,7 @@ aws ecs update-service --cluster anysource-[env] --service frontend --force-new-
 ```
 
 ### Scale Resources
+
 ```bash
 # Edit terraform.tfvars with new settings
 terraform plan
@@ -207,15 +224,18 @@ terraform apply
 ### Common Issues
 
 **Certificate validation fails:**
+
 - Ensure domain DNS points to AWS
 - Check ACM certificate status in AWS Console
 
 **ECS tasks not starting:**
+
 - Check ECS service events
 - Verify secrets are configured
 - Review CloudWatch logs: `/aws/ecs/anysource-[env]`
 
 **Connection issues:**
+
 - Verify security group rules
 - Check subnet configurations
 - Validate secret values
@@ -230,6 +250,7 @@ terraform apply
 ## Cost Optimization
 
 ### Development
+
 ```hcl
 database_config = { min_capacity = 0.5, max_capacity = 2 }
 services_configurations = {
@@ -239,6 +260,7 @@ services_configurations = {
 ```
 
 ### Production
+
 - Use Aurora Reserved Instances
 - Set up billing alerts
 - Monitor CloudWatch metrics for optimization

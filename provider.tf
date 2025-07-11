@@ -11,6 +11,11 @@ terraform {
     }
   }
 
+
+  ### S3 Backend Configuration ###
+  # Comment this when using local state
+  backend "s3" {}
+
   # Backend configuration is handled via external files to avoid CI prompts:
   # 
   # For S3 remote state (production):
@@ -18,6 +23,12 @@ terraform {
   # 
   # For local state (development):
   #   terraform init -backend=false
-  # 
-  # See backend.tfvars.example for S3 configuration template
+
+  ### Local Backend Configuration (for development/testing)
+  # Uncomment below to use local state instead of S3
+  # NOTE: Only one backend block can be active; comment the "s3" block above first.
+
+  # backend "local" {
+  #   path = "terraform.tfstate"
+  # }
 }

@@ -30,7 +30,7 @@ region = "us-east-1"
 # Development with local state:
 #   terraform init -backend=false
 # 
-# Reconfigure backend:
+# Reconfigure backend (Optional in case of state changes):
 #   terraform init -backend-config=backend.tfvars -reconfigure
 # 
 # ========================================
