@@ -10,7 +10,7 @@
 environment     = "production"
 region          = "us-east-1"
 first_superuser = "admin@yourcompany.com"
-domain_name     = "ai.yourcompany.com"
+domain_name     = "mcp.yourcompany.com"
 
 # ECR Configuration (required)
 ecr_repositories = {
@@ -20,7 +20,7 @@ ecr_repositories = {
 }
 
 # Secrets Configuration
-suffix_secret_hash = "PROD2024"
+suffix_secret_hash = "ANY2025"
 hf_token           = "hf_your_token_here"
 
 # ========================================

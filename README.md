@@ -56,7 +56,7 @@ Production-ready with automatic SSL certificates.
 ```hcl
 environment     = "production"
 region          = "us-east-1"
-domain_name     = "ai.yourcompany.com"  # Your domain
+domain_name     = "mcp.yourcompany.com"  # Your domain
 first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
@@ -65,7 +65,8 @@ ecr_repositories = {
   frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
 }
 ```
-**Access:** https://ai.yourcompany.com
+**Access:** https://mcp.yourcompany.com
+- For custom domain deployments, you **must** provide an ACM certificate ARN via the `certificate_arn` variable in your tfvars file. This certificate must cover your chosen domain (e.g., mcp.yourcompany.com). See the `examples/custom_domain.tfvars` for details.
 
 ## Backend Configuration
 

@@ -8,7 +8,7 @@
 environment     = "production"
 region          = "us-east-1"
 first_superuser = "admin@yourcompany.com"
-domain_name     = "ai.yourcompany.com" # Replace with your domain
+domain_name     = "mcp.yourcompany.com" # Replace with your domain
 
 # ECR Configuration (required)
 ecr_repositories = {
@@ -17,10 +17,13 @@ ecr_repositories = {
 }
 
 # Secrets Configuration
-suffix_secret_hash = "PROD2024"
+suffix_secret_hash = "ANY2025"
 
 # Required: HuggingFace token for prompt protection models
 hf_token = "hf_your_token_here" # Replace with your actual token
+
+# ACM Certificate ARN for your domain (required for HTTPS)
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id" # Replace with your ACM certificate ARN
 
 # ========================================
 # OPTIONAL CUSTOMIZATION
