@@ -15,11 +15,22 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   network_mode             = "awsvpc"
   memory                   = each.value.memory
   cpu                      = each.value.cpu
-  task_role_arn            = "arn:aws:iam::${var.account}:role/${var.project}-${var.environment}-${each.key}"
+
+  lifecycle {
+    precondition {
+      condition     = contains(keys(var.ecr_repositories), each.key)
+      error_message = "ECR repository URI not found for service '${each.key}'. Please define '${each.key}' in the ecr_repositories variable to avoid fallback to Docker Hub and potential rate limiting."
+    }
+    precondition {
+      condition     = var.ecr_repositories[each.key] != null && var.ecr_repositories[each.key] != ""
+      error_message = "ECR repository URI for service '${each.key}' cannot be null or empty. This prevents fallback to Docker Hub (:latest) which can cause rate limiting and security issues."
+    }
+    ignore_changes = [family]
+  }
   container_definitions = jsonencode([
     {
       name      = each.key
-      image     = "${var.account}.dkr.ecr.${var.region}.amazonaws.com/${each.key}-${var.environment}:latest"
+      image     = var.ecr_repositories[each.key]
       cpu       = each.value.cpu
       memory    = each.value.memory
       essential = true
@@ -57,9 +68,6 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
       }
     }
   ])
-  lifecycle {
-    ignore_changes = [family]
-  }
 }
 
 resource "aws_ecs_service" "private_service" {
@@ -80,9 +88,6 @@ resource "aws_ecs_service" "private_service" {
     target_group_arn = var.public_alb_target_groups[each.key].arn
     container_name   = each.key
     container_port   = each.value.container_port
-  }
-  lifecycle {
-    ignore_changes = [task_definition]
   }
 }
 

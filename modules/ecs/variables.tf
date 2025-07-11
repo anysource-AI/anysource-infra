@@ -3,8 +3,14 @@ variable "project" {
 }
 
 
-variable "account" {
-  type = number
+variable "ecr_repositories" {
+  type        = map(string)
+  description = "Map of service names to their ECR repository URIs. Must contain entries for all services to prevent fallback to Docker Hub."
+
+  validation {
+    condition     = length(var.ecr_repositories) > 0
+    error_message = "ecr_repositories cannot be empty. Define ECR URIs for all services to prevent Docker Hub fallback and rate limiting."
+  }
 }
 
 variable "region" {

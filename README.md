@@ -1,298 +1,262 @@
-# Anysource Enterprise Infrastructure
+# Anysource Infrastructure
 
-This directory contains Terraform configurations for deploying Anysource on AWS infrastructure. It provides production-ready infrastructure with smart defaults that can be customized for enterprise needs.
-
-## Overview
-
-The Terraform configuration creates:
-
-- **VPC**: Multi-AZ network with public/private subnets
-- **Database**: Aurora PostgreSQL with automated backups
-- **Cache**: Redis ElastiCache cluster
-- **Load Balancer**: Application Load Balancer with SSL/TLS termination
-- **Compute**: ECS Fargate services with auto-scaling
-- **Security**: Security groups, IAM roles, and secrets management
-- **DNS**: Optional Route53 integration or bring-your-own certificate
+Deploy Anysource on AWS with Terraform. Choose from simple HTTP deployments to enterprise-grade HTTPS configurations.
 
 ## Quick Start
 
-### 1. Prerequisites
+1. **Choose your deployment type:**
+   - [**No Domain**](examples/no_domain.tfvars) - Simple HTTP deployment (development/testing)
+   - [**Custom Domain**](examples/custom_domain.tfvars) - HTTPS with your domain (production)
+   - [**Custom Deployment**](examples/custom_deployment.tfvars) - Full enterprise customization
 
-- AWS CLI configured with appropriate permissions
-- Terraform >= 1.0 installed
-- Domain name you control (for SSL certificate)
+2. **Copy and configure:**
+   ```bash
+   # Choose one based on your needs
+   cp examples/no_domain.tfvars terraform.tfvars
+   cp examples/custom_domain.tfvars terraform.tfvars
+   cp examples/custom_deployment.tfvars terraform.tfvars
+   
+   # Edit the required values
+   nano terraform.tfvars
+   ```
 
-### 2. Minimal Deployment (Recommended)
+3. **Deploy:**
+   ```bash
+   # For development (local state)
+   terraform init -backend=false
+   terraform apply
+   
+   # For production (S3 backend) - see Backend Configuration below
+   cp examples/backend.tfvars backend.tfvars
+   terraform init -backend-config=backend.tfvars
+   terraform apply
+   ```
 
-For the fastest deployment with production-ready defaults:
+## Configuration Examples
 
-```bash
-# Copy minimal configuration
-cp minimal.tfvars.example production.tfvars
-
-# Edit only these required values:
-nano production.tfvars
-```
-
-**Required Configuration** (only 5 values):
+### No Domain Deployment (HTTP Only)
+Perfect for development and testing environments.
 
 ```hcl
-environment = "production"
-region      = "us-east-1"
-domain_name = "ai.yourcompany.com"  # Your domain
-account     = 123456789012          # Your AWS account ID
-suffix_secret_hash = "PROD2024"     # Unique identifier
-```
+environment     = "development"
+region          = "us-east-1"
+first_superuser = "admin@yourcompany.com"
+hf_token        = "hf_your_token_here"
 
-**Deploy:**
+ecr_repositories = {
+  backend  = "public.ecr.aws/anysource/anysource-api:0.20.0"
+  frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
+}
+```
+**Access:** Via ALB DNS name on HTTP (see `application_url` output)
+
+### Custom Domain Deployment (HTTPS)
+Production-ready with automatic SSL certificates.
+
+```hcl
+environment     = "production"
+region          = "us-east-1"
+domain_name     = "mcp.yourcompany.com"  # Your domain
+first_superuser = "admin@yourcompany.com"
+hf_token        = "hf_your_token_here"
+
+ecr_repositories = {
+  backend  = "public.ecr.aws/anysource/anysource-api:0.20.0"
+  frontend = "public.ecr.aws/anysource/anysource-web:0.20.0"
+}
+```
+**Access:** https://mcp.yourcompany.com
+- For custom domain deployments, you **must** provide an ACM certificate ARN via the `certificate_arn` variable in your tfvars file. This certificate must cover your chosen domain (e.g., mcp.yourcompany.com). See the `examples/custom_domain.tfvars` for details.
+
+## Backend Configuration
+
+For production deployments, use S3 backend for state storage:
 
 ```bash
-terraform init
-terraform plan
+# 1. Set up backend configuration
+cp examples/backend.tfvars backend.tfvars
+nano backend.tfvars  # Configure your S3 bucket
+
+# 2. Initialize with backend
+terraform init -backend-config=backend.tfvars
+
+# 3. Deploy
 terraform apply
 ```
 
-### 3. Enterprise Deployment (Full Control)
-
-For extensive customization options:
-
-```bash
-# Copy enterprise configuration
-cp enterprise.tfvars.example production.tfvars
-
-# Customize all settings as needed
-nano production.tfvars
-```
-
-## Configuration Options
-
-### Smart Defaults (Minimal Configuration)
-
-When using minimal configuration, you get these production-ready defaults:
-
-| Component     | Default Configuration                                             |
-| ------------- | ----------------------------------------------------------------- |
-| **Database**  | Aurora PostgreSQL 16.6, 2-16 ACUs, private subnets, 7-day backups |
-| **Security**  | Public ALB, private database/cache, internet access allowed       |
-| **SSL**       | Automatic ACM certificate creation and validation                 |
-| **Scaling**   | 2 backend + 2 frontend containers, auto-scale to 10 max           |
-| **Resources** | Backend: 512 CPU/1024 MB, Frontend: 512 CPU/1024 MB               |
-| **Network**   | 3-AZ VPC, /16 CIDR, public/private subnets                        |
-
-### Enterprise Customization Options
-
-| Category     | Customizable Options                                         |
-| ------------ | ------------------------------------------------------------ |
-| **Database** | Engine version, capacity, backup retention, subnet placement |
-| **Security** | Private ALB, IP restrictions, certificate management         |
-| **Scaling**  | Instance counts, CPU/memory, auto-scaling thresholds         |
-| **Network**  | Custom CIDR, availability zones, subnet configurations       |
-| **Services** | Additional S3 buckets, Lambda functions, monitoring          |
-
-## Architecture
+## What Gets Deployed
 
 ```
-Internet Gateway
-       │
-   ┌───▼───┐
-   │  ALB  │ (Public subnets)
-   └───┬───┘
+┌─────────────┐
+│ Application │ ← https://your-domain.com (or ALB DNS)
+│ Load Balancer│
+└──────┬──────┘
        │
 ┌──────▼──────┐
-│ ECS Fargate │ (Private subnets)
-│ Backend/Frontend │
-└─────┬───┬───┘
-      │   │
-  ┌───▼┐ ┌▼────┐
-  │RDS │ │Redis│ (Private subnets)
-  └────┘ └─────┘
+│ ECS Fargate │ Backend + Frontend containers
+│ Auto-scaling│ 
+└─────┬───────┘
+      │
+┌─────▼─────┐ ┌────────────┐
+│PostgreSQL │ │   Redis    │ Private subnets
+│ Database  │ │   Cache    │
+└───────────┘ └────────────┘
 ```
 
-## Environment Variables and Secrets
+**Infrastructure includes:**
+- **Network:** VPC with public/private subnets across 3 AZs
+- **Compute:** ECS Fargate with auto-scaling (2-10 instances)
+- **Database:** Aurora PostgreSQL with automated backups
+- **Cache:** Redis ElastiCache cluster
+- **Security:** ALB with SSL termination, security groups, secrets management
+- **DNS:** Optional Route53 integration or external DNS management
 
-The infrastructure automatically creates AWS Secrets Manager entries for:
+## Required Configuration
 
-- Database credentials (auto-generated)
-- Application secrets (you provide)
-- API keys and JWT secrets
+All deployments need these values:
 
-**Required Secrets** (configure in AWS Secrets Manager after deployment):
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `environment` | Environment name | `"production"` |
+| `region` | AWS region | `"us-east-1"` |
+| `first_superuser` | Admin email | `"admin@company.com"` |
+| `hf_token` | HuggingFace token | `"hf_your_token"` |
+| `ecr_repositories` | Container image URIs | See examples |
 
-- `SECRET_KEY`: Application secret key
-- `FIRST_SUPERUSER`: Initial admin email
-- `FIRST_SUPERUSER_PASSWORD`: Initial admin password
+## Optional Configuration
 
-## Deployment Process
-
-### 1. Plan and Review
-
-```bash
-terraform plan -var-file="production.tfvars"
-```
-
-### 2. Deploy Infrastructure
-
-```bash
-terraform apply -var-file="production.tfvars"
-```
-
-### 3. Configure Secrets
-
-```bash
-# Update secrets in AWS Console or CLI
-aws secretsmanager update-secret \
-  --secret-id "anysource-production-app-secrets-${suffix_secret_hash}" \
-  --secret-string '{"SECRET_KEY":"your-secret-key","FIRST_SUPERUSER":"admin@company.com"}'
-```
-
-### 4. Verify Deployment
-
-```bash
-# Check ALB endpoint
-terraform output alb_dns_name
-
-# Check application health
-curl https://your-domain.com/api/v1/utils/health-check/
-```
-
-## Common Configurations
-
-### Private Network (Enterprise Security)
-
+### Security Restrictions
 ```hcl
-alb_access_type = "private"
-alb_allowed_cidrs = ["10.0.0.0/8", "172.16.0.0/12"]  # Corporate networks
+alb_allowed_cidrs = [
+  "203.0.113.0/24",    # Office IP range
+  "198.51.100.0/24"    # VPN IP range
+]
+```
+
+### Database Scaling
+```hcl
 database_config = {
-  publicly_accessible = false
-  subnet_type = "private"
+  min_capacity     = 8      # Higher for production
+  max_capacity     = 64     # Scale as needed
+  backup_retention = 30     # Days to keep backups
 }
 ```
 
-### High Availability Production
-
+### Application Scaling
 ```hcl
-database_config = {
-  min_capacity = 8
-  max_capacity = 64
-  backup_retention = 30
-}
-
 services_configurations = {
   "backend" = {
-    desired_count = 4
-    max_capacity = 20
-    cpu = 2048
-    memory = 4096
+    desired_count = 4     # Production instances
+    max_capacity  = 20    # Maximum scaling
+    cpu          = 2048   # 2 vCPU
+    memory       = 4096   # 4 GB RAM
   }
 }
 ```
 
-### Using Existing SSL Certificate
-
-```hcl
-ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/..."
-create_route53_records = false  # Manage DNS externally
-```
-
 ## Outputs
 
-After deployment, Terraform provides these outputs:
+After deployment, you'll get:
 
-| Output              | Description                     |
-| ------------------- | ------------------------------- |
-| `alb_dns_name`      | Load balancer DNS name          |
-| `backend_ecr_url`   | Backend Docker image URL        |
-| `frontend_ecr_url`  | Frontend Docker image URL       |
-| `database_endpoint` | RDS endpoint (internal)         |
-| `redis_endpoint`    | ElastiCache endpoint (internal) |
+| Output | Description |
+|--------|-------------|
+| `application_url` | Primary application URL |
+| `alb_dns_name` | Load balancer DNS name |
+| `database_endpoint` | PostgreSQL endpoint (internal) |
+| `redis_endpoint` | Redis endpoint (internal) |
+
+## Deployment Types
+
+### Development
+- HTTP-only access
+- Minimal resources
+- Local Terraform state
+- Cost-optimized
+
+### Production
+- HTTPS with SSL certificates
+- Auto-scaling enabled
+- S3 backend for state
+- High availability
+
+### Enterprise
+- Network security restrictions
+- Advanced scaling configuration
+- Multiple environments
+- Custom SSL certificates
 
 ## Maintenance
 
-### Updating Application Images
-
+### Update Application
 ```bash
-# Images are pulled automatically from public ECR
-# Force ECS service update to pull latest:
-aws ecs update-service --cluster anysource-production --service backend --force-new-deployment
-aws ecs update-service --cluster anysource-production --service frontend --force-new-deployment
+# Images auto-update from public ECR
+# Force service refresh:
+aws ecs update-service --cluster anysource-[env] --service backend --force-new-deployment
+aws ecs update-service --cluster anysource-[env] --service frontend --force-new-deployment
 ```
 
-### Scaling Resources
-
+### Scale Resources
 ```bash
-# Update production.tfvars with new capacity
-# Apply changes:
-terraform plan -var-file="production.tfvars"
-terraform apply -var-file="production.tfvars"
+# Edit terraform.tfvars with new settings
+terraform plan
+terraform apply
 ```
-
-### Backup and Recovery
-
-- Database backups are automated (configurable retention)
-- Point-in-time recovery available for Aurora
-- Infrastructure state is stored in Terraform state
 
 ## Troubleshooting
 
 ### Common Issues
 
-**1. Certificate Validation Fails**
+**Certificate validation fails:**
+- Ensure domain DNS points to AWS
+- Check ACM certificate status in AWS Console
 
-- Ensure domain DNS is properly configured
-- Check if domain is publicly resolvable
-- Verify ACM certificate status in AWS Console
+**ECS tasks not starting:**
+- Check ECS service events
+- Verify secrets are configured
+- Review CloudWatch logs: `/aws/ecs/anysource-[env]`
 
-**2. ECS Tasks Not Starting**
-
-- Check ECS service events in AWS Console
-- Verify secrets are properly configured
-- Check CloudWatch logs for container errors
-
-**3. Database Connection Issues**
-
+**Connection issues:**
 - Verify security group rules
-- Check if database is in correct subnets
-- Ensure secrets contain valid database credentials
+- Check subnet configurations
+- Validate secret values
 
 ### Getting Help
 
-- Check CloudWatch logs: `/aws/ecs/anysource-production`
-- Review ECS service events in AWS Console
-- Validate Terraform configuration: `terraform validate`
-- Check AWS resource status in AWS Console
+- **Logs:** CloudWatch `/aws/ecs/anysource-[env]`
+- **Events:** ECS service events in AWS Console
+- **Validation:** `terraform validate`
+- **Planning:** `terraform plan` before applying changes
 
 ## Cost Optimization
 
-### Development/Staging
-
+### Development
 ```hcl
-database_config = {
-  min_capacity = 0.5  # Minimum for Aurora Serverless
-  max_capacity = 2
-}
-
+database_config = { min_capacity = 0.5, max_capacity = 2 }
 services_configurations = {
-  "backend" = { desired_count = 1 }
+  "backend"  = { desired_count = 1 }
   "frontend" = { desired_count = 1 }
 }
 ```
 
 ### Production
-
-- Use Aurora Reserved Instances for cost savings
-- Enable detailed monitoring for optimization insights
-- Set up billing alerts for cost control
+- Use Aurora Reserved Instances
+- Set up billing alerts
+- Monitor CloudWatch metrics for optimization
 
 ## Security Best Practices
 
 1. **Use private subnets** for database and cache
-2. **Restrict ALB access** to corporate IP ranges when possible
-3. **Enable CloudTrail** for audit logging
-4. **Use least-privilege IAM** roles and policies
-5. **Regularly rotate secrets** in AWS Secrets Manager
-6. **Enable GuardDuty** for threat detection
-7. **Use WAF** for additional web application protection
+2. **Restrict ALB access** with IP allowlists
+3. **Enable state encryption** in S3 backend
+4. **Regularly rotate secrets** in AWS Secrets Manager
+5. **Monitor with CloudTrail** and GuardDuty
+6. **Use least-privilege IAM** roles
 
-## License
+## Architecture Features
 
-This infrastructure configuration is provided for enterprise customers under the Anysource Enterprise License Agreement.
+- **High Availability:** Multi-AZ deployment with auto-scaling
+- **Security:** Private database subnets, security groups, SSL/TLS
+- **Scalability:** Auto-scaling based on CPU/memory metrics
+- **Reliability:** Automated backups, health checks, load balancing
+- **Monitoring:** CloudWatch integration, ECS service events
+- **Secrets Management:** AWS Secrets Manager integration

@@ -1,6 +1,6 @@
 
 provider "aws" {
-  region  = var.region
+  region = var.region
 }
 
 terraform {
@@ -11,11 +11,13 @@ terraform {
     }
   }
 
-  backend "s3" {}
-#   backend "s3" {
-#     bucket  = var.terraform_state_bucket
-#     key     = var.terraform_state_key
-#     region  = var.region
-#     profile = var.profile
-# }
+  # Backend configuration is handled via external files to avoid CI prompts:
+  # 
+  # For S3 remote state (production):
+  #   terraform init -backend-config=backend.tfvars
+  # 
+  # For local state (development):
+  #   terraform init -backend=false
+  # 
+  # See backend.tfvars.example for S3 configuration template
 }

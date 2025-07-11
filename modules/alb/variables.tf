@@ -60,5 +60,12 @@ variable "target_groups" {
 
 }
 variable "certificate_arn" {
-  type = string
+  type    = string
+  default = ""
+}
+
+variable "enable_https" {
+  type        = bool
+  description = "Whether to enable HTTPS listener and redirect HTTP to HTTPS"
+  default     = true
 }
