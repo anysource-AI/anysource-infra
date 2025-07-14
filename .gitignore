@@ -1,0 +1,99 @@
+# ========================================
+# PRIVATE CONFIGURATION FILES
+# ========================================
+# Exclude environment-specific configurations
+production.tfvars
+staging.tfvars
+development.tfvars
+prod.tfvars
+staging.tfvars
+dev.tfvars
+**/prod.tfvars
+**/staging.tfvars
+**/dev.tfvars
+*.config
+
+# ========================================
+# TERRAFORM STATE FILES (SENSITIVE)
+# ========================================
+# These contain sensitive infrastructure state
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+
+# ========================================
+# LOCAL TERRAFORM FILES
+# ========================================
+# Local cache and lock files
+.terraform/
+.terraform.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ========================================
+# SECRETS AND CREDENTIALS
+# ========================================
+# Actual secret files (not infrastructure code)
+.env
+.env.*
+secrets.yml
+secrets.yaml
+credentials.yml
+credentials.yaml
+
+# Specific sensitive file patterns (but not .tf files)
+*private.json
+*internal.json
+*credential.json
+*password.txt
+*private_key
+*secret_key
+id_rsa
+id_ed25519
+
+# Note: secrets.tf is tracked as it's infrastructure code, not actual secrets
+
+# ========================================
+# BACKUP AND TEMPORARY FILES
+# ========================================
+*.bak
+*.backup
+*.tmp
+*.temp
+*~
+
+# ========================================
+# OS AND EDITOR FILES
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.vim
+
+# ========================================
+# LOGS AND DEBUG FILES
+# ========================================
+*.log
+terraform.log
+crash.log
+debug.log
