@@ -84,6 +84,10 @@ resource "aws_lb_listener_rule" "alb_listener_rule_https" {
       values = each.value.path_pattern
     }
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb_listener_rule" "alb_listener_rule_http" {
@@ -98,5 +102,9 @@ resource "aws_lb_listener_rule" "alb_listener_rule_http" {
     path_pattern {
       values = each.value.path_pattern
     }
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

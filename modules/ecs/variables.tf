@@ -66,3 +66,25 @@ variable "public_alb_target_groups" {
 
 variable "services_configurations" {
 }
+
+variable "prestart_container_cpu" {
+  type        = number
+  description = "CPU units for the prestart container"
+}
+
+variable "prestart_container_memory" {
+  type        = number
+  description = "Memory (MB) for the prestart container"
+}
+
+variable "prestart_timeout_seconds" {
+  type        = number
+  description = "Timeout in seconds for prestart container to complete"
+  default     = 300
+}
+
+variable "health_check_grace_period_seconds" {
+  type        = number
+  description = "Grace period in seconds before health checks start"
+  default     = 120
+}

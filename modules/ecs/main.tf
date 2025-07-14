@@ -3,8 +3,9 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs_cw_log_group" {
-  for_each = toset(var.services_names)
-  name     = "${each.key}-logs-${var.environment}"
+  for_each          = toset(var.services_names)
+  name              = "${each.key}-logs-${var.environment}"
+  retention_in_days = 14
 }
 
 resource "aws_ecs_task_definition" "ecs_task_definition" {
@@ -27,56 +28,107 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
     }
     ignore_changes = [family]
   }
-  container_definitions = jsonencode([
-    {
-      name      = each.key
-      image     = var.ecr_repositories[each.key]
-      cpu       = each.value.cpu
-      memory    = each.value.memory
-      essential = true
-      portMappings = [
-        {
-          containerPort = each.value.container_port
-          hostPort      = each.value.host_port
-        }
-      ],
-      environment = concat(
-        [
-          for key, value in var.env_vars : {
-            name  = key
-            value = value
+  container_definitions = jsonencode(concat(
+    each.key == "backend" ? [
+      {
+        name      = "prestart"
+        image     = var.ecr_repositories[each.key]
+        cpu       = var.prestart_container_cpu
+        memory    = var.prestart_container_memory
+        essential = false
+        command   = ["bash", "scripts/prestart.sh"]
+        environment = concat(
+          [
+            for key, value in var.env_vars : {
+              name  = key
+              value = value
+            }
+          ],
+          lookup(each.value, "environment", [])
+        ),
+        secrets = concat(
+          [
+            for key, value in var.secret_vars : {
+              name      = key
+              valueFrom = value
+            }
+          ],
+          lookup(each.value, "secrets", [])
+        ),
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = "prestart-logs-${var.environment}"
+            awslogs-region        = var.region
+            awslogs-stream-prefix = var.project
           }
-        ],
-        lookup(each.value, "environment", [])
-      ),
-      secrets = concat(
-        [
-          for key, value in var.secret_vars : {
-            name      = key
-            valueFrom = value
-          }
-        ],
-        lookup(each.value, "secrets", [])
-      ),
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "${each.key}-logs-${var.environment}"
-          awslogs-region        = var.region
-          awslogs-stream-prefix = var.project
         }
       }
-    }
-  ])
+    ] : [],
+    [
+      {
+        name      = each.key
+        image     = var.ecr_repositories[each.key]
+        cpu       = each.key == "backend" ? each.value.cpu - var.prestart_container_cpu : each.value.cpu
+        memory    = each.key == "backend" ? each.value.memory - var.prestart_container_memory : each.value.memory
+        essential = true
+        dependsOn = each.key == "backend" ? [
+          {
+            containerName = "prestart"
+            condition     = "SUCCESS"
+          }
+        ] : null
+        portMappings = [
+          {
+            containerPort = each.value.container_port
+            hostPort      = each.value.host_port
+          }
+        ],
+        environment = concat(
+          [
+            for key, value in var.env_vars : {
+              name  = key
+              value = value
+            }
+          ],
+          lookup(each.value, "environment", [])
+        ),
+        secrets = concat(
+          [
+            for key, value in var.secret_vars : {
+              name      = key
+              valueFrom = value
+            }
+          ],
+          lookup(each.value, "secrets", [])
+        ),
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = "${each.key}-logs-${var.environment}"
+            awslogs-region        = var.region
+            awslogs-stream-prefix = var.project
+          }
+        }
+      }
+    ]
+  ))
+}
+
+resource "aws_cloudwatch_log_group" "prestart_cw_log_group" {
+  name              = "prestart-logs-${var.environment}"
+  retention_in_days = 14
 }
 
 resource "aws_ecs_service" "private_service" {
-  for_each        = var.services_configurations
-  name            = "${each.key}-service"
-  cluster         = aws_ecs_cluster.ecs_cluster.id
-  task_definition = aws_ecs_task_definition.ecs_task_definition[each.key].arn
-  launch_type     = "FARGATE"
-  desired_count   = each.value.desired_count
+  for_each                          = var.services_configurations
+  name                              = "${each.key}-service"
+  cluster                           = aws_ecs_cluster.ecs_cluster.id
+  task_definition                   = aws_ecs_task_definition.ecs_task_definition[each.key].arn
+  launch_type                       = "FARGATE"
+  desired_count                     = each.value.desired_count
+  health_check_grace_period_seconds = each.key == "backend" ? var.health_check_grace_period_seconds : null
+
   network_configuration {
     subnets = var.private_subnets
     security_groups = [

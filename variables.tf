@@ -146,8 +146,8 @@ variable "services_configurations" {
     health_check_path                 = string
     protocol                          = optional(string, "HTTP")
     port                              = optional(number, 80)
-    cpu                               = optional(number, 512)  # Increased default for production
-    memory                            = optional(number, 1024) # Increased default for production
+    cpu                               = optional(number) # Will use service-specific defaults if not provided
+    memory                            = optional(number) # Will use service-specific defaults if not provided
     host_port                         = optional(number, 8000)
     container_port                    = optional(number, 8000)
     desired_count                     = optional(number, 2) # Production-ready default
@@ -155,7 +155,7 @@ variable "services_configurations" {
     min_capacity                      = optional(number, 2)
     cpu_auto_scalling_target_value    = optional(number, 70)
     memory_auto_scalling_target_value = optional(number, 80)
-    priority                          = optional(number) # Priority for ALB listener rules
+    priority                          = optional(number) # Priority for ALB listener rules - lower numbers have higher precedence (1 is highest priority)
     env_vars                          = optional(map(string), {})
     secret_vars                       = optional(map(string), {})
   }))
@@ -168,6 +168,8 @@ variable "services_configurations" {
       host_port         = 8000
       port              = 8000
       priority          = 1
+      cpu               = 1024
+      memory            = 2048
     }
     "frontend" = {
       name              = "frontend"
@@ -176,6 +178,8 @@ variable "services_configurations" {
       container_port    = 80
       host_port         = 80
       priority          = 2
+      cpu               = 512
+      memory            = 1024
     }
   }
 }
@@ -239,7 +243,29 @@ variable "slack_team_id" {
   default     = ""
 }
 
+variable "prestart_container_cpu" {
+  type        = number
+  description = "CPU units for the prestart container"
+  default     = 512
+}
 
+variable "prestart_container_memory" {
+  type        = number
+  description = "Memory (MB) for the prestart container"
+  default     = 1024
+}
+
+variable "prestart_timeout_seconds" {
+  type        = number
+  description = "Timeout in seconds for prestart container to complete"
+  default     = 300
+}
+
+variable "health_check_grace_period_seconds" {
+  type        = number
+  description = "Grace period in seconds before health checks start"
+  default     = 120
+}
 
 # Legacy variables removed - use database_config instead
 

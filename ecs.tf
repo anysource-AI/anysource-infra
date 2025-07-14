@@ -10,20 +10,24 @@ locals {
 }
 
 module "ecs" {
-  source                      = "./modules/ecs"
-  project                     = var.project
-  environment                 = var.environment
-  region                      = var.region
-  vpc_id                      = module.vpc.vpc_id
-  vpc_cidr                    = var.vpc_cidr
-  services_configurations     = var.services_configurations
-  services_names              = keys(var.services_configurations)
-  ecr_repositories            = var.ecr_repositories
-  ecs_task_execution_role_arn = module.iam.ecs_task_execution_role_arn
-  private_subnets             = module.vpc.private_subnets
-  public_subnets              = module.vpc.public_subnets
-  public_alb_security_group   = module.sg_private_alb
-  public_alb_target_groups    = module.private_alb.target_groups
+  source                            = "./modules/ecs"
+  project                           = var.project
+  environment                       = var.environment
+  region                            = var.region
+  vpc_id                            = module.vpc.vpc_id
+  vpc_cidr                          = var.vpc_cidr
+  services_configurations           = var.services_configurations
+  services_names                    = keys(var.services_configurations)
+  ecr_repositories                  = var.ecr_repositories
+  ecs_task_execution_role_arn       = module.iam.ecs_task_execution_role_arn
+  private_subnets                   = module.vpc.private_subnets
+  public_subnets                    = module.vpc.public_subnets
+  public_alb_security_group         = module.sg_private_alb
+  public_alb_target_groups          = module.private_alb.target_groups
+  prestart_container_cpu            = var.prestart_container_cpu
+  prestart_container_memory         = var.prestart_container_memory
+  prestart_timeout_seconds          = var.prestart_timeout_seconds
+  health_check_grace_period_seconds = var.health_check_grace_period_seconds
 
   # Environment variables (non-sensitive)
   env_vars = merge({

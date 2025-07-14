@@ -102,7 +102,7 @@ terraform apply
        │
 ┌──────▼──────┐
 │ ECS Fargate │ Backend + Frontend containers
-│ Auto-scaling│
+│ Auto-scaling│ (Backend includes prestart container)
 └─────┬───────┘
       │
 ┌─────▼─────┐ ┌────────────┐
@@ -119,6 +119,13 @@ terraform apply
 - **Cache:** Redis ElastiCache cluster
 - **Security:** ALB with SSL termination, security groups, secrets management
 - **DNS:** Optional Route53 integration or external DNS management
+
+**Container Architecture:**
+
+- **Backend Service:** Multi-container task with dependency management
+  - **Prestart Container:** Handles database migrations and initial data setup
+  - **Main Backend Container:** FastAPI application (starts after prestart completes)
+- **Frontend Service:** Single container serving the React application
 
 ## Required Configuration
 
@@ -233,6 +240,14 @@ terraform apply
 - Check ECS service events
 - Verify secrets are configured
 - Review CloudWatch logs: `/aws/ecs/anysource-[env]`
+- **Backend-specific:** Check prestart container logs for migration failures
+
+**Database migration issues:**
+
+- Check prestart container logs: `prestart-logs-[env]` in CloudWatch
+- Verify database connectivity from ECS tasks
+- Ensure database is accessible before backend deployment
+- Review alembic migration scripts for conflicts
 
 **Connection issues:**
 
@@ -242,7 +257,8 @@ terraform apply
 
 ### Getting Help
 
-- **Logs:** CloudWatch `/aws/ecs/anysource-[env]`
+- **Logs:** CloudWatch `/aws/ecs/anysource-[env]` (main containers)
+- **Migration Logs:** CloudWatch `prestart-logs-[env]` (database setup)
 - **Events:** ECS service events in AWS Console
 - **Validation:** `terraform validate`
 - **Planning:** `terraform plan` before applying changes
