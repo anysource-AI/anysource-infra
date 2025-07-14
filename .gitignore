@@ -38,7 +38,7 @@ override.tf.json
 # ========================================
 # SECRETS AND CREDENTIALS
 # ========================================
-# Any files containing secrets
+# Actual secret files (not infrastructure code)
 .env
 .env.*
 secrets.yml
@@ -46,13 +46,17 @@ secrets.yaml
 credentials.yml
 credentials.yaml
 
-# Files with sensitive patterns in name
-*private*
-*internal*
-*secret*
-*credential*
-*password*
-*key*
+# Specific sensitive file patterns (but not .tf files)
+*private.json
+*internal.json
+*credential.json
+*password.txt
+*private_key
+*secret_key
+id_rsa
+id_ed25519
+
+# Note: secrets.tf is tracked as it's infrastructure code, not actual secrets
 
 # ========================================
 # BACKUP AND TEMPORARY FILES
