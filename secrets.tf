@@ -34,6 +34,11 @@ resource "random_password" "secret_key" {
   special = false
 }
 
+resource "random_password" "master_salt" {
+  length  = 32
+  special = false
+}
+
 # Application configuration secret version with dynamically generated secrets
 resource "aws_secretsmanager_secret_version" "app_secrets" {
   secret_id = aws_secretsmanager_secret.app_secrets.id
@@ -41,6 +46,7 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     PLATFORM_DB_USERNAME     = "postgres"
     PLATFORM_DB_PASSWORD     = random_password.db_password.result
     SECRET_KEY               = random_password.secret_key.result
+    MASTER_SALT              = random_password.master_salt.result
     FIRST_SUPERUSER          = var.first_superuser
     FIRST_SUPERUSER_PASSWORD = random_password.superuser_password.result
     HF_TOKEN                 = var.hf_token

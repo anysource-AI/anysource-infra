@@ -49,6 +49,7 @@ module "ecs" {
     POSTGRES_USER            = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_USERNAME::"
     POSTGRES_PASSWORD        = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_PASSWORD::"
     SECRET_KEY               = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
+    MASTER_SALT              = "${aws_secretsmanager_secret.app_secrets.arn}:MASTER_SALT::"
     FIRST_SUPERUSER          = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER::"
     FIRST_SUPERUSER_PASSWORD = "${aws_secretsmanager_secret.app_secrets.arn}:FIRST_SUPERUSER_PASSWORD::"
     }, var.domain_name != "" ? {
