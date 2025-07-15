@@ -37,6 +37,7 @@ module "ecs" {
     POSTGRES_SERVER = module.rds[var.database_name].cluster_endpoint
     POSTGRES_PORT   = "5432"
     POSTGRES_DB     = var.database_name
+    POSTGRES_USER   = var.database_username
     REDIS_URL       = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
     }, var.domain_name == "" ? {
     # When no domain is provided, set frontend host and CORS origins to ALB URL as environment variables
@@ -46,7 +47,6 @@ module "ecs" {
 
   # Secrets from AWS Secrets Manager (sensitive data)
   secret_vars = merge({
-    POSTGRES_USER            = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_USERNAME::"
     POSTGRES_PASSWORD        = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_PASSWORD::"
     SECRET_KEY               = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
     MASTER_SALT              = "${aws_secretsmanager_secret.app_secrets.arn}:MASTER_SALT::"

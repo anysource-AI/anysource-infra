@@ -30,7 +30,7 @@ module "rds" {
   count_replicas          = each.value.count_replicas
   vpc_cidr                = var.vpc_cidr
   deletion_protection     = var.deletion_protection
-  db_username             = jsondecode(aws_secretsmanager_secret_version.app_secrets.secret_string)["PLATFORM_DB_USERNAME"]
+  db_username             = var.database_username
   db_password_secret_name = aws_secretsmanager_secret.app_secrets.name
 }
 

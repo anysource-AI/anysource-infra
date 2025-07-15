@@ -43,7 +43,6 @@ resource "random_password" "master_salt" {
 resource "aws_secretsmanager_secret_version" "app_secrets" {
   secret_id = aws_secretsmanager_secret.app_secrets.id
   secret_string = jsonencode(merge({
-    PLATFORM_DB_USERNAME     = "postgres"
     PLATFORM_DB_PASSWORD     = random_password.db_password.result
     SECRET_KEY               = random_password.secret_key.result
     MASTER_SALT              = random_password.master_salt.result

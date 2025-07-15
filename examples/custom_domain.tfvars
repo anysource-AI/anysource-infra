@@ -5,10 +5,11 @@
 # Perfect for production with your own domain
 
 # Required Configuration
-environment     = "production"
-region          = "us-east-1"
-first_superuser = "admin@yourcompany.com"
-domain_name     = "mcp.yourcompany.com" # Replace with your domain
+environment       = "production"
+region            = "us-east-1"
+first_superuser   = "admin@yourcompany.com"
+domain_name       = "mcp.yourcompany.com" # Replace with your domain
+database_username = "postgres"
 
 # ECR Configuration (required)
 ecr_repositories = {

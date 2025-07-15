@@ -53,6 +53,7 @@ ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1
 # DATABASE CONFIGURATION
 # ========================================
 database_name = "anysource_prod"
+database_username = "postgres"
 database_config = {
   engine_version      = "16.6"    # PostgreSQL version
   min_capacity        = 8         # Minimum Aurora capacity (ACUs)

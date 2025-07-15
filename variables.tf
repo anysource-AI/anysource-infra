@@ -88,6 +88,12 @@ variable "database_name" {
   default     = "anysource"
 }
 
+variable "database_username" {
+  description = "Database master username"
+  type        = string
+  sensitive   = true
+}
+
 variable "database_config" {
   description = "Database configuration (all optional)"
   type = object({

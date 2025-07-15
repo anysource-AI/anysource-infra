@@ -5,9 +5,10 @@
 # Perfect for development, testing, or simple deployments
 
 # Required Configuration (minimum needed)
-environment     = "development"
-region          = "us-east-1"
-first_superuser = "admin@yourcompany.com"
+environment       = "development"
+region            = "us-east-1"
+first_superuser   = "admin@yourcompany.com"
+database_username = "postgres"
 
 # ECR Configuration (required)
 ecr_repositories = {
