@@ -8,6 +8,7 @@ development.tfvars
 prod.tfvars
 staging.tfvars
 dev.tfvars
+terraform.tfvars
 **/prod.tfvars
 **/staging.tfvars
 **/dev.tfvars
