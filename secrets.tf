@@ -51,7 +51,7 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     HF_TOKEN                 = var.hf_token
     }, var.domain_name != "" ? {
     # When domain is provided, use HTTPS with domain
-    FRONTEND_HOST        = "https://${var.domain_name}"
+    APP_URL              = "https://${var.domain_name}"
     BACKEND_CORS_ORIGINS = "https://${var.domain_name}"
   } : {}))
 }
