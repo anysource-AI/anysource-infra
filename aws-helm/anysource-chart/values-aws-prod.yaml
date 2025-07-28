@@ -1,0 +1,161 @@
+# AWS Production values file
+# Overrides for production deployment with AWS RDS and ElastiCache
+
+global:
+  namespace: anysource
+  domain: "prod-mcp-eks.dev.anysource.com"
+  environment: "production"
+
+# Disable embedded databases for production
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+# Enable external AWS services
+externalDatabase:
+  enabled: true
+  type: postgresql
+  host: "anysource-prod.cluster-xxxxx.us-east-1.rds.amazonaws.com"
+  port: 5432
+  database: "postgres"
+  username: "postgres"
+  existingSecret: "anysource-db-secret"
+  existingSecretPasswordKey: "password"
+
+externalRedis:
+  enabled: true
+  host: "anysource-prod.cache.amazonaws.com"
+  port: 6379
+  existingSecret: "anysource-redis-secret"
+  existingSecretPasswordKey: "password"
+
+# Use AWS Load Balancer Controller instead of nginx
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  tls:
+    enabled: false # ACM handles TLS
+
+# Use ACM certificate instead of cert-manager
+certManager:
+  enabled: false
+
+awsCertificate:
+  enabled: true
+  arn: "arn:aws:acm:us-east-1:170974506510:certificate/767aa2b7-bca2-46ab-9268-071cd952693d"
+
+# Production resource scaling
+backend:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # Production configuration (non-sensitive)
+  config:
+    BACKEND_CORS_ORIGINS: "https://prod-mcp-eks.dev.anysource.com"
+    FRONTEND_HOST: "https://prod-mcp-eks.dev.anysource.com"
+
+  # Production secrets - THESE MUST BE CHANGED FOR PRODUCTION
+  # These values should be overridden with actual secure values
+  secrets:
+    FIRST_SUPERUSER: "admin@anysource.com"
+    FIRST_SUPERUSER_PASSWORD: "CHANGE-THIS-IN-PRODUCTION"
+    SECRET_KEY: "CHANGE-THIS-TO-A-SECURE-SECRET-KEY-MINIMUM-32-CHARACTERS"
+    MASTER_SALT: "CHANGE-THIS-TO-A-SECURE-MASTER-SALT-MINIMUM-32-CHARACTERS"
+
+frontend:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# HPA configuration for production
+hpa:
+  backend:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  frontend:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Security context for production
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+  supplementalGroups: [1000]
+
+# Enable network policies for production
+networkPolicy:
+  enabled: true
+
+# Service account with AWS IAM role
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::170974506510:role/anysource-eks-pod-role"
+  name: "anysource-sa"
+
+# Production monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+
+# Node selector for production workloads
+nodeSelector:
+  kubernetes.io/arch: amd64
+  node.kubernetes.io/instance-type: m5.large
+
+# Tolerations and affinity for production
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - anysource
+          topologyKey: kubernetes.io/hostname

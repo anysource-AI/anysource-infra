@@ -1,0 +1,321 @@
+# Global configuration
+global:
+  namespace: anysource
+  domain: "mcp.dev.anysource.com"
+  environment: "production"
+
+# Name overrides
+# Provide a name in place of the chart name
+nameOverride: ""
+# Provide a name to substitute for the full names of resources
+fullnameOverride: ""
+
+# Application configuration
+app:
+  name: anysource
+  version: latest
+
+# Image configuration
+image:
+  backend:
+    repository: public.ecr.aws/anysource/anysource-api
+    tag: latest
+    pullPolicy: Always
+    pullSecrets: []
+    # Example: pullSecrets:
+    #   - name: regcred
+  frontend:
+    repository: public.ecr.aws/anysource/anysource-web
+    tag: latest
+    pullPolicy: Always
+    pullSecrets: []
+    # Example: pullSecrets:
+    #   - name: regcred
+
+# Backend service configuration
+backend:
+  name: backend
+  replicas: 2
+  port: 8000
+
+  # Resource configuration
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /api/v1/utils/health-check/
+      port: 8000
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/v1/utils/health-check/
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Environment variables
+  env:
+    API_V1_STR: "/api/v1"
+    WORKERS: "4"
+    HOST: "0.0.0.0"
+    PORT: "8000"
+
+  # Application configuration (non-sensitive)
+  config:
+    BACKEND_CORS_ORIGINS: "https://eks.dev.anysource.com"
+    FRONTEND_HOST: "https://eks.dev.anysource.com"
+    ENVIRONMENT: "production"
+    PROJECT_NAME: "anysource"
+
+  # Secrets (will be created from values)
+  secrets:
+    FIRST_SUPERUSER: "admin@anysource.dev"
+    FIRST_SUPERUSER_PASSWORD: "changeme123!"
+    SECRET_KEY: "your-secret-key-here-change-in-production"
+    MASTER_SALT: "your-master-salt-here-change-in-production"
+
+# Frontend service configuration
+frontend:
+  name: frontend
+  replicas: 2
+  port: 80
+
+  # Resource configuration
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Database prestart init container
+prestart:
+  enabled: true
+  image:
+    repository: public.ecr.aws/anysource/anysource-api
+    tag: latest
+  command: ["bash"]
+  args: ["scripts/prestart.sh"]
+
+# HPA configuration
+hpa:
+  backend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  frontend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Service configuration
+service:
+  backend:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  frontend:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+
+# Ingress configuration (ALB by default)
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  tls:
+    enabled: true
+    secretName: anysource-tls
+
+# PostgreSQL configuration (for dev environment)
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql"
+  auth:
+    postgresPassword: "postgres123"
+    username: "postgres"
+    password: "postgres123"
+    database: "postgres"
+  primary:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ebs-gp3
+
+# Redis configuration (for dev environment)
+redis:
+  enabled: true
+  fullnameOverride: "redis"
+  auth:
+    enabled: true
+    password: "redis123"
+  master:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ebs-gp3
+  replica:
+    persistence:
+      storageClass: ebs-gp3
+
+# External database configuration (for production)
+externalDatabase:
+  enabled: false
+  type: postgresql
+  host: ""
+  port: 5432
+  database: "postgres"
+  username: "postgres"
+  password: ""
+  # Password should be provided via secret
+  existingSecret: ""
+  existingSecretPasswordKey: "password"
+
+# External Redis configuration (for production)
+externalRedis:
+  enabled: false
+  host: ""
+  port: 6379
+  password: ""
+  # Password should be provided via secret
+  existingSecret: ""
+  existingSecretPasswordKey: "password"
+
+# Cert-manager configuration
+certManager:
+  enabled: true
+  issuer:
+    name: letsencrypt-prod
+    email: "admin@anysource.dev"
+    server: https://acme-v02.api.letsencrypt.org/directory
+
+# AWS ACM certificate (for AWS environments)
+# When enabled, this will use an existing ACM certificate instead of cert-manager
+# Requirements:
+# 1. Set certManager.enabled: false
+# 2. Set awsCertificate.enabled: true
+# 3. Provide the ACM certificate ARN
+# 4. Set ingress.tls.enabled: false (ACM handles TLS termination)
+awsCertificate:
+  enabled: false
+  arn: "" # Example: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+podSecurityContext:
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod annotations
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8000"
+  prometheus.io/path: "/metrics"
+
+# Node selector, tolerations and affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: false
+
+# Network policies
+networkPolicy:
+  enabled: false
+
+# Storage Class Configuration
+storageClass:
+  enabled: true
+  name: ebs-gp3
+  isDefault: true
+  provisioner: ebs.csi.aws.com
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
+  reclaimPolicy: Delete
+  parameters:
+    type: gp3
+    encrypted: "true"
+    # Optional: Uncomment and adjust for production workloads
+    iops: "3000"
+    throughput: "125"
+    kmsKeyId: ""
+    # Additional parameters can be added here
+    additionalParameters: {}
+  # Set to true to ensure gp2 is not the default storage class
+  disableGp2Default: true

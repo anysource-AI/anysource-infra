@@ -1,0 +1,99 @@
+# Helm chart gitignore
+
+# Dependencies
+charts/*.tgz
+charts/*.tar.gz
+
+# Lock files (can be regenerated)
+Chart.lock
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Helm generated files
+*.orig
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Terraform state files (if any)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Environment specific values files (keep templates)
+values-local.yaml
+values-*.local.yaml
+local-values.yaml
+
+# Backup files
+*.bak
+*.backup
+
+# Test output
+test-output/
+test-results/
+
+# Helm debug output
+debug.yaml
+debug-*.yaml
+
+# Rendered templates (for debugging)
+rendered/
+output/
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Secrets and sensitive files
+secrets.yaml
+secret-*.yaml
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Log files
+*.log
+logs/
+
+# Coverage reports
+coverage/
+*.cover
+*.coverage
+
+# Node modules (if using any JS tools)
+node_modules/
+
+# Python cache (if using any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

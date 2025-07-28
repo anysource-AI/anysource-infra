@@ -1,0 +1,147 @@
+# Development values file
+# Includes embedded PostgreSQL and Redis for development
+
+global:
+  namespace: anysource-development
+  domain: "mcp-eks.dev.anysource.com"
+  environment: "local"
+
+# Enable embedded databases for development
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres123"
+    username: "postgres"
+    password: "postgres123"
+    database: "postgres"
+  primary:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "redis123"
+  master:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+  replica:
+    replicaCount: 1
+
+# Disable external services for development
+externalDatabase:
+  enabled: false
+
+externalRedis:
+  enabled: false
+
+# Use ALB ingress for development (same as production)
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  tls:
+    enabled: true
+
+# Enable cert-manager for development (for TLS)
+certManager:
+  enabled: true
+  issuer:
+    name: letsencrypt-staging
+    email: "admin@anysource.dev"
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+awsCertificate:
+  enabled: false
+
+# Development resource allocation (smaller)
+backend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # Development configuration (non-sensitive)
+  config:
+    BACKEND_CORS_ORIGINS: "https://mcp-eks.dev.anysource.com"
+    FRONTEND_HOST: "https://mcp-eks.dev.anysource.com"
+
+  # Development secrets - these should be changed for production
+  secrets:
+    FIRST_SUPERUSER: "admin@anysource.dev"
+    FIRST_SUPERUSER_PASSWORD: "devpassword123!"
+    SECRET_KEY: "dev-secret-key-change-in-production-minimum-32-chars"
+    MASTER_SALT: "dev-master-salt-change-in-production-minimum-32-chars"
+
+frontend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+# HPA configuration for development (disabled or minimal)
+hpa:
+  backend:
+    enabled: false
+
+  frontend:
+    enabled: false
+
+# Relaxed security context for development
+securityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  readOnlyRootFilesystem: false
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+# Disable network policies for development
+networkPolicy:
+  enabled: false
+
+# Service account without special annotations
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "anysource-dev-sa"
+
+# Development monitoring (optional)
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+
+# No specific node requirements for development
+nodeSelector: {}
+tolerations: []
+affinity: {}
+# Development environment variables are merged with main values

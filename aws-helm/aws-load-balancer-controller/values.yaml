@@ -1,0 +1,24 @@
+# AWS Load Balancer Controller values for separate chart installation
+clusterName: "anysource"
+fullnameOverride: "aws-load-balancer-controller"
+region: "us-east-1"
+vpcId: "vpc-abcdef1234567890"
+namespace: kube-system
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/AWSLoadBalancerControllerRole"
+resources:
+  limits:
+    cpu: 200m
+    memory: 500Mi
+  requests:
+    cpu: 100m
+    memory: 200Mi
+# Optional: Target group binding values
+# Uncomment and set if needed
+# targetGroupBinding:
+#   enabled: false
+#   backendTargetGroupARN: ""
+#   frontendTargetGroupARN: ""

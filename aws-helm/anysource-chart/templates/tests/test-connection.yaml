@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "anysource.fullname" . }}-test"
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: wget
+      image: busybox:1.36
+      command: ['wget']
+      args: ['--spider', '--timeout=30', 'http://{{ include "anysource.fullname" . }}-frontend:{{ .Values.service.frontend.port }}/']
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
+    - name: backend-health
+      image: busybox:1.36
+      command: ['wget']
+      args: ['--spider', '--timeout=30', 'http://{{ include "anysource.fullname" . }}-backend:{{ .Values.service.backend.port }}/health']
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
