@@ -231,6 +231,62 @@ variable "enable_monitoring" {
   default     = false
 }
 
+variable "alb_5xx_alarm_period" {
+  description = "CloudWatch alarm period (seconds) for ALB 5XX errors"
+  type        = number
+  default     = 300
+}
+
+variable "alb_5xx_alarm_threshold" {
+  description = "CloudWatch alarm threshold for ALB 5XX errors"
+  type        = number
+  default     = 1
+}
+
+# RDS Monitoring and Alerting Configuration
+
+variable "rds_alarm_config" {
+  description = "Map of RDS CloudWatch alarm configs for each metric. Each object must include period, threshold, and unit."
+  type = map(object({
+    period    = number
+    threshold = number
+    unit      = string
+  }))
+  default = {
+    FreeableMemory = {
+      period    = 300
+      threshold = 268435456 # 256MB
+      unit      = "Bytes"
+    }
+    DiskQueueDepth = {
+      period    = 300
+      threshold = 5
+      unit      = "Count"
+    }
+    WriteIOPS = {
+      period    = 300
+      threshold = 1000
+      unit      = "Count"
+    }
+    ReadIOPS = {
+      period    = 300
+      threshold = 1000
+      unit      = "Count"
+    }
+    Storage = {
+      period    = 300
+      threshold = 107374182400 # 100GB
+      unit      = "Bytes"
+    }
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.rds_alarm_config : v.period > 0 && v.threshold > 0
+    ])
+    error_message = "All RDS alarm periods and thresholds must be positive numbers."
+  }
+}
+
 variable "enable_chatbot_alerts" {
   description = "Enable monitoring alerts via AWS Chatbot (much simpler than SNS for enterprise)"
   type        = bool
