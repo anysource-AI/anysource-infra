@@ -125,6 +125,40 @@ secret_vars = {
 }
 
 # ========================================
+# MONITORING & ALERTING CONFIGURATION
+# ========================================
+alb_5xx_alarm_period    = 300   # 5 minute period for prod
+alb_5xx_alarm_threshold = 1     # Alert if any 5XX error in 5 minutes
+
+rds_alarm_config = {
+  FreeableMemory = {
+    period    = 300
+    threshold = 268435456 # 256MB
+    unit      = "Bytes"
+  }
+  DiskQueueDepth = {
+    period    = 300
+    threshold = 5
+    unit      = "Count"
+  }
+  WriteIOPS = {
+    period    = 300
+    threshold = 1000
+    unit      = "Count"
+  }
+  ReadIOPS = {
+    period    = 300
+    threshold = 1000
+    unit      = "Count"
+  }
+  Storage = {
+    period    = 300
+    threshold = 107374182400 # 100GB
+    unit      = "Bytes"
+  }
+}
+
+# ========================================
 # OPTIONAL SERVICES
 # ========================================
 # Additional S3 buckets

@@ -85,7 +85,7 @@ backend:
   # Development configuration (non-sensitive)
   config:
     BACKEND_CORS_ORIGINS: "https://mcp-eks.dev.anysource.com"
-    FRONTEND_HOST: "https://mcp-eks.dev.anysource.com"
+    APP_URL: "https://mcp-eks.dev.anysource.com"
 
   # Development secrets - these should be changed for production
   secrets:

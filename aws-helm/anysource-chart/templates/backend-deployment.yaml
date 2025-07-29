@@ -37,6 +37,7 @@ spec:
           image: "{{ .Values.prestart.image.repository }}:{{ .Values.prestart.image.tag | default .Values.image.backend.tag }}"
           imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
           command: {{ .Values.prestart.command }}
+          args: {{ .Values.prestart.args }}
           env:
             - name: POSTGRES_SERVER
               value: {{ include "anysource.database.host" . | quote }}
@@ -58,11 +59,11 @@ spec:
                   {{- end }}
             - name: ENVIRONMENT
               value: {{ .Values.global.environment | quote }}
-            - name: FRONTEND_HOST
+            - name: APP_URL
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: FRONTEND_HOST
+                  key: APP_URL
             - name: BACKEND_CORS_ORIGINS
               valueFrom:
                 configMapKeyRef:
@@ -121,11 +122,11 @@ spec:
                   {{- end }}
             - name: REDIS_URL
               value: {{ include "anysource.redis.url" . | quote | trim }}
-            - name: FRONTEND_HOST
+            - name: APP_URL
               valueFrom:
                 configMapKeyRef:
                   name: config
-                  key: FRONTEND_HOST
+                  key: APP_URL
             - name: BACKEND_CORS_ORIGINS
               valueFrom:
                 configMapKeyRef:

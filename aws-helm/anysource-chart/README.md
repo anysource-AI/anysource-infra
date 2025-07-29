@@ -33,7 +33,7 @@ The chart manages environment variables through ConfigMaps and Secrets:
 #### ConfigMap (non-sensitive configuration)
 
 - `BACKEND_CORS_ORIGINS` - CORS origins for the backend API
-- `FRONTEND_HOST` - Frontend application URL
+- `APP_URL` - Frontend application URL
 
 #### Secret (sensitive configuration)
 
@@ -48,7 +48,7 @@ These can be configured in your values file:
 backend:
   config:
     BACKEND_CORS_ORIGINS: "https://yourdomain.com"
-    FRONTEND_HOST: "https://yourdomain.com"
+    APP_URL: "https://yourdomain.com"
 
   secrets:
     FIRST_SUPERUSER: "admin@yourcompany.com"

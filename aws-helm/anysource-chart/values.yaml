@@ -76,7 +76,7 @@ backend:
   # Application configuration (non-sensitive)
   config:
     BACKEND_CORS_ORIGINS: "https://eks.dev.anysource.com"
-    FRONTEND_HOST: "https://eks.dev.anysource.com"
+    APP_URL: "https://eks.dev.anysource.com"
     ENVIRONMENT: "production"
     PROJECT_NAME: "anysource"
 

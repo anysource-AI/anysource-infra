@@ -5,7 +5,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 resource "aws_cloudwatch_log_group" "ecs_cw_log_group" {
   for_each          = toset(var.services_names)
   name              = "${each.key}-logs-${var.environment}"
-  retention_in_days = 14
+  retention_in_days = 365
 }
 
 resource "aws_ecs_task_definition" "ecs_task_definition" {
@@ -117,7 +117,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
 
 resource "aws_cloudwatch_log_group" "prestart_cw_log_group" {
   name              = "prestart-logs-${var.environment}"
-  retention_in_days = 14
+  retention_in_days = 365
 }
 
 resource "aws_ecs_service" "private_service" {

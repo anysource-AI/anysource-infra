@@ -67,7 +67,7 @@ backend:
   # Production configuration (non-sensitive)
   config:
     BACKEND_CORS_ORIGINS: "https://prod-mcp-eks.dev.anysource.com"
-    FRONTEND_HOST: "https://prod-mcp-eks.dev.anysource.com"
+    APP_URL: "https://prod-mcp-eks.dev.anysource.com"
 
   # Production secrets - THESE MUST BE CHANGED FOR PRODUCTION
   # These values should be overridden with actual secure values
