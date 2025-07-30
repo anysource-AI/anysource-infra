@@ -1,0 +1,150 @@
+name: Terraform Module Tests
+
+on:
+  pull_request:
+    paths:
+      - 'modules/**'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'modules/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed-modules: ${{ steps.changes.outputs.modules }}
+      any-changes: ${{ steps.changes.outputs.any }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed modules
+        id: changes
+        run: |
+          # Get the base branch for comparison
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_REF="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE_REF="${{ github.event.before }}"
+          fi
+          
+          # If BASE_REF is empty or all zeros (initial commit), compare with HEAD~1
+          if [ -z "$BASE_REF" ] || [ "$BASE_REF" = "0000000000000000000000000000000000000000" ]; then
+            BASE_REF="HEAD~1"
+          fi
+          
+          echo "Comparing against: $BASE_REF"
+          
+          # Get list of changed files in modules directory
+          CHANGED_FILES=$(git diff --name-only $BASE_REF HEAD -- modules/ || echo "")
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes detected in modules directory"
+            echo "modules=[]" >> $GITHUB_OUTPUT
+            echo "any=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Extract unique module names from changed files
+          CHANGED_MODULES=$(echo "$CHANGED_FILES" | grep '^modules/' | cut -d'/' -f2 | sort -u | tr '\n' ' ')
+          
+          echo "Changed modules: $CHANGED_MODULES"
+          
+          # Convert to JSON array format
+          MODULES_JSON="["
+          for module in $CHANGED_MODULES; do
+            if [ "$MODULES_JSON" != "[" ]; then
+              MODULES_JSON="$MODULES_JSON,"
+            fi
+            MODULES_JSON="$MODULES_JSON\"$module\""
+          done
+          MODULES_JSON="$MODULES_JSON]"
+          
+          echo "modules=$MODULES_JSON" >> $GITHUB_OUTPUT
+          echo "any=true" >> $GITHUB_OUTPUT
+          
+          echo "Output JSON: $MODULES_JSON"
+
+  test-modules:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.detect-changes.outputs.changed-modules) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+
+      - name: Check if module has tests
+        id: check-tests
+        run: |
+          MODULE_PATH="modules/${{ matrix.module }}"
+          if [ -d "$MODULE_PATH/tests" ] || ls $MODULE_PATH/*.tftest.hcl 1> /dev/null 2>&1; then
+            echo "has-tests=true" >> $GITHUB_OUTPUT
+            echo "Module ${{ matrix.module }} has tests"
+          else
+            echo "has-tests=false" >> $GITHUB_OUTPUT
+            echo "Module ${{ matrix.module }} has no tests - skipping"
+          fi
+
+      - name: Run Terraform Init
+        if: steps.check-tests.outputs.has-tests == 'true'
+        run: |
+          cd modules/${{ matrix.module }}
+          terraform init
+
+      - name: Run Terraform Test
+        if: steps.check-tests.outputs.has-tests == 'true'
+        run: |
+          cd modules/${{ matrix.module }}
+          terraform test
+
+      - name: Report test results
+        if: always()
+        run: |
+          if [ "${{ steps.check-tests.outputs.has-tests }}" = "true" ]; then
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ Tests passed for module: ${{ matrix.module }}"
+            else
+              echo "❌ Tests failed for module: ${{ matrix.module }}"
+            fi
+          else
+            echo "⏭️ No tests found for module: ${{ matrix.module }}"
+          fi
+
+  test-summary:
+    needs: [detect-changes, test-modules]
+    if: always() && needs.detect-changes.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Summary
+        run: |
+          echo "## 🧪 Terraform Module Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Changed modules: ${{ needs.detect-changes.outputs.changed-modules }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.test-modules.result }}" = "success" ]; then
+            echo "✅ All module tests passed!" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.test-modules.result }}" = "failure" ]; then
+            echo "❌ Some module tests failed. Check the individual job results above." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          elif [ "${{ needs.test-modules.result }}" = "skipped" ]; then
+            echo "⏭️ No modules with tests were changed." >> $GITHUB_STEP_SUMMARY
+          fi
