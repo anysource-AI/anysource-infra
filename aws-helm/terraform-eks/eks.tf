@@ -50,13 +50,14 @@ module "eks" {
   # EKS Managed Node Groups
   eks_managed_node_groups = {
     for name, config in var.node_groups : name => merge(local.node_group_defaults, {
-      name                 = "${local.name_prefix}-${name}"
-      launch_template_name = "${substr(var.project, 0, 8)}-${substr(var.environment, 0, 4)}-${name}-lt"
-      iam_role_name        = "${substr(var.project, 0, 8)}-${substr(var.environment, 0, 4)}-${name}-role"
-      instance_types       = config.instance_types
-      min_size             = config.scaling_config.min_size
-      max_size             = config.scaling_config.max_size
-      desired_size         = config.scaling_config.desired_size
+      name                     = "${local.name_prefix}-${name}"
+      launch_template_name     = "${substr(var.project, 0, 8)}-${substr(var.environment, 0, 4)}-${name}-lt"
+      iam_role_name            = "${substr(var.project, 0, 8)}-${substr(var.environment, 0, 4)}-${name}-role"
+      iam_role_use_name_prefix = false
+      instance_types           = config.instance_types
+      min_size                 = config.scaling_config.min_size
+      max_size                 = config.scaling_config.max_size
+      desired_size             = config.scaling_config.desired_size
 
       disk_size = config.disk_size
 
@@ -77,7 +78,6 @@ module "eks" {
         AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
         AmazonEBSCSIDriverPolicy           = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
       }
-
 
       tags = merge(local.common_tags, {
         NodeGroup = name

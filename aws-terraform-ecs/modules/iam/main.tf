@@ -46,5 +46,17 @@ data "aws_iam_policy_document" "assume_role_policy" {
       type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [var.account_id]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:ecs:${var.region}:${var.account_id}:*"]
+    }
   }
 }

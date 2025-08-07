@@ -61,6 +61,7 @@ database_config = {
   publicly_accessible = false     # Keep private (recommended)
   backup_retention    = 30        # Backup retention in days
   subnet_type         = "private" # Use private subnets
+  force_ssl           = true      # Require SSL connections (true = required, false = optional)
 }
 
 # ========================================

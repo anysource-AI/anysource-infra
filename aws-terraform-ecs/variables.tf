@@ -103,6 +103,7 @@ variable "database_config" {
     publicly_accessible = optional(bool, false)
     backup_retention    = optional(number, 7)
     subnet_type         = optional(string, "private") # "public" or "private"
+    force_ssl           = optional(bool, false)
   })
   default = {}
 }

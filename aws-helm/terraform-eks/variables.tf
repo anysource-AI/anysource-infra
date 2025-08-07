@@ -375,4 +375,3 @@ variable "additional_tags" {
   description = "Additional tags to apply to all resources"
   default     = {}
 }
-

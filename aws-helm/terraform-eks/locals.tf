@@ -96,4 +96,13 @@ locals {
       self        = true
     }
   }
+
+  # Common security conditions for IAM trust relationships to prevent "confused deputy" attacks
+  # These conditions ensure that only authorized principals can assume roles
+  common_trust_conditions = {
+    # Restricts role assumption to this specific AWS account only
+    StringEquals = {
+      "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+    }
+  }
 }
