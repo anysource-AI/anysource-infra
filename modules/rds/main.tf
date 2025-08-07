@@ -11,6 +11,37 @@ data "aws_secretsmanager_secret_version" "db_password" {
   secret_id = data.aws_secretsmanager_secret.db_password.id
 }
 
+# DB Cluster Parameter Group to enforce SSL connections
+resource "aws_rds_cluster_parameter_group" "rds_cluster_pg" {
+  name        = "${local.db_engine}-${var.project}-${local.environment}-cluster-pg"
+  family      = var.parameter_group_family
+  description = "RDS cluster parameter group for ${var.project} ${local.environment} with SSL enforcement"
+
+  parameter {
+    name  = "rds.force_ssl"
+    value = tostring(var.force_ssl)
+  }
+
+  parameter {
+    name  = "shared_preload_libraries"
+    value = "pg_stat_statements"
+  }
+
+  parameter {
+    name  = "log_statement"
+    value = "all"
+  }
+
+  parameter {
+    name  = "log_min_duration_statement"
+    value = "1000"  # Log queries taking longer than 1 second
+  }
+
+  tags = {
+    Name = "${local.db_engine}-${var.project}-${local.environment}-cluster-pg"
+  }
+}
+
 resource "aws_rds_cluster" "rds_cluster" {
   cluster_identifier = "${local.db_engine}-${var.project}-${local.environment}-cluster"
   engine             = "${local.db_engine}-postgresql"
@@ -21,6 +52,10 @@ resource "aws_rds_cluster" "rds_cluster" {
   master_username    = var.db_username
   master_password    = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["PLATFORM_DB_PASSWORD"]
   storage_encrypted  = true
+  
+  # Use the parameter group with SSL enforcement
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_cluster_pg.name
+  
   serverlessv2_scaling_configuration {
     min_capacity = var.min_capacity
     max_capacity = var.max_capacity

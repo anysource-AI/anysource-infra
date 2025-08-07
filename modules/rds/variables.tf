@@ -85,3 +85,15 @@ variable "db_password_secret_name" {
   type        = string
   sensitive   = true
 }
+
+variable "parameter_group_family" {
+  description = "The parameter group family for the RDS cluster"
+  type        = string
+  default     = "aurora-postgresql16"
+}
+
+variable "force_ssl" {
+  description = "Whether to require SSL connections to the database"
+  type        = bool
+  default     = false
+}

@@ -15,3 +15,21 @@ variable "environment" {
     error_message = "Environment name cannot be empty"
   }
 }
+
+variable "account_id" {
+  type        = string
+  description = "The AWS account ID"
+  validation {
+    condition     = length(var.account_id) > 0
+    error_message = "Account ID cannot be empty"
+  }
+}
+
+variable "region" {
+  type        = string
+  description = "The AWS region"
+  validation {
+    condition     = length(var.region) > 0
+    error_message = "Region cannot be empty"
+  }
+}

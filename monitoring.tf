@@ -295,8 +295,14 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
 
 # AWS Chatbot Integration (Much simpler than SNS for enterprise)
 resource "aws_sns_topic" "chatbot_topic" {
-  count = var.enable_chatbot_alerts ? 1 : 0
-  name  = "${var.project}-${var.environment}-chatbot-alerts"
+  count             = var.enable_chatbot_alerts ? 1 : 0
+  name              = "${var.project}-${var.environment}-chatbot-alerts"
+  kms_master_key_id = "alias/aws/sns"
+
+  tags = {
+    Name        = "${var.project}-${var.environment}-chatbot-alerts"
+    Environment = var.environment
+  }
 }
 
 # Chatbot configuration for Slack (requires manual setup in AWS Console)
@@ -311,6 +317,9 @@ resource "aws_chatbot_slack_channel_configuration" "alerts" {
   logging_level = "ERROR"
 }
 
+# Get current AWS caller identity
+data "aws_caller_identity" "current" {}
+
 # IAM role for Chatbot
 resource "aws_iam_role" "chatbot_role" {
   count = var.enable_chatbot_alerts ? 1 : 0
@@ -324,6 +333,14 @@ resource "aws_iam_role" "chatbot_role" {
         Effect = "Allow"
         Principal = {
           Service = "chatbot.amazonaws.com"
+        }
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+          ArnLike = {
+            "aws:SourceArn" = "arn:aws:chatbot::${data.aws_caller_identity.current.account_id}:chat-configuration/slack-channel/*"
+          }
         }
       }
     ]

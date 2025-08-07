@@ -31,14 +31,15 @@ module "ecs" {
 
   # Environment variables (non-sensitive)
   env_vars = merge({
-    ENVIRONMENT     = var.environment
-    PROJECT_NAME    = var.project
-    API_V1_STR      = "/api/v1"
-    POSTGRES_SERVER = module.rds[var.database_name].cluster_endpoint
-    POSTGRES_PORT   = "5432"
-    POSTGRES_DB     = var.database_name
-    POSTGRES_USER   = var.database_username
-    REDIS_URL       = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
+    ENVIRONMENT       = var.environment
+    PROJECT_NAME      = var.project
+    API_V1_STR        = "/api/v1"
+    POSTGRES_SERVER   = module.rds[var.database_name].cluster_endpoint
+    POSTGRES_PORT     = "5432"
+    POSTGRES_DB       = var.database_name
+    POSTGRES_USER     = var.database_username
+    POSTGRES_SSL_MODE = var.database_config.force_ssl == 1 ? "require" : "prefer"
+    REDIS_URL         = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
     }, var.domain_name == "" ? {
     # When no domain is provided, set frontend host and CORS origins to ALB URL as environment variables
     APP_URL              = "http://${module.private_alb.alb_dns_name}"

@@ -17,3 +17,18 @@ output "database_name" {
   description = "Database name"
   value       = aws_rds_cluster.rds_cluster.database_name
 }
+
+output "cluster_parameter_group_name" {
+  description = "RDS cluster parameter group name with SSL enforcement"
+  value       = aws_rds_cluster_parameter_group.rds_cluster_pg.name
+}
+
+output "ssl_enforcement_enabled" {
+  description = "Indicates if SSL enforcement is enabled (1 = required, 0 = optional)"
+  value       = var.force_ssl
+}
+
+output "cluster_port" {
+  description = "RDS cluster port"
+  value       = aws_rds_cluster.rds_cluster.port
+}
