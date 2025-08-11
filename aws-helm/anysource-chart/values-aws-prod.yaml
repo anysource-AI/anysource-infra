@@ -5,6 +5,10 @@ global:
   namespace: anysource
   domain: "prod-mcp-eks.dev.anysource.com"
   environment: "production"
+  # Anysource support will provide this
+  auth0_domain: "your-tenant.us.auth0.com"
+  # Anysource support will provide this
+  auth0_client_id: "your-auth0-client-id"
 
 # Disable embedded databases for production
 postgresql:
@@ -64,16 +68,9 @@ backend:
       cpu: 1000m
       memory: 2Gi
 
-  # Production configuration (non-sensitive)
-  config:
-    BACKEND_CORS_ORIGINS: "https://prod-mcp-eks.dev.anysource.com"
-    APP_URL: "https://prod-mcp-eks.dev.anysource.com"
-
   # Production secrets - THESE MUST BE CHANGED FOR PRODUCTION
   # These values should be overridden with actual secure values
   secrets:
-    FIRST_SUPERUSER: "admin@anysource.com"
-    FIRST_SUPERUSER_PASSWORD: "CHANGE-THIS-IN-PRODUCTION"
     SECRET_KEY: "CHANGE-THIS-TO-A-SECURE-SECRET-KEY-MINIMUM-32-CHARACTERS"
     MASTER_SALT: "CHANGE-THIS-TO-A-SECURE-MASTER-SALT-MINIMUM-32-CHARACTERS"
 

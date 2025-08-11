@@ -59,21 +59,14 @@ spec:
                   {{- end }}
             - name: ENVIRONMENT
               value: {{ .Values.global.environment | quote }}
+            - name: API_V1_STR
+              value: "/api/v1"
             - name: APP_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: APP_URL
+              value: "https://{{ .Values.global.domain }}"
             - name: BACKEND_CORS_ORIGINS
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: BACKEND_CORS_ORIGINS
-            - name: PROJECT_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: PROJECT_NAME
+              value: "https://{{ .Values.global.domain }}"
+            - name: AUTH0_DOMAIN
+              value: {{ .Values.global.auth0_domain | quote }}
           {{- if .Values.backend.secrets }}
           envFrom:
             - secretRef:
@@ -122,27 +115,20 @@ spec:
                   {{- end }}
             - name: REDIS_URL
               value: {{ include "anysource.redis.url" . | quote | trim }}
+            - name: ENVIRONMENT
+              value: {{ .Values.global.environment | quote }}
+            - name: API_V1_STR
+              value: "/api/v1"
             - name: APP_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: APP_URL
+              value: "https://{{ .Values.global.domain }}"
             - name: BACKEND_CORS_ORIGINS
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: BACKEND_CORS_ORIGINS
-            - name: PROJECT_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: config
-                  key: PROJECT_NAME
+              value: "https://{{ .Values.global.domain }}"
+            - name: AUTH0_DOMAIN
+              value: {{ .Values.global.auth0_domain | quote }}
             {{- range $key, $value := .Values.backend.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            - name: ENVIRONMENT
-              value: {{ .Values.global.environment | quote }}
           {{- if .Values.backend.secrets }}
           envFrom:
             - secretRef:

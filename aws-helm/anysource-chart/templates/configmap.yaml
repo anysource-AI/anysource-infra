@@ -14,9 +14,3 @@ data:
   postgres_user: {{ include "anysource.database.username" . | quote }}
   redis_host: {{ include "anysource.redis.host" . | quote }}
   redis_port: {{ include "anysource.redis.port" . | quote }}
-  # Application configuration from values
-  {{- if .Values.backend.config }}
-  {{- range $key, $value := .Values.backend.config }}
-  {{ $key }}: {{ $value | quote }}
-  {{- end }}
-  {{- end }}

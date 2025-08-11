@@ -28,31 +28,29 @@ The chart includes:
 
 ### Environment Variables
 
-The chart manages environment variables through ConfigMaps and Secrets:
+The chart manages configuration through globals, environment variables and secrets:
 
-#### ConfigMap (non-sensitive configuration)
+#### Globals
 
-- `BACKEND_CORS_ORIGINS` - CORS origins for the backend API
-- `APP_URL` - Frontend application URL
+- `domain` - The domain name for the application
+- `auth0_domain` - The domain of the Auth0 tenant for the application (Anysource support will provide this)
+- `auth0_client_id` - The client ID of the Auth0 application (Anysource support will provide this)
 
 #### Secret (sensitive configuration)
 
-- `FIRST_SUPERUSER` - Initial superuser email
-- `FIRST_SUPERUSER_PASSWORD` - Initial superuser password
 - `SECRET_KEY` - JWT secret key for authentication
 - `MASTER_SALT` - Master salt for encryption
 
 These can be configured in your values file:
 
 ```yaml
+global:
+  domain: "mcp.dev.anysource.com"
+  auth0_domain: "your-tenant.us.auth0.com"
+  auth0_client_id: "your-auth0-client-id"
+# [...]
 backend:
-  config:
-    BACKEND_CORS_ORIGINS: "https://yourdomain.com"
-    APP_URL: "https://yourdomain.com"
-
   secrets:
-    FIRST_SUPERUSER: "admin@yourcompany.com"
-    FIRST_SUPERUSER_PASSWORD: "your-secure-password"
     SECRET_KEY: "your-jwt-secret-key-minimum-32-characters"
     MASTER_SALT: "your-master-salt-minimum-32-characters"
 ```

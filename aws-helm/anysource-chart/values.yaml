@@ -3,6 +3,10 @@ global:
   namespace: anysource
   domain: "mcp.dev.anysource.com"
   environment: "production"
+  # Anysource support will provide this
+  auth0_domain: "your-tenant.us.auth0.com"
+  # Anysource support will provide this
+  auth0_client_id: "your-auth0-client-id"
 
 # Name overrides
 # Provide a name in place of the chart name
@@ -68,22 +72,12 @@ backend:
 
   # Environment variables
   env:
-    API_V1_STR: "/api/v1"
     WORKERS: "4"
     HOST: "0.0.0.0"
     PORT: "8000"
 
-  # Application configuration (non-sensitive)
-  config:
-    BACKEND_CORS_ORIGINS: "https://eks.dev.anysource.com"
-    APP_URL: "https://eks.dev.anysource.com"
-    ENVIRONMENT: "production"
-    PROJECT_NAME: "anysource"
-
   # Secrets (will be created from values)
   secrets:
-    FIRST_SUPERUSER: "admin@anysource.dev"
-    FIRST_SUPERUSER_PASSWORD: "changeme123!"
     SECRET_KEY: "your-secret-key-here-change-in-production"
     MASTER_SALT: "your-master-salt-here-change-in-production"
 

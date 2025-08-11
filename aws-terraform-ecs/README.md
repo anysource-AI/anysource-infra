@@ -44,7 +44,6 @@ Perfect for development and testing environments.
 ```hcl
 environment     = "development"
 region          = "us-east-1"
-first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
@@ -63,7 +62,6 @@ Production-ready with automatic SSL certificates.
 environment     = "production"
 region          = "us-east-1"
 domain_name     = "mcp.yourcompany.com"  # Your domain
-first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
@@ -131,13 +129,14 @@ terraform apply
 
 All deployments need these values:
 
-| Variable           | Description          | Example               |
-| ------------------ | -------------------- | --------------------- |
-| `environment`      | Environment name     | `"production"`        |
-| `region`           | AWS region           | `"us-east-1"`         |
-| `first_superuser`  | Admin email          | `"admin@company.com"` |
-| `hf_token`         | HuggingFace token    | `"hf_your_token"`     |
-| `ecr_repositories` | Container image URIs | See examples          |
+| Variable           | Description                                                 | Example                      |
+| ------------------ | ----------------------------------------------------------- | ---------------------------- |
+| `environment`      | Environment name                                            | `"production"`               |
+| `region`           | AWS region                                                  | `"us-east-1"`                |
+| `hf_token`         | HuggingFace token                                           | `"hf_your_token"`            |
+| `auth0_domain`     | Auth0 tenant domain (will be provided by Anysource support) | `"your-tenant.us.auth0.com"` |
+| `auth0_client_id`  | Auth0 client ID (will be provided by Anysource support)     | `"your-auth0-client-id"`     |
+| `ecr_repositories` | Container image URIs                                        | See examples                 |
 
 ## Optional Configuration
 

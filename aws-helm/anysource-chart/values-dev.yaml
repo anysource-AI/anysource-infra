@@ -5,6 +5,10 @@ global:
   namespace: anysource-development
   domain: "mcp-eks.dev.anysource.com"
   environment: "local"
+  # Anysource support will provide this
+  auth0_domain: "your-tenant.us.auth0.com"
+  # Anysource support will provide this
+  auth0_client_id: "your-auth0-client-id"
 
 # Enable embedded databases for development
 postgresql:
@@ -82,15 +86,8 @@ backend:
       cpu: 500m
       memory: 1Gi
 
-  # Development configuration (non-sensitive)
-  config:
-    BACKEND_CORS_ORIGINS: "https://mcp-eks.dev.anysource.com"
-    APP_URL: "https://mcp-eks.dev.anysource.com"
-
   # Development secrets - these should be changed for production
   secrets:
-    FIRST_SUPERUSER: "admin@anysource.dev"
-    FIRST_SUPERUSER_PASSWORD: "devpassword123!"
     SECRET_KEY: "dev-secret-key-change-in-production-minimum-32-chars"
     MASTER_SALT: "dev-master-salt-change-in-production-minimum-32-chars"
 
