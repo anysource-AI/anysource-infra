@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         command   = ["bash", "scripts/prestart.sh"]
         environment = concat(
           [
-            for key, value in var.env_vars : {
+            for key, value in var.backend_env_vars : {
               name  = key
               value = value
             }
@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         ),
         secrets = concat(
           [
-            for key, value in var.secret_vars : {
+            for key, value in var.backend_secret_vars : {
               name      = key
               valueFrom = value
             }
@@ -86,7 +86,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         ],
         environment = concat(
           [
-            for key, value in var.env_vars : {
+            for key, value in (each.key == "backend" ? var.backend_env_vars : var.frontend_env_vars) : {
               name  = key
               value = value
             }
@@ -95,7 +95,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         ),
         secrets = concat(
           [
-            for key, value in var.secret_vars : {
+            for key, value in (each.key == "backend" ? var.backend_secret_vars : {}) : {
               name      = key
               valueFrom = value
             }

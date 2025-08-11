@@ -16,14 +16,23 @@ variable "ecr_repositories" {
 variable "region" {
   type = string
 }
-variable "env_vars" {
-  type    = map(string)
-  default = {}
+variable "backend_env_vars" {
+  type        = map(string)
+  default     = {}
+  description = "Environment variables specific to the backend service"
 }
 
-variable "secret_vars" {
-  type    = map(string)
-  default = {}
+variable "frontend_env_vars" {
+  type        = map(string)
+  default     = {}
+  description = "Environment variables specific to the frontend service"
+}
+
+variable "backend_secret_vars" {
+  type        = map(string)
+  default     = {}
+  description = "Secret variables specific to the backend service"
+  sensitive   = true
 }
 variable "environment" {
   type = string
