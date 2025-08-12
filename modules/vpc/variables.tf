@@ -46,3 +46,27 @@ variable "public_subnet_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "flow_log_cloudwatch_log_group_name" {
+  description = "Name for the CloudWatch Log Group for VPC Flow Logs"
+  type        = string
+  default     = "/aws/vpc-flow-log/default"
+}
+
+variable "flow_log_cloudwatch_log_group_retention_in_days" {
+  description = "Retention period for VPC Flow Logs in days"
+  type        = number
+  default     = 30
+}
+
+variable "flow_log_iam_role_name" {
+  description = "Name for the IAM role used by VPC Flow Logs"
+  type        = string
+  default     = "vpc-flow-logs-role-default"
+}
+
+variable "flow_log_traffic_type" {
+  description = "Type of traffic to capture in VPC Flow Logs (ALL, ACCEPT, REJECT)"
+  type        = string
+  default     = "ALL"
+}

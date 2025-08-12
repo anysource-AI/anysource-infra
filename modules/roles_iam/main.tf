@@ -6,20 +6,26 @@ locals {
 resource "aws_iam_role" "role" {
   for_each           = toset(var.role_names)
   name               = "${var.project}-${var.environment}-${each.key}"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = var.account
+          }
+          ArnLike = {
+            "aws:SourceArn" = "arn:aws:ecs:${var.region}:${var.account}:*"
+          }
+        }
+      }
+    ]
+  })
 }
 
 resource "aws_iam_policy" "policy" {

@@ -44,7 +44,6 @@ Perfect for development and testing environments.
 ```hcl
 environment     = "development"
 region          = "us-east-1"
-first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
@@ -63,7 +62,6 @@ Production-ready with automatic SSL certificates.
 environment     = "production"
 region          = "us-east-1"
 domain_name     = "mcp.yourcompany.com"  # Your domain
-first_superuser = "admin@yourcompany.com"
 hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
@@ -131,13 +129,14 @@ terraform apply
 
 All deployments need these values:
 
-| Variable           | Description          | Example               |
-| ------------------ | -------------------- | --------------------- |
-| `environment`      | Environment name     | `"production"`        |
-| `region`           | AWS region           | `"us-east-1"`         |
-| `first_superuser`  | Admin email          | `"admin@company.com"` |
-| `hf_token`         | HuggingFace token    | `"hf_your_token"`     |
-| `ecr_repositories` | Container image URIs | See examples          |
+| Variable           | Description                                                 | Example                      |
+| ------------------ | ----------------------------------------------------------- | ---------------------------- |
+| `environment`      | Environment name                                            | `"production"`               |
+| `region`           | AWS region                                                  | `"us-east-1"`                |
+| `hf_token`         | HuggingFace token                                           | `"hf_your_token"`            |
+| `auth_domain`      | Auth tenant domain (will be provided by Anysource support)  | `"your-tenant.us.auth0.com"` |
+| `auth_client_id`   | Auth client ID (will be provided by Anysource support)      | `"your-auth-client-id"`      |
+| `ecr_repositories` | Container image URIs                                        | See examples                 |
 
 ## Optional Configuration
 
@@ -290,11 +289,24 @@ services_configurations = {
 5. **Monitor with CloudTrail** and GuardDuty
 6. **Use least-privilege IAM** roles
 
+## ECS Monitoring & Observability
+
+Anysource ECS deployments include robust monitoring and observability features:
+
+- **CloudWatch Logs:** All ECS containers (backend, frontend, prestart) stream logs to CloudWatch. Access logs in the AWS Console under `/aws/ecs/anysource-[env]` for main containers and `prestart-logs-[env]` for migration/setup.
+- **CloudWatch Metrics:** ECS service metrics (CPU, memory, task count, health checks) are available in CloudWatch. Use these for auto-scaling, troubleshooting, and performance optimization.
+- **Alarms & Alerts:** Default CloudWatch alarms notify on service health, resource saturation, and failures. Customize thresholds and notification channels as needed.
+- **Dashboards:** AWS Console provides built-in dashboards for ECS services. For advanced visualization, integrate with Grafana or custom dashboards.
+- **Troubleshooting:** Use CloudWatch logs and ECS service events to diagnose issues. Common problems (task failures, migration errors) are logged for rapid root cause analysis.
+- **Audit & Compliance:** All activity is logged for audit and compliance tracking. Log retention and export are configurable.
+
+For full details, best practices, and advanced monitoring options, see [Monitoring & Observability Documentation](../../docs/infrastructure/monitoring.mdx).
+
 ## Architecture Features
 
 - **High Availability:** Multi-AZ deployment with auto-scaling
 - **Security:** Private database subnets, security groups, SSL/TLS
 - **Scalability:** Auto-scaling based on CPU/memory metrics
 - **Reliability:** Automated backups, health checks, load balancing
-- **Monitoring:** CloudWatch integration, ECS service events
+- **Monitoring:** CloudWatch integration, ECS service events, alarms, dashboards
 - **Secrets Management:** AWS Secrets Manager integration
