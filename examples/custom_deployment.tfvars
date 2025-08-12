@@ -7,10 +7,11 @@
 # ========================================
 # REQUIRED CONFIGURATION
 # ========================================
-environment     = "production"
-region          = "us-east-1"
-first_superuser = "admin@yourcompany.com"
-domain_name     = "mcp.yourcompany.com"
+environment    = "production"
+region         = "us-east-1"
+domain_name    = "mcp.yourcompany.com"
+auth_domain    = "your-tenant.us.auth0.com" # will be provided by Anysource support
+auth_client_id = "your-auth0-client-id"     # will be provided by Anysource support
 
 # ECR Configuration (required)
 ecr_repositories = {
@@ -52,7 +53,7 @@ ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1
 # ========================================
 # DATABASE CONFIGURATION
 # ========================================
-database_name = "anysource_prod"
+database_name     = "anysource_prod"
 database_username = "postgres"
 database_config = {
   engine_version      = "16.6"    # PostgreSQL version
@@ -61,6 +62,7 @@ database_config = {
   publicly_accessible = false     # Keep private (recommended)
   backup_retention    = 30        # Backup retention in days
   subnet_type         = "private" # Use private subnets
+  force_ssl           = true      # Require SSL connections (true = required, false = optional)
 }
 
 # ========================================
@@ -109,19 +111,37 @@ services_configurations = {
 }
 
 # ========================================
-# GLOBAL CONFIGURATION
+# MONITORING & ALERTING CONFIGURATION
 # ========================================
-env_vars = {
-  ENVIRONMENT = "production"
-  REGION      = "us-east-1"
-  COMPANY     = "YourCompany"
-  LOG_LEVEL   = "INFO"
-}
+alb_5xx_alarm_period    = 300 # 5 minute period for prod
+alb_5xx_alarm_threshold = 1   # Alert if any 5XX error in 5 minutes
 
-secret_vars = {
-  JWT_SECRET_KEY = "your-jwt-secret"
-  API_SECRET_KEY = "your-api-secret"
-  ENCRYPTION_KEY = "your-encryption-key"
+rds_alarm_config = {
+  FreeableMemory = {
+    period    = 300
+    threshold = 268435456 # 256MB
+    unit      = "Bytes"
+  }
+  DiskQueueDepth = {
+    period    = 300
+    threshold = 5
+    unit      = "Count"
+  }
+  WriteIOPS = {
+    period    = 300
+    threshold = 1000
+    unit      = "Count"
+  }
+  ReadIOPS = {
+    period    = 300
+    threshold = 1000
+    unit      = "Count"
+  }
+  Storage = {
+    period    = 300
+    threshold = 107374182400 # 100GB
+    unit      = "Bytes"
+  }
 }
 
 # ========================================

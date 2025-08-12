@@ -32,13 +32,25 @@ variable "domain_name" {
   default     = ""
 }
 
-variable "first_superuser" {
-  type        = string
-  description = "Email address for the first superuser account (typically your company admin email)"
-}
-
 variable "account" {
   type = string
+}
+
+variable "suffix_secret_hash" {
+  type        = string
+  description = "Suffix for secret names to ensure uniqueness"
+  default     = ""
+}
+
+# Auth Configuration
+variable "auth_domain" {
+  type        = string
+  description = "Auth domain for authentication (e.g., anysource-acme-inc.us.auth0.com). This will be provided by the Anysource team."
+}
+
+variable "auth_client_id" {
+  type        = string
+  description = "Auth client ID for the frontend application. This will be provided by the Anysource team."
 }
 
 # ECR Configuration
@@ -103,6 +115,7 @@ variable "database_config" {
     publicly_accessible = optional(bool, false)
     backup_retention    = optional(number, 7)
     subnet_type         = optional(string, "private") # "public" or "private"
+    force_ssl           = optional(bool, false)
   })
   default = {}
 }
@@ -131,8 +144,6 @@ variable "ssl_certificate_arn" {
   default     = ""
 }
 
-
-
 variable "create_route53_records" {
   description = "Whether to create Route53 DNS records for the domain"
   type        = bool
@@ -156,14 +167,12 @@ variable "services_configurations" {
     memory                            = optional(number) # Will use service-specific defaults if not provided
     host_port                         = optional(number, 8000)
     container_port                    = optional(number, 8000)
-    desired_count                     = optional(number, 2) # Production-ready default
-    max_capacity                      = optional(number, 2) # Allow scaling
+    desired_count                     = optional(number, 2)  # Production-ready default
+    max_capacity                      = optional(number, 10) # Allow scaling
     min_capacity                      = optional(number, 2)
     cpu_auto_scalling_target_value    = optional(number, 70)
     memory_auto_scalling_target_value = optional(number, 80)
     priority                          = optional(number) # Priority for ALB listener rules - lower numbers have higher precedence (1 is highest priority)
-    env_vars                          = optional(map(string), {})
-    secret_vars                       = optional(map(string), {})
   }))
   default = {
     "backend" = {
@@ -174,8 +183,8 @@ variable "services_configurations" {
       host_port         = 8000
       port              = 8000
       priority          = 1
-      cpu               = 1024
-      memory            = 2048
+      cpu               = 2048
+      memory            = 4096
     }
     "frontend" = {
       name              = "frontend"
@@ -198,19 +207,6 @@ variable "hf_token" {
   sensitive   = true
 }
 
-# Optional Global Environment Variables
-variable "env_vars" {
-  type        = map(string)
-  description = "Global environment variables for all services"
-  default     = {}
-}
-
-variable "secret_vars" {
-  type        = map(string)
-  description = "Global secret variables for all services"
-  default     = {}
-}
-
 # S3 Configuration (Optional)
 variable "buckets_conf" {
   type        = map(object({ acl = string }))
@@ -229,6 +225,62 @@ variable "enable_monitoring" {
   description = "Enable CloudWatch monitoring and alarms"
   type        = bool
   default     = false
+}
+
+variable "alb_5xx_alarm_period" {
+  description = "CloudWatch alarm period (seconds) for ALB 5XX errors"
+  type        = number
+  default     = 300
+}
+
+variable "alb_5xx_alarm_threshold" {
+  description = "CloudWatch alarm threshold for ALB 5XX errors"
+  type        = number
+  default     = 1
+}
+
+# RDS Monitoring and Alerting Configuration
+
+variable "rds_alarm_config" {
+  description = "Map of RDS CloudWatch alarm configs for each metric. Each object must include period, threshold, and unit."
+  type = map(object({
+    period    = number
+    threshold = number
+    unit      = string
+  }))
+  default = {
+    FreeableMemory = {
+      period    = 300
+      threshold = 268435456 # 256MB
+      unit      = "Bytes"
+    }
+    DiskQueueDepth = {
+      period    = 300
+      threshold = 5
+      unit      = "Count"
+    }
+    WriteIOPS = {
+      period    = 300
+      threshold = 1000
+      unit      = "Count"
+    }
+    ReadIOPS = {
+      period    = 300
+      threshold = 1000
+      unit      = "Count"
+    }
+    Storage = {
+      period    = 300
+      threshold = 107374182400 # 100GB
+      unit      = "Bytes"
+    }
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.rds_alarm_config : v.period > 0 && v.threshold > 0
+    ])
+    error_message = "All RDS alarm periods and thresholds must be positive numbers."
+  }
 }
 
 variable "enable_chatbot_alerts" {
@@ -271,14 +323,6 @@ variable "health_check_grace_period_seconds" {
   type        = number
   description = "Grace period in seconds before health checks start"
   default     = 120
-}
-
-# Legacy variables removed - use database_config instead
-
-variable "suffix_secret_hash" {
-  type        = string
-  description = "Suffix for secret names to ensure uniqueness"
-  default     = ""
 }
 
 variable "deletion_protection" {

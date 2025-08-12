@@ -5,6 +5,8 @@ locals {
     "environment" = var.environment
     "name"        = var.project
   }
+  flow_log_cloudwatch_log_group_name = "/aws/vpc-flow-log/${var.project}-${var.environment}"
+  flow_log_iam_role_name = "vpc-flow-logs-role-${var.project}-${var.environment}"
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 resource "aws_vpc" "main" {
@@ -130,4 +132,44 @@ resource "aws_route_table_association" "private" {
   count          = length(var.region_az)
   subnet_id      = aws_subnet.private.*.id[count.index]
   route_table_id = aws_route_table.private[count.index].id
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = local.flow_log_cloudwatch_log_group_name
+  retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
+}
+
+resource "aws_iam_role" "vpc_flow_logs" {
+  name = local.flow_log_iam_role_name
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "vpc_flow_logs" {
+  role       = aws_iam_role.vpc_flow_logs.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+resource "aws_flow_log" "vpc" {
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  log_destination_type = "cloud-watch-logs"
+  iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
+  vpc_id               = aws_vpc.main.id
+  traffic_type         = var.flow_log_traffic_type
+  tags = {
+    Name        = "${var.project}-${var.environment}-vpc-flow-log"
+    Environment = var.environment
+    Project     = var.project
+  }
 }
