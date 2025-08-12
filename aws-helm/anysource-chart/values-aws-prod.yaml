@@ -5,9 +5,9 @@ global:
   domain: "mcp.example.com"
   environment: "production"
   # Anysource support will provide this
-  auth0_domain: "your-tenant.us.auth0.com"
+  auth_domain: "your-tenant.us.auth0.com"
   # Anysource support will provide this
-  auth0_client_id: "your-auth0-client-id"
+  auth_client_id: "your-auth-client-id"
 
 # Disable embedded databases for production (using AWS RDS)
 # Note: If you want to use in-cluster PostgreSQL HA instead of AWS RDS,

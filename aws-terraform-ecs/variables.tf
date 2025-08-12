@@ -43,14 +43,14 @@ variable "suffix_secret_hash" {
 }
 
 # Auth Configuration
-variable "auth0_domain" {
+variable "auth_domain" {
   type        = string
-  description = "Auth0 domain for authentication (e.g., anysource-acme-inc.us.auth0.com). This will be provided by the Anysource team."
+  description = "Auth domain for authentication (e.g., anysource-acme-inc.us.auth0.com). This will be provided by the Anysource team."
 }
 
-variable "auth0_client_id" {
+variable "auth_client_id" {
   type        = string
-  description = "Auth0 client ID for the frontend application. This will be provided by the Anysource team."
+  description = "Auth client ID for the frontend application. This will be provided by the Anysource team."
 }
 
 # ECR Configuration

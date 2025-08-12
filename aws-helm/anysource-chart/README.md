@@ -33,8 +33,8 @@ The chart manages configuration through globals, environment variables and secre
 #### Globals
 
 - `domain` - The domain name for the application
-- `auth0_domain` - The domain of the Auth0 tenant for the application (Anysource support will provide this)
-- `auth0_client_id` - The client ID of the Auth0 application (Anysource support will provide this)
+- `auth_domain` - The domain of the Auth tenant for the application (Anysource support will provide this)
+- `auth_client_id` - The client ID of the Auth application (Anysource support will provide this)
 
 #### Secret (sensitive configuration)
 
@@ -46,8 +46,8 @@ These can be configured in your values file:
 ```yaml
 global:
   domain: "mcp.dev.anysource.com"
-  auth0_domain: "your-tenant.us.auth0.com"
-  auth0_client_id: "your-auth0-client-id"
+  auth_domain: "your-tenant.us.auth0.com"
+  auth_client_id: "your-auth-client-id"
 # [...]
 backend:
   secrets:

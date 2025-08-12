@@ -3,9 +3,9 @@ global:
   domain: "mcp.example.com"
   environment: "production"
   # Anysource support will provide this
-  auth0_domain: "your-tenant.us.auth0.com"
+  auth_domain: "your-tenant.us.auth0.com"
   # Anysource support will provide this
-  auth0_client_id: "your-auth0-client-id"
+  auth_client_id: "your-auth-client-id"
 
 # Name overrides
 # Provide a name in place of the chart name

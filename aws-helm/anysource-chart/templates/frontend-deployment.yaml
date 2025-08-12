@@ -42,10 +42,10 @@ spec:
           readinessProbe:
             {{- toYaml .Values.frontend.readinessProbe | nindent 12 }}
           env:
-            - name: PUBLIC_AUTH0_DOMAIN
-              value: {{ .Values.global.auth0_domain | quote }}
-            - name: PUBLIC_AUTH0_CLIENT_ID
-              value: {{ .Values.global.auth0_client_id | quote }}
+            - name: PUBLIC_AUTH_DOMAIN
+              value: {{ .Values.global.auth_domain | quote }}
+            - name: PUBLIC_AUTH_CLIENT_ID
+              value: {{ .Values.global.auth_client_id | quote }}
             - name: PUBLIC_APP_URL
               value: "https://{{ .Values.global.domain }}"
           resources:

@@ -8,8 +8,8 @@
 environment       = "production"
 region            = "us-east-1"
 domain_name       = "mcp.yourcompany.com"      # Replace with your domain
-auth0_domain      = "your-tenant.us.auth0.com" # will be provided by Anysource support
-auth0_client_id   = "your-auth0-client-id"     # will be provided by Anysource support
+auth_domain       = "your-tenant.us.auth0.com" # will be provided by Anysource support
+auth_client_id    = "your-auth0-client-id"     # will be provided by Anysource support
 database_username = "postgres"
 
 # ECR Configuration (required)
