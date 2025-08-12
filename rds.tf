@@ -32,6 +32,12 @@ module "rds" {
   deletion_protection     = var.deletion_protection
   db_username             = var.database_username
   db_password_secret_name = aws_secretsmanager_secret.app_secrets.name
+
+  # Set parameter group family based on engine version for SSL enforcement
+  parameter_group_family = startswith(each.value.engine_version, "16") ? "aurora-postgresql16" : startswith(each.value.engine_version, "15") ? "aurora-postgresql15" : startswith(each.value.engine_version, "14") ? "aurora-postgresql14" : "aurora-postgresql16"
+
+  # SSL enforcement - defaults to 0 (optional) for backward compatibility
+  force_ssl = var.database_config.force_ssl
 }
 
 # Auto-populate availability zones if not provided

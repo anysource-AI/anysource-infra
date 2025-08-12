@@ -7,8 +7,9 @@
 # Required Configuration
 environment       = "production"
 region            = "us-east-1"
-first_superuser   = "admin@yourcompany.com"
-domain_name       = "mcp.yourcompany.com" # Replace with your domain
+domain_name       = "mcp.yourcompany.com"      # Replace with your domain
+auth_domain       = "your-tenant.us.auth0.com" # will be provided by Anysource support
+auth_client_id    = "your-auth0-client-id"     # will be provided by Anysource support
 database_username = "postgres"
 
 # ECR Configuration (required)
