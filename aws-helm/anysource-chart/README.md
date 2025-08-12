@@ -77,6 +77,28 @@ backend:
 
 ## Quick Start
 
+### Release and Namespace
+
+This chart deploys resources into the Helm release namespace. Specify the namespace at install/upgrade time using the `--namespace` flag; do not set a namespace in values.
+
+Use the following commands:
+
+- Initial install (creates the namespace):
+
+```bash
+helm upgrade --install anysource-production . \
+  --namespace anysource-production \
+  --create-namespace
+```
+
+- Later updates (reuse the existing namespace and your values):
+
+```bash
+helm upgrade --install anysource-production . \
+  --namespace anysource-production \
+  -f values-<environment>.yaml
+```
+
 ### Development Deployment
 
 ```bash
@@ -95,7 +117,9 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --namespace ingress-nginx --create-namespace
 
 # Deploy Anysource with development values
-helm install anysource ./anysource-chart -f values-dev.yaml
+helm upgrade --install anysource-production . \
+  --namespace anysource-production --create-namespace \
+  -f values-dev.yaml
 ```
 
 ### AWS Production Deployment
@@ -110,7 +134,10 @@ kubectl create secret generic anysource-redis-secret \
   --namespace anysource
 
 # Deploy with AWS production values (ALB, ACM, external RDS/ElastiCache, secrets)
-helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace anysource --wait --timeout=10m
+helm upgrade --install anysource-production . \
+  --namespace anysource-production --create-namespace \
+  -f values-aws-prod.yaml \
+  --wait --timeout=10m
 ```
 
 ## Configuration
@@ -120,6 +147,7 @@ helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace any
 - **`values.yaml`** - Default configuration with embedded databases
 - **`values-dev.yaml`** - Development environment with local PostgreSQL and Redis
 - **`values-aws-prod.yaml`** - AWS production: ALB, ACM, external RDS/ElastiCache, secrets
+- **`values-istio-cluster.yaml`** - For clusters with existing Istio installation
 
 ### Key Configuration Options
 
@@ -151,6 +179,59 @@ externalDatabase:
   existingSecret: "anysource-db-secret"
   existingSecretPasswordKey: "password"
 ```
+
+**In-Cluster PostgreSQL HA (Optional):**
+
+Use Bitnami PostgreSQL in replication mode to run HA PostgreSQL inside the cluster. This is suitable for non-AWS or smaller production setups where a managed database is not available. For AWS production, we still recommend external RDS/Aurora.
+
+```yaml
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql"
+
+  # Enable HA mode
+  architecture: replication
+
+  auth:
+    postgresPassword: "CHANGE-ME"
+    username: "postgres"
+    password: "CHANGE-ME"
+    database: "postgres"
+    replicationPassword: "CHANGE-REPL-PASSWORD"
+
+  primary:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ebs-gp3
+
+  readReplicas:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 400m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ebs-gp3
+```
+
+Notes:
+
+- When `architecture: replication` is enabled, the application will automatically connect to the primary service name `postgresql-primary` (resolved by the chart helpers). In standalone mode, it connects to `postgresql`.
+- Read replicas provide redundancy; the application writes to the primary. If you need read/write split, additional application-level routing is required.
+- For AWS EKS production, prefer `externalDatabase` (RDS/Aurora) for managed HA, backups, and maintenance.
 
 #### Redis Configuration
 
@@ -208,6 +289,46 @@ storageClass:
 
 **Note:** This storage class requires the AWS EBS CSI driver to be installed and properly configured with IAM permissions in your EKS cluster.
 
+#### HTTPS Redirect Configuration
+
+The chart automatically manages HTTP to HTTPS redirects based on your certificate configuration:
+
+- **When using cert-manager**: HTTP redirects are **disabled** to allow ACME HTTP-01 challenges
+- **When using ACM certificates**: HTTP redirects are **enabled** to force HTTPS traffic
+- **Manual control**: Use the `ingress.forceHttps` setting to override automatic behavior
+
+**Automatic Behavior:**
+```yaml
+# cert-manager enabled → no redirects (allows HTTP-01 challenges)
+certManager:
+  enabled: true
+ingress:
+  forceHttps: false  # Automatically applied
+
+# cert-manager disabled → redirects enabled
+certManager:
+  enabled: false
+ingress:
+  forceHttps: true   # Automatically applied
+```
+
+**Manual Override:**
+```yaml
+# Force redirects even with cert-manager (not recommended)
+certManager:
+  enabled: true
+ingress:
+  forceHttps: true   # Manual override
+
+# Disable redirects even without cert-manager
+certManager:
+  enabled: false
+ingress:
+  forceHttps: false  # Manual override
+```
+
+The redirect uses the ALB annotation: `alb.ingress.kubernetes.io/redirect-to-https`
+
 #### TLS Certificate Configuration
 
 You can choose between two TLS certificate management options:
@@ -224,19 +345,13 @@ certManager:
 awsCertificate:
   enabled: true
   arn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
-# Configure ALB Ingress (ACM handles TLS termination)
+# Enable HTTPS redirects (automatic when cert-manager is disabled)
 ingress:
   enabled: true
   className: "alb"
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
-    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  forceHttps: true  # Optional: explicitly enable redirects
   tls:
-    enabled: false # ACM handles TLS, so disable ingress TLS section
+    enabled: false # ACM handles TLS termination
 ```
 
 **Prerequisites for AWS ACM:**
@@ -307,20 +422,106 @@ awsCertificate:
 # Disable cert-manager when using ACM
 certManager:
   enabled: false
-# Configure ALB Ingress
+# Configure ALB Ingress (HTTPS redirects automatically enabled)
 ingress:
   enabled: true
   className: "alb"
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
-    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  forceHttps: true  # Optional: explicitly enable redirects
   tls:
     enabled: false # ACM handles TLS termination
 ```
+
+**Istio Service Mesh (For clusters with existing Istio installation):**
+
+The chart supports Istio for advanced traffic management. When Istio is enabled, it automatically disables the standard Kubernetes ingress to prevent conflicts.
+
+```yaml
+# Disable standard ingress
+ingress:
+  enabled: false
+
+# Enable Istio resources (optional)
+istio:
+  enabled: true  # Set to true to create Istio Gateway and VirtualService
+  tlsSecretName: "anysource-tls"
+  gateway:
+    name: anysource-gateway
+    selector:
+      istio: ingressgateway
+    servers:
+      - port:
+          number: 80
+          name: http
+          protocol: HTTP
+        hosts:
+          - "*"
+      - port:
+          number: 443
+          name: https
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: anysource-tls
+        hosts:
+          - "*"
+  
+  virtualService:
+    name: anysource-vs
+    hosts:
+      - "*"
+    gateways:
+      - anysource-gateway
+    http:
+      - match:
+          - uri:
+              prefix: "/api/"
+        route:
+          - destination:
+              host: anysource-backend
+              port:
+                number: 8000
+      - match:
+          - uri:
+              prefix: "/"
+        route:
+          - destination:
+              host: anysource-frontend
+              port:
+                number: 80
+```
+
+**Prerequisites for Istio:**
+
+1. Istio must be installed in your cluster
+2. Istio ingress gateway must be deployed and labeled with `istio: ingressgateway`
+3. Cert-manager should be enabled for TLS certificate management
+4. AWS ACM certificates are not supported with Istio (use cert-manager instead)
+
+**Deploy with Istio:**
+
+```bash
+# Option 1: Use existing Istio resources (recommended)
+# Just disable ingress and ensure service names match
+helm upgrade --install anysource . \
+  --namespace anysource --create-namespace \
+  -f values-istio-cluster.yaml
+
+# Option 2: Create Istio resources from the chart
+# Set istio.enabled: true in your values file
+helm upgrade --install anysource . \
+  --namespace anysource --create-namespace \
+  -f values-istio-cluster.yaml \
+  --set istio.enabled=true
+```
+
+**Istio Benefits:**
+
+- Advanced traffic routing and load balancing
+- Circuit breaking and fault injection
+- Detailed metrics and tracing
+- mTLS between services
+- Canary deployments and A/B testing
+- Rate limiting and retry policies
 
 #### Resource Configuration
 
@@ -395,19 +596,26 @@ hpa:
 ### Install
 
 ```bash
-helm install anysource ./anysource-chart -f values-dev.yaml
+helm upgrade --install anysource-production . \
+  --namespace anysource-production --create-namespace \
+  -f values-dev.yaml
 ```
 
 ### Upgrade
 
 ```bash
-helm upgrade anysource ./anysource-chart -f values-dev.yaml
+helm upgrade --install anysource-production . \
+  --namespace anysource-production \
+  -f values-dev.yaml
 ```
 
 ### Uninstall
 
 ```bash
-helm uninstall anysource
+helm uninstall anysource-production -n anysource-production
+
+# Optionally remove the namespace and all resources (including PVCs)
+kubectl delete namespace anysource-production
 ```
 
 ### Test
@@ -434,8 +642,8 @@ kubectl describe pod <pod-name> -n anysource
 ### View Logs
 
 ```bash
-kubectl logs -f deployment/anysource-backend -n anysource
-kubectl logs -f deployment/anysource-frontend -n anysource
+kubectl logs -f deployment/<backend-name-from-values> -n anysource
+kubectl logs -f deployment/<frontend-name-from-values> -n anysource
 ```
 
 ### Check Database Prestart
@@ -455,7 +663,8 @@ kubectl describe ingress anysource-ingress -n anysource
 
 ```bash
 kubectl get hpa -n anysource
-kubectl describe hpa anysource-backend-hpa -n anysource
+kubectl describe hpa <backend-name-from-values>-hpa -n anysource
+kubectl describe hpa <frontend-name-from-values>-hpa -n anysource
 ```
 
 ## Customization

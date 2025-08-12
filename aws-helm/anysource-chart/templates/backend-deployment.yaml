@@ -1,8 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
-  namespace: {{ .Values.global.namespace }}
+  name: {{ .Values.backend.name }}
   labels:
     {{- include "anysource.backend.labels" . | nindent 4 }}
 spec:
@@ -73,12 +72,7 @@ spec:
                 name: backend-secret
           {{- end }}
           resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
+            {{- toYaml .Values.prestart.resources | nindent 12 }}
       {{- end }}
       containers:
         - name: backend

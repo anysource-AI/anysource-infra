@@ -2,13 +2,13 @@
 # Includes embedded PostgreSQL and Redis for development
 
 global:
-  namespace: anysource-development
-  domain: "mcp-eks.dev.anysource.com"
-  environment: "local"
+  domain: "mcp.dev.example.com"
+  environment: "development"
   # Anysource support will provide this
   auth0_domain: "your-tenant.us.auth0.com"
   # Anysource support will provide this
   auth0_client_id: "your-auth0-client-id"
+
 
 # Enable embedded databases for development
 postgresql:
@@ -24,8 +24,8 @@ postgresql:
         cpu: 250m
         memory: 512Mi
       limits:
-        cpu: 500m
-        memory: 1Gi
+        cpu: 250m
+        memory: 512Mi
 
 redis:
   enabled: true
@@ -38,53 +38,41 @@ redis:
         cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 256Mi
   replica:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
     replicaCount: 1
-
-# Disable external services for development
-externalDatabase:
-  enabled: false
-
-externalRedis:
-  enabled: false
 
 # Use ALB ingress for development (same as production)
 ingress:
   enabled: true
   className: "alb"
+  # HTTPS redirects enabled since cert-manager is disabled
+  # Note: When cert-manager is disabled, redirects are automatically enabled
+  forceHttps: true
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
   tls:
     enabled: true
 
 # Enable cert-manager for development (for TLS)
 certManager:
-  enabled: true
-  issuer:
-    name: letsencrypt-staging
-    email: "admin@anysource.dev"
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
-
-awsCertificate:
   enabled: false
 
 # Development resource allocation (smaller)
 backend:
   replicas: 1
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 500m
-      memory: 1Gi
 
   # Development secrets - these should be changed for production
   secrets:
@@ -93,19 +81,11 @@ backend:
 
 frontend:
   replicas: 1
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 250m
-      memory: 512Mi
 
 # HPA configuration for development (disabled or minimal)
 hpa:
   backend:
     enabled: false
-
   frontend:
     enabled: false
 
@@ -115,30 +95,7 @@ securityContext:
   runAsUser: 0
   readOnlyRootFilesystem: false
 
-podSecurityContext:
-  seccompProfile:
-    type: RuntimeDefault
-
-# Disable network policies for development
-networkPolicy:
-  enabled: false
-
 # Service account without special annotations
 serviceAccount:
   create: true
-  annotations: {}
   name: "anysource-dev-sa"
-
-# Development monitoring (optional)
-monitoring:
-  enabled: false
-  prometheus:
-    enabled: false
-  grafana:
-    enabled: false
-
-# No specific node requirements for development
-nodeSelector: {}
-tolerations: []
-affinity: {}
-# Development environment variables are merged with main values

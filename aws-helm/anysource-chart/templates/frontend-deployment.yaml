@@ -1,8 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
-  namespace: {{ .Values.global.namespace }}
+  name: {{ .Values.frontend.name }}
   labels:
     {{- include "anysource.frontend.labels" . | nindent 4 }}
 spec:

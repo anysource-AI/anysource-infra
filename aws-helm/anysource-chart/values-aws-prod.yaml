@@ -2,17 +2,58 @@
 # Overrides for production deployment with AWS RDS and ElastiCache
 
 global:
-  namespace: anysource
-  domain: "prod-mcp-eks.dev.anysource.com"
+  domain: "mcp.example.com"
   environment: "production"
   # Anysource support will provide this
   auth0_domain: "your-tenant.us.auth0.com"
   # Anysource support will provide this
   auth0_client_id: "your-auth0-client-id"
 
-# Disable embedded databases for production
+# Disable embedded databases for production (using AWS RDS)
+# Note: If you want to use in-cluster PostgreSQL HA instead of AWS RDS,
+# set enabled: true and configure the HA settings below
 postgresql:
   enabled: false
+
+  # High Availability Configuration (for in-cluster deployment)
+  # Uncomment and set enabled: true above to use these settings
+  auth:
+    postgresPassword: "CHANGE-THIS-IN-PRODUCTION"
+    username: "postgres"
+    password: "CHANGE-THIS-IN-PRODUCTION"
+    database: "postgres"
+    replicationPassword: "CHANGE-THIS-REPLICATION-PASSWORD-IN-PRODUCTION"
+
+  architecture: replication
+
+  # Production-grade primary configuration
+  primary:
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: ebs-gp3
+
+  # Production read replicas configuration
+  readReplicas:
+    replicaCount: 3
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: ebs-gp3
 
 redis:
   enabled: false
@@ -21,7 +62,7 @@ redis:
 externalDatabase:
   enabled: true
   type: postgresql
-  host: "anysource-prod.cluster-xxxxx.us-east-1.rds.amazonaws.com"
+  host: "anysource.cluster-xxxxx.us-east-1.rds.amazonaws.com"
   port: 5432
   database: "postgres"
   username: "postgres"
@@ -30,7 +71,7 @@ externalDatabase:
 
 externalRedis:
   enabled: true
-  host: "anysource-prod.cache.amazonaws.com"
+  host: "anysource.cache.amazonaws.com"
   port: 6379
   existingSecret: "anysource-redis-secret"
   existingSecretPasswordKey: "password"
@@ -39,12 +80,14 @@ externalRedis:
 ingress:
   enabled: true
   className: "alb"
+  # HTTPS redirects enabled since using ACM (cert-manager disabled)
+  # Note: When cert-manager is disabled, redirects are automatically enabled
+  forceHttps: true
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
   tls:
     enabled: false # ACM handles TLS
@@ -55,15 +98,15 @@ certManager:
 
 awsCertificate:
   enabled: true
-  arn: "arn:aws:acm:us-east-1:170974506510:certificate/767aa2b7-bca2-46ab-9268-071cd952693d"
+  arn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
 
 # Production resource scaling
 backend:
   replicas: 3
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 1000m
+      memory: 2Gi
     limits:
       cpu: 1000m
       memory: 2Gi
@@ -78,8 +121,8 @@ frontend:
   replicas: 3
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 500m
+      memory: 1Gi
     limits:
       cpu: 500m
       memory: 1Gi
@@ -90,15 +133,10 @@ hpa:
     enabled: true
     minReplicas: 3
     maxReplicas: 20
-    targetCPUUtilizationPercentage: 70
-    targetMemoryUtilizationPercentage: 80
-
   frontend:
     enabled: true
     minReplicas: 3
     maxReplicas: 10
-    targetCPUUtilizationPercentage: 70
-    targetMemoryUtilizationPercentage: 80
 
 # Security context for production
 securityContext:
@@ -125,16 +163,8 @@ networkPolicy:
 serviceAccount:
   create: true
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::170974506510:role/anysource-eks-pod-role"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/your-role-name"
   name: "anysource-sa"
-
-# Production monitoring
-monitoring:
-  enabled: true
-  prometheus:
-    enabled: true
-  grafana:
-    enabled: true
 
 # Node selector for production workloads
 nodeSelector:
@@ -142,8 +172,6 @@ nodeSelector:
   node.kubernetes.io/instance-type: m5.large
 
 # Tolerations and affinity for production
-tolerations: []
-
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:

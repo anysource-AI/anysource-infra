@@ -3,7 +3,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "anysource.fullname" . }}-backend-netpol
-  namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "anysource.backend.labels" . | nindent 4 }}
 spec:
@@ -48,6 +47,20 @@ spec:
     ports:
     - protocol: TCP
       port: 6379
+  {{- if .Values.networkPolicy.vpcCidr }}
+  - to:
+    - ipBlock:
+        cidr: {{ .Values.networkPolicy.vpcCidr | quote }}
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - ipBlock:
+        cidr: {{ .Values.networkPolicy.vpcCidr | quote }}
+    ports:
+    - protocol: TCP
+      port: 6379
+  {{- end }}
   - to: []
     ports:
     - protocol: TCP
@@ -59,7 +72,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "anysource.fullname" . }}-frontend-netpol
-  namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "anysource.frontend.labels" . | nindent 4 }}
 spec:

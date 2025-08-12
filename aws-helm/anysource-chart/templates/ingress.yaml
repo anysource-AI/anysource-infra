@@ -1,17 +1,20 @@
-{{- if .Values.ingress.enabled -}}
+{{- if and .Values.ingress.enabled (not .Values.istio.enabled) -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "anysource.fullname" . }}-ingress
-  namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "anysource.labels" . | nindent 4 }}
   annotations:
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if .Values.awsCertificate.enabled }}
+    {{- if and .Values.awsCertificate.enabled (not .Values.certManager.enabled) }}
     alb.ingress.kubernetes.io/certificate-arn: {{ .Values.awsCertificate.arn }}
+    {{- end }}
+    {{- if and .Values.ingress.forceHttps (not .Values.certManager.enabled) }}
+    # Force HTTPS redirects when explicitly enabled and cert-manager is disabled
+    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
     {{- end }}
     {{- if eq .Values.ingress.className "alb" }}
     # ALB-specific health check configurations
@@ -26,6 +29,12 @@ metadata:
       deregistration_delay.timeout_seconds=30,
       stickiness.type=lb_cookie,
       stickiness.lb_cookie.duration_seconds=86400
+    {{- if .Values.certManager.enabled }}
+    # Use same ALB group as cert-manager challenges when cert-manager is enabled
+    alb.ingress.kubernetes.io/group.name: {{ include "anysource.fullname" . }}-main
+    # Lower priority than challenge ingress
+    alb.ingress.kubernetes.io/group.order: "20"
+    {{- end }}
     {{- end }}
 spec:
   {{- if .Values.ingress.className }}
@@ -45,14 +54,14 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: backend
+                name: {{ .Values.backend.name }}
                 port:
                   number: {{ .Values.service.backend.port }}
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: {{ .Values.frontend.name }}
                 port:
                   number: {{ .Values.service.frontend.port }}
 {{- end }}

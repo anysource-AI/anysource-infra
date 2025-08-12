@@ -212,7 +212,7 @@ helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace any
 
 - **Purpose**: Local development and testing
 - **Infrastructure**: Embedded databases
-- **Domain**: `dev.anysource.local`
+- **Domain**: `mcp.dev.example.com`
 - **TLS**: Self-signed or disabled
 - **Scaling**: Fixed replicas
 
@@ -220,7 +220,7 @@ helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace any
 
 - **Purpose**: Production workloads
 - **Infrastructure**: AWS managed services
-- **Domain**: `mcp.dev.anysource.com`
+- **Domain**: `mcp.example.com`
 - **TLS**: AWS ACM certificate
 - **Scaling**: Auto-scaling enabled
 

@@ -196,6 +196,21 @@ The module creates a KMS key for encryption and configures basic RBAC. You may n
 1. **Subnet discovery fails**: Ensure subnets are properly tagged or specify IDs directly
 2. **Access denied**: Verify AWS credentials and IAM permissions
 3. **Node group creation fails**: Check subnet capacity and instance limits
+4. **Load Balancer Controller ACM errors**: The module automatically creates the necessary ACM permissions for certificate management
+
+### Load Balancer Controller Issues
+
+If you encounter ACM-related errors like:
+```
+AccessDeniedException: User is not authorized to perform: acm:ListCertificates
+```
+
+This module automatically resolves this by:
+- Creating a dedicated IAM role for the Load Balancer Controller with proper ACM permissions
+- Using IRSA (IAM Roles for Service Accounts) for secure credential management
+- Attaching custom policies for comprehensive certificate management
+
+The Load Balancer Controller will use its own IAM role, not the node group's role, ensuring proper separation of concerns.
 
 ### Useful Commands
 

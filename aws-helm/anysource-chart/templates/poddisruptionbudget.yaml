@@ -2,7 +2,6 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "anysource.fullname" . }}-backend-pdb
-  namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "anysource.backend.labels" . | nindent 4 }}
 spec:
@@ -15,7 +14,6 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "anysource.fullname" . }}-frontend-pdb
-  namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "anysource.frontend.labels" . | nindent 4 }}
 spec:

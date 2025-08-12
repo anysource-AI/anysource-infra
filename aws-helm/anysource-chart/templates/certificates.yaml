@@ -15,12 +15,24 @@ spec:
     - http01:
         ingress:
           class: {{ .Values.ingress.className }}
+          {{- if eq .Values.ingress.className "alb" }}
+          ingressTemplate:
+            metadata:
+              annotations:
+                kubernetes.io/ingress.class: {{ .Values.ingress.className }}
+                alb.ingress.kubernetes.io/scheme: internet-facing
+                alb.ingress.kubernetes.io/target-type: ip
+                alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+                # Use same ALB group to merge with main ingress for HTTP-01 challenges
+                alb.ingress.kubernetes.io/group.name: {{ include "anysource.fullname" . }}-main
+                # Higher priority for challenge paths to ensure they're handled first
+                alb.ingress.kubernetes.io/group.order: "10"
+          {{- end }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "anysource.fullname" . }}-tls
-  namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "anysource.labels" . | nindent 4 }}
 spec:

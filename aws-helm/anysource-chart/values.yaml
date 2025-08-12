@@ -1,7 +1,6 @@
 # Global configuration
 global:
-  namespace: anysource
-  domain: "mcp.dev.anysource.com"
+  domain: "mcp.example.com"
   environment: "production"
   # Anysource support will provide this
   auth0_domain: "your-tenant.us.auth0.com"
@@ -13,11 +12,6 @@ global:
 nameOverride: ""
 # Provide a name to substitute for the full names of resources
 fullnameOverride: ""
-
-# Application configuration
-app:
-  name: anysource
-  version: latest
 
 # Image configuration
 image:
@@ -45,8 +39,8 @@ backend:
   # Resource configuration
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 500m
+      memory: 1Gi
     limits:
       cpu: 500m
       memory: 1Gi
@@ -90,8 +84,8 @@ frontend:
   # Resource configuration
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 250m
+      memory: 512Mi
     limits:
       cpu: 250m
       memory: 512Mi
@@ -123,6 +117,13 @@ prestart:
     tag: latest
   command: ["bash"]
   args: ["scripts/prestart.sh"]
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
 
 # HPA configuration
 hpa:
@@ -155,16 +156,72 @@ service:
 ingress:
   enabled: true
   className: "alb"
+  # HTTPS redirect control:
+  # - false: Disable redirects (default when cert-manager is enabled for HTTP-01 challenges)
+  # - true: Force redirects (automatically enabled when cert-manager is disabled)
+  # Note: Template conditionally applies alb.ingress.kubernetes.io/redirect-to-https annotation
+  forceHttps: false
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/redirect-to-https: '{"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
   tls:
     enabled: true
     secretName: anysource-tls
+
+# Istio configuration (for clusters with existing Istio installation)
+istio:
+  enabled: false
+  # TLS secret name for Istio Gateway (if creating Istio resources)
+  tlsSecretName: "anysource-tls"
+  # Gateway configuration (optional - only if creating Istio resources)
+  gateway:
+    name: anysource-gateway
+    selector:
+      istio: ingressgateway
+    servers:
+      - port:
+          number: 80
+          name: http
+          protocol: HTTP
+        hosts:
+          - "*"
+      - port:
+          number: 443
+          name: https
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: anysource-tls
+        hosts:
+          - "*"
+
+  # Virtual Service configuration (optional - only if creating Istio resources)
+  virtualService:
+    name: anysource-vs
+    hosts:
+      - "*"
+    gateways:
+      - anysource-gateway
+    http:
+      - match:
+          - uri:
+              prefix: "/api/"
+        route:
+          - destination:
+              host: anysource-backend
+              port:
+                number: 8000
+      - match:
+          - uri:
+              prefix: "/"
+        route:
+          - destination:
+              host: anysource-frontend
+              port:
+                number: 80
 
 # PostgreSQL configuration (for dev environment)
 postgresql:
@@ -175,13 +232,34 @@ postgresql:
     username: "postgres"
     password: "postgres123"
     database: "postgres"
+    replicationPassword: "replication123"
+
+  # High Availability Configuration
+  architecture: replication
+
+  # Primary server configuration
   primary:
     resources:
       requests:
-        cpu: 250m
-        memory: 512Mi
+        cpu: 500m
+        memory: 1Gi
       limits:
         cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ebs-gp3
+
+  # Read replicas configuration for HA
+  readReplicas:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 400m
+        memory: 1Gi
+      limits:
+        cpu: 400m
         memory: 1Gi
     persistence:
       enabled: true
@@ -198,8 +276,8 @@ redis:
   master:
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 200m
+        memory: 512Mi
       limits:
         cpu: 200m
         memory: 512Mi
@@ -208,6 +286,13 @@ redis:
       size: 5Gi
       storageClass: ebs-gp3
   replica:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
     persistence:
       storageClass: ebs-gp3
 
@@ -239,7 +324,7 @@ certManager:
   enabled: true
   issuer:
     name: letsencrypt-prod
-    email: "admin@anysource.dev"
+    email: "admin@example.com"
     server: https://acme-v02.api.letsencrypt.org/directory
 
 # AWS ACM certificate (for AWS environments)
@@ -249,6 +334,7 @@ certManager:
 # 2. Set awsCertificate.enabled: true
 # 3. Provide the ACM certificate ARN
 # 4. Set ingress.tls.enabled: false (ACM handles TLS termination)
+# 5. HTTPS redirects are automatically enabled when cert-manager is disabled
 awsCertificate:
   enabled: false
   arn: "" # Example: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
@@ -281,23 +367,18 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 
-# Monitoring
-monitoring:
-  enabled: true
-  prometheus:
-    enabled: true
-  grafana:
-    enabled: false
-
 # Network policies
 networkPolicy:
   enabled: false
+  # Optional: CIDR of your VPC to allow backend egress to RDS (5432)
+  # and ElastiCache/Redis (6379). Example: "10.0.0.0/16"
+  vpcCidr: ""
 
 # Storage Class Configuration
 storageClass:
   enabled: true
   name: ebs-gp3
-  isDefault: true
+  isDefault: false
   provisioner: ebs.csi.aws.com
   volumeBindingMode: WaitForFirstConsumer
   allowVolumeExpansion: true
@@ -311,5 +392,3 @@ storageClass:
     kmsKeyId: ""
     # Additional parameters can be added here
     additionalParameters: {}
-  # Set to true to ensure gp2 is not the default storage class
-  disableGp2Default: true

@@ -97,7 +97,12 @@ Database connection string
 {{- if .Values.externalDatabase.enabled }}
 {{- .Values.externalDatabase.host }}
 {{- else if .Values.postgresql.enabled }}
-{{- printf "postgresql" }}
+{{- $pgName := default "postgresql" .Values.postgresql.fullnameOverride -}}
+{{- if eq (default "standalone" .Values.postgresql.architecture) "replication" -}}
+{{- printf "%s-primary" $pgName -}}
+{{- else -}}
+{{- printf "%s" $pgName -}}
+{{- end -}}
 {{- end }}
 {{- end }}
 
