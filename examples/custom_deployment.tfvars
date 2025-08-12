@@ -7,11 +7,11 @@
 # ========================================
 # REQUIRED CONFIGURATION
 # ========================================
-environment     = "production"
-region          = "us-east-1"
-domain_name     = "mcp.yourcompany.com"
-auth0_domain    = "your-tenant.us.auth0.com" # will be provided by Anysource support
-auth0_client_id = "your-auth0-client-id"     # will be provided by Anysource support
+environment    = "production"
+region         = "us-east-1"
+domain_name    = "mcp.yourcompany.com"
+auth_domain    = "your-tenant.us.auth0.com" # will be provided by Anysource support
+auth_client_id = "your-auth0-client-id"     # will be provided by Anysource support
 
 # ECR Configuration (required)
 ecr_repositories = {

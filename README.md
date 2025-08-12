@@ -134,8 +134,8 @@ All deployments need these values:
 | `environment`      | Environment name                                            | `"production"`               |
 | `region`           | AWS region                                                  | `"us-east-1"`                |
 | `hf_token`         | HuggingFace token                                           | `"hf_your_token"`            |
-| `auth0_domain`     | Auth0 tenant domain (will be provided by Anysource support) | `"your-tenant.us.auth0.com"` |
-| `auth0_client_id`  | Auth0 client ID (will be provided by Anysource support)     | `"your-auth0-client-id"`     |
+| `auth_domain`      | Auth tenant domain (will be provided by Anysource support)  | `"your-tenant.us.auth0.com"` |
+| `auth_client_id`   | Auth client ID (will be provided by Anysource support)      | `"your-auth-client-id"`      |
 | `ecr_repositories` | Container image URIs                                        | See examples                 |
 
 ## Optional Configuration

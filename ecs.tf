@@ -41,7 +41,7 @@ module "ecs" {
     POSTGRES_USER        = var.database_username
     POSTGRES_SSL_MODE    = var.database_config.force_ssl == 1 ? "require" : "prefer"
     REDIS_URL            = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
-    AUTH0_DOMAIN         = var.auth0_domain
+    AUTH_DOMAIN          = var.auth_domain
     APP_URL              = local.app_url
     BACKEND_CORS_ORIGINS = local.app_url
   }
@@ -55,8 +55,8 @@ module "ecs" {
 
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = {
-    PUBLIC_AUTH0_DOMAIN    = var.auth0_domain
-    PUBLIC_AUTH0_CLIENT_ID = var.auth0_client_id
+    PUBLIC_AUTH_DOMAIN     = var.auth_domain
+    PUBLIC_AUTH_CLIENT_ID  = var.auth_client_id
     PUBLIC_APP_URL         = local.app_url
   }
 
