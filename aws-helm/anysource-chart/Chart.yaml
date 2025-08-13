@@ -1,0 +1,32 @@
+apiVersion: v2
+name: anysource
+description: Anysource application Helm chart for Kubernetes deployment
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - anysource
+  - api
+  - web
+  - fastapi
+  - react
+home: https://github.com/anysource-AI/Anysource
+sources:
+  - https://github.com/anysource-AI/Anysource
+maintainers:
+  - name: Anysource Team
+    email: team@anysource.dev
+
+dependencies:
+  - name: postgresql
+    version: "16.7.20"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "21.2.12"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: cert-manager
+    version: "1.18.2"
+    repository: "https://charts.jetstack.io"
+    condition: certManager.enabled
