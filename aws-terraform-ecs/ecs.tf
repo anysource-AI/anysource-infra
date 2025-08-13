@@ -7,6 +7,8 @@ locals {
 
   # This will cause an error if any services are missing ECR URIs
   validate_ecr_completeness = length(local.missing_ecr_services) == 0 ? true : tobool("ERROR: Missing ECR repository URIs for services: ${join(", ", local.missing_ecr_services)}. All services must have explicit ECR URIs defined in ecr_repositories variable.")
+
+  app_url = var.domain_name == "" ? "http://${module.private_alb.alb_dns_name}" : "https://${var.domain_name}"
 }
 
 module "ecs" {
@@ -40,6 +42,7 @@ module "ecs" {
     POSTGRES_USER     = var.database_username
     POSTGRES_SSL_MODE = var.database_config.force_ssl == 1 ? "require" : "prefer"
     REDIS_URL         = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
+    AUTH_DOMAIN       = var.auth_domain
     }, var.domain_name == "" ? {
     # When no domain is provided, set frontend host and CORS origins to ALB URL as environment variables
     APP_URL              = "http://${module.private_alb.alb_dns_name}"
@@ -58,6 +61,13 @@ module "ecs" {
     APP_URL              = "${aws_secretsmanager_secret.app_secrets.arn}:APP_URL::"
     BACKEND_CORS_ORIGINS = "${aws_secretsmanager_secret.app_secrets.arn}:BACKEND_CORS_ORIGINS::"
   } : {})
+
+  # Frontend-specific environment variables (non-sensitive) - Adding from main branch
+  frontend_env_vars = {
+    PUBLIC_AUTH_DOMAIN    = var.auth_domain
+    PUBLIC_AUTH_CLIENT_ID = var.auth_client_id
+    PUBLIC_APP_URL        = local.app_url
+  }
 
   depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
 }

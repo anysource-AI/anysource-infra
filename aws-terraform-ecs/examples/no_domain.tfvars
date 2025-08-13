@@ -7,7 +7,8 @@
 # Required Configuration (minimum needed)
 environment       = "development"
 region            = "us-east-1"
-first_superuser   = "admin@yourcompany.com"
+auth_domain       = "your-tenant.us.auth0.com" # will be provided by Anysource support
+auth_client_id    = "your-auth0-client-id"     # will be provided by Anysource support
 database_username = "postgres"
 
 # ECR Configuration (required)

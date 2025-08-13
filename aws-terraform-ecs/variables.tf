@@ -32,13 +32,25 @@ variable "domain_name" {
   default     = ""
 }
 
-variable "first_superuser" {
-  type        = string
-  description = "Email address for the first superuser account (typically your company admin email)"
-}
-
 variable "account" {
   type = string
+}
+
+variable "suffix_secret_hash" {
+  type        = string
+  description = "Suffix for secret names to ensure uniqueness"
+  default     = ""
+}
+
+# Auth Configuration
+variable "auth_domain" {
+  type        = string
+  description = "Auth domain for authentication (e.g., anysource-acme-inc.us.auth0.com). This will be provided by the Anysource team."
+}
+
+variable "auth_client_id" {
+  type        = string
+  description = "Auth client ID for the frontend application. This will be provided by the Anysource team."
 }
 
 # ECR Configuration
@@ -132,8 +144,6 @@ variable "ssl_certificate_arn" {
   default     = ""
 }
 
-
-
 variable "create_route53_records" {
   description = "Whether to create Route53 DNS records for the domain"
   type        = bool
@@ -157,14 +167,12 @@ variable "services_configurations" {
     memory                            = optional(number) # Will use service-specific defaults if not provided
     host_port                         = optional(number, 8000)
     container_port                    = optional(number, 8000)
-    desired_count                     = optional(number, 2) # Production-ready default
-    max_capacity                      = optional(number, 2) # Allow scaling
+    desired_count                     = optional(number, 2)  # Production-ready default
+    max_capacity                      = optional(number, 10) # Allow scaling
     min_capacity                      = optional(number, 2)
     cpu_auto_scalling_target_value    = optional(number, 70)
     memory_auto_scalling_target_value = optional(number, 80)
     priority                          = optional(number) # Priority for ALB listener rules - lower numbers have higher precedence (1 is highest priority)
-    env_vars                          = optional(map(string), {})
-    secret_vars                       = optional(map(string), {})
   }))
   default = {
     "backend" = {
@@ -175,8 +183,8 @@ variable "services_configurations" {
       host_port         = 8000
       port              = 8000
       priority          = 1
-      cpu               = 1024
-      memory            = 2048
+      cpu               = 2048
+      memory            = 4096
     }
     "frontend" = {
       name              = "frontend"
@@ -197,19 +205,6 @@ variable "hf_token" {
   description = "HuggingFace token for downloading models (used by prompt protection)"
   default     = "" # Must be provided via tfvars or environment variable
   sensitive   = true
-}
-
-# Optional Global Environment Variables
-variable "env_vars" {
-  type        = map(string)
-  description = "Global environment variables for all services"
-  default     = {}
-}
-
-variable "secret_vars" {
-  type        = map(string)
-  description = "Global secret variables for all services"
-  default     = {}
 }
 
 # S3 Configuration (Optional)
@@ -328,14 +323,6 @@ variable "health_check_grace_period_seconds" {
   type        = number
   description = "Grace period in seconds before health checks start"
   default     = 120
-}
-
-# Legacy variables removed - use database_config instead
-
-variable "suffix_secret_hash" {
-  type        = string
-  description = "Suffix for secret names to ensure uniqueness"
-  default     = ""
 }
 
 variable "deletion_protection" {
