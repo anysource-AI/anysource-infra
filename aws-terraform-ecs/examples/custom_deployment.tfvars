@@ -88,8 +88,7 @@ services_configurations = {
     env_vars = {
       DEBUG          = "False"
       LOG_LEVEL      = "INFO"
-      WORKER_TIMEOUT = "300"
-      MAX_WORKERS    = "4"
+      WORKERS        = "4"
     }
   }
 
