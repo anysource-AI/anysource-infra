@@ -44,6 +44,7 @@ module "ecs" {
     AUTH_DOMAIN          = var.auth_domain
     APP_URL              = local.app_url
     BACKEND_CORS_ORIGINS = local.app_url
+    WORKERS              = var.workers
   }
 
   # Backend-specific secrets from AWS Secrets Manager

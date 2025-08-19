@@ -120,6 +120,12 @@ variable "database_config" {
   default = {}
 }
 
+variable "workers" {
+  type        = number
+  description = "Number of workers for the backend"
+  default     = 1
+}
+
 # ALB/Security Configuration
 variable "alb_access_type" {
   description = "ALB access type (public allows internet access, private restricts to VPC)"
