@@ -86,9 +86,9 @@ services_configurations = {
 
     # Environment variables
     env_vars = {
-      DEBUG          = "False"
-      LOG_LEVEL      = "INFO"
-      WORKERS        = "4"
+      DEBUG     = "False"
+      LOG_LEVEL = "INFO"
+      WORKERS   = "1"
     }
   }
 
