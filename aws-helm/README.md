@@ -15,14 +15,13 @@ This directory contains Kubernetes Helm charts for deploying Anysource on Kubern
 aws-helm/
 ├── anysource-chart/             # Main Helm chart
 │   ├── Chart.yaml               # Chart metadata and dependencies
-    │   ├── values.yaml              # Default values
-    │   ├── values-dev.yaml          # Development environment values
-    │   ├── values-aws-prod.yaml     # AWS production values (external RDS/ElastiCache, ACM, ALB, secrets)
-    │   ├── README.md                # Detailed chart documentation (see for secret integration, ALB/ACM, HPA, etc)
+│   ├── values.yaml              # Default values
+│   ├── values-dev.yaml          # Development environment values
+│   ├── values-aws-prod.yaml     # AWS production values (external RDS/ElastiCache, ACM, ALB, secrets)
+│   ├── README.md                # Detailed chart documentation
 │   ├── charts/                  # Chart dependencies
 │   └── templates/               # Kubernetes templates
 │       ├── _helpers.tpl         # Template helpers
-│       ├── namespace.yaml       # Namespace creation
 │       ├── serviceaccount.yaml  # Service account
 │       ├── secrets.yaml         # Secrets management
 │       ├── configmap.yaml       # Configuration
@@ -33,21 +32,17 @@ aws-helm/
 │       ├── hpa.yaml             # Horizontal Pod Autoscaler
 │       ├── certificates.yaml    # TLS certificates
 │       ├── networkpolicies.yaml # Network security policies
-│       ├── servicemonitor.yaml  # Prometheus monitoring
 │       ├── poddisruptionbudget.yaml # High availability
-│       ├── NOTES.txt            # Post-installation notes
+│       ├── storageclass.yaml    # Storage class configuration
+│       ├── istio-gateway.yaml   # Istio gateway (optional)
+│       ├── istio-virtualservice.yaml # Istio virtual service (optional)
 │       └── tests/               # Helm tests
-    ├── terraform-eks/               # EKS cluster provisioning (see README for advanced networking, IRSA, KMS, add-ons)
-│   ├── eks.tf                   # EKS cluster configuration
-│   ├── variables.tf             # Terraform variables
-│   ├── outputs.tf               # Terraform outputs
-│   ├── terraform.tfvars.example # Example configuration
-│   └── README.md                # EKS Terraform documentation
-└── scripts/                     # Deployment scripts
-    ├── deploy-dev.sh            # Development deployment (Linux/macOS)
-    ├── deploy-dev.ps1           # Development deployment (Windows)
-    ├── deploy-prod.sh           # Production deployment
-    └── cleanup.sh               # Cleanup script
+└── terraform-eks/               # EKS cluster provisioning
+    ├── eks.tf                   # EKS cluster configuration
+    ├── variables.tf             # Terraform variables
+    ├── outputs.tf               # Terraform outputs
+    ├── terraform.tfvars.example # Example configuration
+    └── README.md                # EKS Terraform documentation
 ```
 
 ## Quick Start
@@ -61,12 +56,16 @@ aws-helm/
 ### Development Deployment
 
 ```bash
-# Linux/macOS
-chmod +x scripts/deploy-dev.sh
-./scripts/deploy-dev.sh
+# Add required Helm repositories
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
 
-# Windows PowerShell
-.\scripts\deploy-dev.ps1
+# Deploy with development values
+cd anysource-chart
+helm upgrade --install anysource . \
+  --namespace anysource --create-namespace \
+  -f values-dev.yaml
 ```
 
 ## Optional: EKS Cluster Provisioning
@@ -110,18 +109,6 @@ aws eks update-kubeconfig --region <your-region> --name <cluster-name>
 
 For detailed EKS configuration options, see [terraform-eks/README.md](./terraform-eks/README.md).
 
-# Linux/macOS
-
-chmod +x scripts/deploy-dev.sh
-./scripts/deploy-dev.sh
-
-# Windows PowerShell
-
-.\scripts\deploy-dev.ps1
-
-````
-
-
 ### Production Deployment (AWS)
 
 ```bash
@@ -134,7 +121,11 @@ kubectl create secret generic anysource-redis-secret \
   --namespace anysource
 
 # Deploy to production with AWS values
-helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace anysource --wait --timeout=10m
+cd anysource-chart
+helm upgrade --install anysource . \
+  --namespace anysource --create-namespace \
+  -f values-aws-prod.yaml \
+  --wait --timeout=10m
 ```
 
 ## Configuration Options
@@ -146,33 +137,34 @@ helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace any
 | Development | `values-dev.yaml`      | Local PostgreSQL and Redis, minimal resources |
 | Production  | `values-aws-prod.yaml` | AWS RDS and ElastiCache, production resources |
 
-
 ### Infrastructure Options
-| Component      | Development         | Production (AWS)      |
-| -------------- | ------------------- | --------------------- |
-| **Database**   | Embedded PostgreSQL | AWS RDS (externalDatabase + secret) |
-| **Cache**      | Embedded Redis      | AWS ElastiCache (externalRedis + secret) |
-| **Ingress**    | nginx-ingress       | AWS ALB (with ACM)    |
-| **TLS**        | cert-manager        | AWS ACM               |
-| **Monitoring** | Optional            | Enabled (Prometheus, ServiceMonitor) |
-| **HPA**        | Disabled            | Enabled               |
 
+| Component      | Development         | Production (AWS)                         |
+| -------------- | ------------------- | ---------------------------------------- |
+| **Database**   | Embedded PostgreSQL | AWS RDS (externalDatabase + secret)      |
+| **Cache**      | Embedded Redis      | AWS ElastiCache (externalRedis + secret) |
+| **Ingress**    | nginx-ingress       | AWS ALB (with ACM)                       |
+| **TLS**        | cert-manager        | AWS ACM                                  |
+| **Monitoring** | Optional            | Enabled (Prometheus, ServiceMonitor)     |
+| **HPA**        | Disabled            | Enabled                                  |
 
 ## Security Features
+
 ✅ **Container Security**
+
 - Non-root containers (UID 1000)
 - Read-only root filesystem
 - Dropped capabilities
 - Security contexts
-✅ **Network Security**
+  ✅ **Network Security**
 - Network policies
 - Service isolation
 - Ingress restrictions
-✅ **Secrets Management**
+  ✅ **Secrets Management**
 - Kubernetes secrets (use `existingSecret` and `existingSecretPasswordKey` for AWS)
 - External secret integration (AWS Secrets Manager)
 - Encrypted storage
-✅ **RBAC**
+  ✅ **RBAC**
 - Minimal service accounts
 - Principle of least privilege
 - AWS IAM integration (IRSA)
@@ -230,16 +222,17 @@ helm install anysource ./anysource-chart -f values-aws-prod.yaml --namespace any
 
 ```bash
 # Install development
-helm install anysource ./anysource-chart -f anysource-chart/values-dev.yaml
+cd anysource-chart
+helm upgrade --install anysource . -f values-dev.yaml --namespace anysource --create-namespace
 
 # Install production
-helm install anysource ./anysource-chart -f anysource-chart/values-aws-prod.yaml
+helm upgrade --install anysource . -f values-aws-prod.yaml --namespace anysource --create-namespace
 
-# Upgrade
-helm upgrade anysource ./anysource-chart -f anysource-chart/values-dev.yaml
+# Upgrade existing deployment
+helm upgrade anysource . -f values-dev.yaml --namespace anysource
 
 # Uninstall
-helm uninstall anysource
+helm uninstall anysource --namespace anysource
 ```
 
 ### Monitoring
@@ -268,7 +261,8 @@ kubectl describe pod <pod-name> -n anysource
 kubectl get events -n anysource --sort-by=.metadata.creationTimestamp
 
 # Debug deployment
-helm template anysource ./anysource-chart -f anysource-chart/values-dev.yaml --debug
+cd anysource-chart
+helm template anysource . -f values-dev.yaml --debug
 
 # Port forward for local access
 kubectl port-forward svc/anysource-frontend 8080:80 -n anysource
@@ -310,4 +304,3 @@ The EKS Terraform module is designed to work with existing VPC infrastructure an
 2. Validate with `helm template` and `helm lint`
 3. Test on staging environment before production
 4. Follow semantic versioning for chart versions
-````

@@ -1,13 +1,15 @@
 # Anysource Kubernetes Helm Chart
 
-This Helm chart deploys the Anysource application on Kubernetes with support for multiple environments and configurations, including:
+Production-ready Helm chart for deploying Anysource on Kubernetes. Supports multiple deployment patterns from development to enterprise production environments.
 
-- AWS EKS with ALB ingress and ACM certificates (production)
-- External RDS and ElastiCache integration (production)
-- Secure secret management via Kubernetes Secrets (see `existingSecret` and `existingSecretPasswordKey`)
-- Advanced network policies and pod security
-- Horizontal Pod Autoscaling (HPA)
-- Prometheus monitoring and ServiceMonitor
+## Key Features
+
+- **Multi-Environment Support**: Development (embedded databases) to production (external AWS services)
+- **Security**: Network policies, pod security contexts, secret management
+- **Scalability**: Horizontal Pod Autoscaling (HPA) with CPU/memory metrics
+- **Monitoring**: Prometheus integration with ServiceMonitor
+- **High Availability**: Anti-affinity rules, disruption budgets, rolling updates
+- **Flexibility**: Support for nginx ingress, ALB, Istio service mesh
 
 ## Overview
 
@@ -77,25 +79,21 @@ backend:
 
 ## Quick Start
 
-### Release and Namespace
+### Installation Pattern
 
-This chart deploys resources into the Helm release namespace. Specify the namespace at install/upgrade time using the `--namespace` flag; do not set a namespace in values.
-
-Use the following commands:
-
-- Initial install (creates the namespace):
+Use consistent naming and namespace management:
 
 ```bash
+# Development
+helm upgrade --install anysource . \
+  --namespace anysource-dev \
+  --create-namespace \
+  -f values-dev.yaml
+
+# Production  
 helm upgrade --install anysource-production . \
   --namespace anysource-production \
-  --create-namespace
-```
-
-- Later updates (reuse the existing namespace and your values):
-
-```bash
-helm upgrade --install anysource-production . \
-  --namespace anysource-production \
+  --create-namespace \
   -f values-<environment>.yaml
 ```
 
@@ -117,8 +115,8 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --namespace ingress-nginx --create-namespace
 
 # Deploy Anysource with development values
-helm upgrade --install anysource-production . \
-  --namespace anysource-production --create-namespace \
+helm upgrade --install anysource . \
+  --namespace anysource-dev --create-namespace \
   -f values-dev.yaml
 ```
 
@@ -147,7 +145,8 @@ helm upgrade --install anysource-production . \
 - **`values.yaml`** - Default configuration with embedded databases
 - **`values-dev.yaml`** - Development environment with local PostgreSQL and Redis
 - **`values-aws-prod.yaml`** - AWS production: ALB, ACM, external RDS/ElastiCache, secrets
-- **`values-istio-cluster.yaml`** - For clusters with existing Istio installation
+- **`values-local.yaml`** - Local development configuration
+- **`values-prod.yaml`** - Generic production configuration  
 
 ### Key Configuration Options
 
@@ -596,26 +595,26 @@ hpa:
 ### Install
 
 ```bash
-helm upgrade --install anysource-production . \
-  --namespace anysource-production --create-namespace \
+helm upgrade --install anysource . \
+  --namespace anysource-dev --create-namespace \
   -f values-dev.yaml
 ```
 
 ### Upgrade
 
 ```bash
-helm upgrade --install anysource-production . \
-  --namespace anysource-production \
+helm upgrade anysource . \
+  --namespace anysource-dev \
   -f values-dev.yaml
 ```
 
 ### Uninstall
 
 ```bash
-helm uninstall anysource-production -n anysource-production
+helm uninstall anysource -n anysource-dev
 
 # Optionally remove the namespace and all resources (including PVCs)
-kubectl delete namespace anysource-production
+kubectl delete namespace anysource-dev
 ```
 
 ### Test
@@ -627,7 +626,7 @@ helm test anysource
 ### Debug
 
 ```bash
-helm template anysource ./anysource-chart -f values-dev.yaml --debug
+helm template anysource . -f values-dev.yaml --debug
 ```
 
 ## Troubleshooting

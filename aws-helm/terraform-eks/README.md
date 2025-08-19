@@ -1,6 +1,6 @@
 # AWS EKS Terraform Module
 
-This Terraform module provisions an Amazon EKS (Elastic Kubernetes Service) cluster using the official AWS EKS Terraform module. It is designed for seamless integration with the Anysource Helm chart for production workloads.
+This Terraform module provisions an Amazon EKS (Elastic Kubernetes Service) cluster optimized for running the Anysource application. It provides production-ready defaults while remaining flexible for different environments.
 
 ## Features
 
@@ -8,10 +8,10 @@ This Terraform module provisions an Amazon EKS (Elastic Kubernetes Service) clus
 - **Managed Node Groups**: Configurable EKS managed node groups with auto-scaling
 - **Security**: KMS encryption for Kubernetes secrets
 - **IRSA Support**: IAM Roles for Service Accounts (IRSA) enabled
-- **Add-ons**: Essential EKS add-ons (CoreDNS, kube-proxy, VPC CNI, EBS CSI driver)
-- **Flexible Networking**: Works with existing VPC and subnets (private/public)
-- **Production Security**: Restrict API access, enable private endpoint, whitelist IPs, custom security group rules, encryption
-- **Seamless Helm Integration**: Designed for use with Anysource Helm chart (see ../anysource-chart/README.md)
+- **Add-ons**: Essential EKS add-ons (CoreDNS, kube-proxy, VPC CNI, EBS CSI driver, cert-manager, metrics-server)
+- **Networking**: Works with existing VPC and subnets, auto-discovery with proper tagging
+- **Security**: API access restrictions, private endpoints, IP whitelisting, encryption at rest
+- **Integration**: Designed for the Anysource Helm chart with proper IRSA and load balancer support
 
 ## Prerequisites
 
@@ -52,7 +52,7 @@ This Terraform module provisions an Amazon EKS (Elastic Kubernetes Service) clus
    ```bash
    aws eks update-kubeconfig --region us-west-2 --name <your-cluster-name>
    ```
-7. **Deploy Anysource Helm chart** (see ../anysource-chart/README.md for AWS production values and secret setup)
+7. **Deploy Anysource** (see `../anysource-chart/README.md` for production deployment)
 
 ## Configuration
 
@@ -102,8 +102,21 @@ cluster_addons = {
   kube-proxy = { preserve = true }
   vpc-cni = { preserve = true }
   aws-ebs-csi-driver = { preserve = true }
+  eks-pod-identity-agent = { preserve = true }
+  metrics-server = { preserve = true }
+  cert-manager = { preserve = true }
 }
 ```
+
+**Available Add-ons:**
+
+- **CoreDNS**: Cluster DNS service
+- **kube-proxy**: Network proxy for service communication
+- **vpc-cni**: AWS VPC CNI plugin for pod networking
+- **aws-ebs-csi-driver**: EBS CSI driver for persistent volumes
+- **eks-pod-identity-agent**: Pod identity agent for IRSA
+- **metrics-server**: Kubernetes metrics server
+- **cert-manager**: Certificate management for TLS/SSL certificates
 
 ## Networking Requirements
 
@@ -198,19 +211,15 @@ The module creates a KMS key for encryption and configures basic RBAC. You may n
 3. **Node group creation fails**: Check subnet capacity and instance limits
 4. **Load Balancer Controller ACM errors**: The module automatically creates the necessary ACM permissions for certificate management
 
-### Load Balancer Controller Issues
+### Load Balancer Controller
 
-If you encounter ACM-related errors like:
-```
-AccessDeniedException: User is not authorized to perform: acm:ListCertificates
-```
+The module automatically configures IAM roles and policies for the AWS Load Balancer Controller, including:
 
-This module automatically resolves this by:
-- Creating a dedicated IAM role for the Load Balancer Controller with proper ACM permissions
-- Using IRSA (IAM Roles for Service Accounts) for secure credential management
-- Attaching custom policies for comprehensive certificate management
+- Dedicated IRSA role with ACM and ELB permissions
+- Proper certificate management policies
+- Secure credential management via service accounts
 
-The Load Balancer Controller will use its own IAM role, not the node group's role, ensuring proper separation of concerns.
+This resolves common permission issues when using ALB ingress with ACM certificates.
 
 ### Useful Commands
 

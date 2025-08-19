@@ -1,6 +1,6 @@
-# Anysource Infrastructure
+# Anysource ECS Infrastructure
 
-Deploy Anysource on AWS with Terraform. Choose from simple HTTP deployments to enterprise-grade HTTPS configurations.
+Deploy Anysource on AWS ECS using Terraform. This infrastructure supports development to enterprise-grade production deployments with automated scaling, managed databases, and SSL certificates.
 
 ## Quick Start
 
@@ -27,11 +27,14 @@ Deploy Anysource on AWS with Terraform. Choose from simple HTTP deployments to e
    ```bash
    # For development (local state)
    terraform init -backend=false
+   terraform plan
    terraform apply
 
    # For production (S3 backend) - see Backend Configuration below
-   cp examples/backend.tfvars backend.tfvars
-   terraform init -backend-config=backend.tfvars
+   cp examples/backend.config.example backend.config
+   # Edit backend.config with your S3 bucket details
+   terraform init -backend-config=backend.config
+   terraform plan
    terraform apply
    ```
 
@@ -80,13 +83,14 @@ For production deployments, use S3 backend for state storage:
 
 ```bash
 # 1. Set up backend configuration
-cp examples/backend.tfvars backend.tfvars
-nano backend.tfvars  # Configure your S3 bucket
+cp examples/backend.config.example backend.config
+nano backend.config  # Configure your S3 bucket
 
 # 2. Initialize with backend
-terraform init -backend-config=backend.tfvars
+terraform init -backend-config=backend.config
 
 # 3. Deploy
+terraform plan
 terraform apply
 ```
 
@@ -129,14 +133,14 @@ terraform apply
 
 All deployments need these values:
 
-| Variable           | Description                                                 | Example                      |
-| ------------------ | ----------------------------------------------------------- | ---------------------------- |
-| `environment`      | Environment name                                            | `"production"`               |
-| `region`           | AWS region                                                  | `"us-east-1"`                |
-| `hf_token`         | HuggingFace token                                           | `"hf_your_token"`            |
-| `auth_domain`      | Auth tenant domain (will be provided by Anysource support)  | `"your-tenant.us.auth0.com"` |
-| `auth_client_id`   | Auth client ID (will be provided by Anysource support)      | `"your-auth-client-id"`      |
-| `ecr_repositories` | Container image URIs                                        | See examples                 |
+| Variable           | Description                                                | Example                      |
+| ------------------ | ---------------------------------------------------------- | ---------------------------- |
+| `environment`      | Environment name                                           | `"production"`               |
+| `region`           | AWS region                                                 | `"us-east-1"`                |
+| `hf_token`         | HuggingFace token                                          | `"hf_your_token"`            |
+| `auth_domain`      | Auth tenant domain (will be provided by Anysource support) | `"your-tenant.us.auth0.com"` |
+| `auth_client_id`   | Auth client ID (will be provided by Anysource support)     | `"your-auth-client-id"`      |
+| `ecr_repositories` | Container image URIs                                       | See examples                 |
 
 ## Optional Configuration
 
@@ -289,18 +293,25 @@ services_configurations = {
 5. **Monitor with CloudTrail** and GuardDuty
 6. **Use least-privilege IAM** roles
 
-## ECS Monitoring & Observability
+## Monitoring & Observability
 
-Anysource ECS deployments include robust monitoring and observability features:
+Anysource ECS deployments include comprehensive monitoring:
 
-- **CloudWatch Logs:** All ECS containers (backend, frontend, prestart) stream logs to CloudWatch. Access logs in the AWS Console under `/aws/ecs/anysource-[env]` for main containers and `prestart-logs-[env]` for migration/setup.
-- **CloudWatch Metrics:** ECS service metrics (CPU, memory, task count, health checks) are available in CloudWatch. Use these for auto-scaling, troubleshooting, and performance optimization.
-- **Alarms & Alerts:** Default CloudWatch alarms notify on service health, resource saturation, and failures. Customize thresholds and notification channels as needed.
-- **Dashboards:** AWS Console provides built-in dashboards for ECS services. For advanced visualization, integrate with Grafana or custom dashboards.
-- **Troubleshooting:** Use CloudWatch logs and ECS service events to diagnose issues. Common problems (task failures, migration errors) are logged for rapid root cause analysis.
-- **Audit & Compliance:** All activity is logged for audit and compliance tracking. Log retention and export are configurable.
+### CloudWatch Integration
 
-For full details, best practices, and advanced monitoring options, see [Monitoring & Observability Documentation](../../docs/infrastructure/monitoring.mdx).
+- **Logs:** All containers stream logs to `/aws/ecs/anysource-[env]` and `prestart-logs-[env]`
+- **Metrics:** CPU, memory, task count, and health check metrics
+- **Alarms:** Service health and resource saturation alerts
+- **Dashboards:** Built-in ECS service dashboards
+
+### Log Groups
+
+- `/aws/ecs/anysource-[environment]` - Main application logs
+- `prestart-logs-[environment]` - Database migration and setup logs
+
+### Troubleshooting
+
+Use CloudWatch logs and ECS service events to diagnose issues. Common problems like task failures and migration errors are logged for rapid analysis.
 
 ## Architecture Features
 

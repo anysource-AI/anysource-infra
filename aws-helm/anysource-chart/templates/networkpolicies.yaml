@@ -36,7 +36,7 @@ spec:
   - to:
     - podSelector:
         matchLabels:
-          app.kubernetes.io/name: postgresql
+          app.kubernetes.io/name: {{ if eq (default "standalone" .Values.postgresql.architecture) "replication" }}postgresql-primary{{ else }}postgresql{{ end }}
     ports:
     - protocol: TCP
       port: 5432

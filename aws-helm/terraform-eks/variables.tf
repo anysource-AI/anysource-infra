@@ -357,6 +357,16 @@ variable "cluster_addons" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "PRESERVE"
     }
+    metrics-server = {
+      preserve                    = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "PRESERVE"
+    }
+    cert-manager = {
+      preserve                    = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "PRESERVE"
+    }
   }
 }
 
