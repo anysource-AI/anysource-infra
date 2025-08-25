@@ -7,7 +7,7 @@ variable "environment" {
   type        = string
   description = "The environment for the application"
   validation {
-    condition     = can(regex("^stg|prod|dr|production|eu$", var.environment))
+    condition     = can(regex("^stg|prod|dr|production|eu|staging$", var.environment))
     error_message = "Invalid environment. Must be either 'stg' or 'prod'"
   }
 }

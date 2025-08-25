@@ -1,0 +1,23 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "anysource.fullname" . }}-backend-pdb
+  labels:
+    {{- include "anysource.backend.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "anysource.backend.selectorLabels" . | nindent 6 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "anysource.fullname" . }}-frontend-pdb
+  labels:
+    {{- include "anysource.frontend.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "anysource.frontend.selectorLabels" . | nindent 6 }}

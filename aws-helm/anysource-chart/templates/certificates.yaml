@@ -1,0 +1,45 @@
+{{- if .Values.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.certManager.issuer.name }}
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: {{ .Values.certManager.issuer.server }}
+    email: {{ .Values.certManager.issuer.email }}
+    privateKeySecretRef:
+      name: {{ .Values.certManager.issuer.name }}-key
+    solvers:
+    - http01:
+        ingress:
+          class: {{ .Values.ingress.className }}
+          {{- if eq .Values.ingress.className "alb" }}
+          ingressTemplate:
+            metadata:
+              annotations:
+                kubernetes.io/ingress.class: {{ .Values.ingress.className }}
+                alb.ingress.kubernetes.io/scheme: internet-facing
+                alb.ingress.kubernetes.io/target-type: ip
+                alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+                # Use same ALB group to merge with main ingress for HTTP-01 challenges
+                alb.ingress.kubernetes.io/group.name: {{ include "anysource.fullname" . }}-main
+                # Higher priority for challenge paths to ensure they're handled first
+                alb.ingress.kubernetes.io/group.order: "10"
+          {{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "anysource.fullname" . }}-tls
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.ingress.tls.secretName }}
+  issuerRef:
+    name: {{ .Values.certManager.issuer.name }}
+    kind: ClusterIssuer
+  dnsNames:
+  - {{ .Values.global.domain }}
+{{- end }}

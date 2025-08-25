@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.name }}
+  labels:
+    {{- include "anysource.backend.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.hpa.backend.enabled }}
+  replicas: {{ .Values.backend.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "anysource.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "anysource.backend.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.image.backend.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.image.backend.pullSecrets | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "anysource.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.prestart.enabled }}
+      initContainers:
+        - name: prestart
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.prestart.image.repository }}:{{ .Values.prestart.image.tag | default .Values.image.backend.tag }}"
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          command: {{ .Values.prestart.command }}
+          args: {{ .Values.prestart.args }}
+          env:
+            - name: POSTGRES_SERVER
+              value: {{ include "anysource.database.host" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ include "anysource.database.port" . | quote }}
+            - name: POSTGRES_DB
+              value: {{ include "anysource.database.name" . | quote }}
+            - name: POSTGRES_USER
+              value: {{ include "anysource.database.username" . | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.externalDatabase.enabled }}
+                  name: {{ .Values.externalDatabase.existingSecret | default "db-secret" }}
+                  key: {{ .Values.externalDatabase.existingSecretPasswordKey | default "password" }}
+                  {{- else if .Values.postgresql.enabled }}
+                  name: postgresql
+                  key: postgres-password
+                  {{- end }}
+            - name: ENVIRONMENT
+              value: {{ .Values.global.environment | quote }}
+            - name: API_V1_STR
+              value: "/api/v1"
+            - name: APP_URL
+              value: "https://{{ .Values.global.domain }}"
+            - name: BACKEND_CORS_ORIGINS
+              value: "https://{{ .Values.global.domain }}"
+            - name: AUTH_DOMAIN
+              value: {{ .Values.global.auth_domain | quote }}
+          {{- if .Values.backend.secrets }}
+          envFrom:
+            - secretRef:
+                name: backend-secret
+          {{- end }}
+          resources:
+            {{- toYaml .Values.prestart.resources | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: backend
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.backend.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.backend.readinessProbe | nindent 12 }}
+          env:
+            - name: POSTGRES_SERVER
+              value: {{ include "anysource.database.host" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ include "anysource.database.port" . | quote }}
+            - name: POSTGRES_DB
+              value: {{ include "anysource.database.name" . | quote }}
+            - name: POSTGRES_USER
+              value: {{ include "anysource.database.username" . | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.externalDatabase.enabled }}
+                  name: {{ .Values.externalDatabase.existingSecret | default "db-secret" }}
+                  key: {{ .Values.externalDatabase.existingSecretPasswordKey | default "password" }}
+                  {{- else if .Values.postgresql.enabled }}
+                  name: postgresql
+                  key: postgres-password
+                  {{- end }}
+            - name: REDIS_URL
+              value: {{ include "anysource.redis.url" . | quote | trim }}
+            - name: ENVIRONMENT
+              value: {{ .Values.global.environment | quote }}
+            - name: API_V1_STR
+              value: "/api/v1"
+            - name: APP_URL
+              value: "https://{{ .Values.global.domain }}"
+            - name: BACKEND_CORS_ORIGINS
+              value: "https://{{ .Values.global.domain }}"
+            - name: AUTH_DOMAIN
+              value: {{ .Values.global.auth_domain | quote }}
+            {{- range $key, $value := .Values.backend.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- if .Values.backend.secrets }}
+          envFrom:
+            - secretRef:
+                name: backend-secret
+          {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.cache
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

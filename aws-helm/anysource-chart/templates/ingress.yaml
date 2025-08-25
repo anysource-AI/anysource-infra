@@ -1,0 +1,71 @@
+{{- if and .Values.ingress.enabled (not .Values.istio.enabled) -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "anysource.fullname" . }}-ingress
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if and .Values.awsCertificate.enabled (not .Values.certManager.enabled) }}
+    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.awsCertificate.arn }}
+    {{- end }}
+    {{- if eq .Values.ingress.className "alb" }}
+    # Explicitly set ALB name to avoid duplication (max 32 chars for ALB names)
+    alb.ingress.kubernetes.io/load-balancer-name: {{ printf "%s-alb" (include "anysource.fullname" . | trunc 28 | trimSuffix "-") }}
+    {{- end }}
+    {{- if and .Values.ingress.forceHttps (not .Values.certManager.enabled) }}
+    # Force HTTPS redirects when explicitly enabled and cert-manager is disabled
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    {{- end }}
+    {{- if eq .Values.ingress.className "alb" }}
+    # ALB-specific health check configurations
+    alb.ingress.kubernetes.io/healthcheck-path: /api/v1/utils/health-check/
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "10"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    # Backend target group attributes
+    alb.ingress.kubernetes.io/target-group-attributes: |
+      stickiness.enabled=false,
+      deregistration_delay.timeout_seconds=30,
+      stickiness.type=lb_cookie,
+      stickiness.lb_cookie.duration_seconds=86400
+    {{- if .Values.certManager.enabled }}
+    # Use same ALB group as cert-manager challenges when cert-manager is enabled
+    alb.ingress.kubernetes.io/group.name: {{ include "anysource.fullname" . }}-main
+    # Lower priority than challenge ingress
+    alb.ingress.kubernetes.io/group.order: "20"
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if and .Values.ingress.tls.enabled (not .Values.awsCertificate.enabled) }}
+  tls:
+    - hosts:
+        - {{ .Values.global.domain }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.frontend.name }}
+                port:
+                  number: {{ .Values.service.frontend.port }}
+{{- end }}

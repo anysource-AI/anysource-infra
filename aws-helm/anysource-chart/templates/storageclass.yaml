@@ -1,0 +1,33 @@
+{{- if .Values.storageClass.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.storageClass.name }}
+  {{- if .Values.storageClass.isDefault }}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  {{- end }}
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+provisioner: {{ .Values.storageClass.provisioner }}
+volumeBindingMode: {{ .Values.storageClass.volumeBindingMode }}
+allowVolumeExpansion: {{ .Values.storageClass.allowVolumeExpansion }}
+parameters:
+  type: {{ .Values.storageClass.parameters.type }}
+  encrypted: {{ .Values.storageClass.parameters.encrypted | quote }}
+  {{- if .Values.storageClass.parameters.iops }}
+  iops: {{ .Values.storageClass.parameters.iops | quote }}
+  {{- end }}
+  {{- if .Values.storageClass.parameters.throughput }}
+  throughput: {{ .Values.storageClass.parameters.throughput | quote }}
+  {{- end }}
+  {{- if .Values.storageClass.parameters.kmsKeyId }}
+  kmsKeyId: {{ .Values.storageClass.parameters.kmsKeyId }}
+  {{- end }}
+  {{- with .Values.storageClass.parameters.additionalParameters }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- if .Values.storageClass.reclaimPolicy }}
+reclaimPolicy: {{ .Values.storageClass.reclaimPolicy }}
+{{- end }}
+{{- end }}

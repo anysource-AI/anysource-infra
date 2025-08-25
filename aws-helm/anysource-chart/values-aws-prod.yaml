@@ -1,0 +1,186 @@
+# AWS Production values file
+# Overrides for production deployment with AWS RDS and ElastiCache
+
+global:
+  domain: "mcp.example.com"
+  environment: "production"
+  # Anysource support will provide this
+  auth_domain: "your-tenant.us.auth0.com"
+  # Anysource support will provide this
+  auth_client_id: "your-auth-client-id"
+
+# Disable embedded databases for production (using AWS RDS)
+# Note: If you want to use in-cluster PostgreSQL HA instead of AWS RDS,
+# set enabled: true and configure the HA settings below
+postgresql:
+  enabled: false
+
+  # High Availability Configuration (for in-cluster deployment)
+  # Uncomment and set enabled: true above to use these settings
+  auth:
+    postgresPassword: "CHANGE-THIS-IN-PRODUCTION"
+    username: "postgres"
+    password: "CHANGE-THIS-IN-PRODUCTION"
+    database: "postgres"
+    replicationPassword: "CHANGE-THIS-REPLICATION-PASSWORD-IN-PRODUCTION"
+
+  architecture: replication
+
+  # Production-grade primary configuration
+  primary:
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: ebs-gp3
+
+  # Production read replicas configuration
+  readReplicas:
+    replicaCount: 3
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: ebs-gp3
+
+redis:
+  enabled: false
+
+# Enable external AWS services
+externalDatabase:
+  enabled: true
+  type: postgresql
+  host: "anysource.cluster-xxxxx.us-east-1.rds.amazonaws.com"
+  port: 5432
+  database: "postgres"
+  username: "postgres"
+  existingSecret: "anysource-db-secret"
+  existingSecretPasswordKey: "password"
+
+externalRedis:
+  enabled: true
+  host: "anysource.cache.amazonaws.com"
+  port: 6379
+  existingSecret: "anysource-redis-secret"
+  existingSecretPasswordKey: "password"
+
+# Use AWS Load Balancer Controller instead of nginx
+ingress:
+  enabled: true
+  className: "alb"
+  # HTTPS redirects enabled since using ACM (cert-manager disabled)
+  # Note: When cert-manager is disabled, redirects are automatically enabled
+  forceHttps: true
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  tls:
+    enabled: false # ACM handles TLS
+
+# Use ACM certificate instead of cert-manager
+certManager:
+  enabled: false
+
+awsCertificate:
+  enabled: true
+  arn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+
+# Production resource scaling
+backend:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # Production secrets - THESE MUST BE CHANGED FOR PRODUCTION
+  # These values should be overridden with actual secure values
+  secrets:
+    SECRET_KEY: "CHANGE-THIS-TO-A-SECURE-SECRET-KEY-MINIMUM-32-CHARACTERS"
+    MASTER_SALT: "CHANGE-THIS-TO-A-SECURE-MASTER-SALT-MINIMUM-32-CHARACTERS"
+
+frontend:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# HPA configuration for production
+hpa:
+  backend:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+  frontend:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+
+# Security context for production
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+  supplementalGroups: [1000]
+
+# Enable network policies for production
+networkPolicy:
+  enabled: true
+
+# Service account with AWS IAM role
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/your-role-name"
+  name: "anysource-sa"
+
+# Node selector for production workloads
+nodeSelector:
+  kubernetes.io/arch: amd64
+  node.kubernetes.io/instance-type: m5.large
+
+# Tolerations and affinity for production
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - anysource
+          topologyKey: kubernetes.io/hostname

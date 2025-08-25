@@ -1,0 +1,394 @@
+# Global configuration
+global:
+  domain: "mcp.example.com"
+  environment: "production"
+  # Anysource support will provide this
+  auth_domain: "your-tenant.us.auth0.com"
+  # Anysource support will provide this
+  auth_client_id: "your-auth-client-id"
+
+# Name overrides
+# Provide a name in place of the chart name
+nameOverride: ""
+# Provide a name to substitute for the full names of resources
+fullnameOverride: ""
+
+# Image configuration
+image:
+  backend:
+    repository: public.ecr.aws/anysource/anysource-api
+    tag: latest
+    pullPolicy: Always
+    pullSecrets: []
+    # Example: pullSecrets:
+    #   - name: regcred
+  frontend:
+    repository: public.ecr.aws/anysource/anysource-web
+    tag: latest
+    pullPolicy: Always
+    pullSecrets: []
+    # Example: pullSecrets:
+    #   - name: regcred
+
+# Backend service configuration
+backend:
+  name: backend
+  replicas: 2
+  port: 8000
+
+  # Resource configuration
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /api/v1/utils/health-check/
+      port: 8000
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/v1/utils/health-check/
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Environment variables
+  env:
+    WORKERS: "1"
+    HOST: "0.0.0.0"
+    PORT: "8000"
+
+  # Secrets (will be created from values)
+  secrets:
+    SECRET_KEY: "your-secret-key-here-change-in-production"
+    MASTER_SALT: "your-master-salt-here-change-in-production"
+
+# Frontend service configuration
+frontend:
+  name: frontend
+  replicas: 2
+  port: 80
+
+  # Resource configuration
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Database prestart init container
+prestart:
+  enabled: true
+  image:
+    repository: public.ecr.aws/anysource/anysource-api
+    tag: latest
+  command: ["bash"]
+  args: ["scripts/prestart.sh"]
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# HPA configuration
+hpa:
+  backend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  frontend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Service configuration
+service:
+  backend:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  frontend:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+
+# Ingress configuration (ALB by default)
+ingress:
+  enabled: true
+  className: "alb"
+  # HTTPS redirect control:
+  # - false: Disable redirects (default when cert-manager is enabled for HTTP-01 challenges)
+  # - true: Force redirects (automatically enabled when cert-manager is disabled)
+  # Note: Template conditionally applies alb.ingress.kubernetes.io/ssl-redirect annotation
+  forceHttps: false
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  tls:
+    enabled: true
+    secretName: anysource-tls
+
+# Istio configuration (for clusters with existing Istio installation)
+istio:
+  enabled: false
+  # TLS secret name for Istio Gateway (if creating Istio resources)
+  tlsSecretName: "anysource-tls"
+  # Gateway configuration (optional - only if creating Istio resources)
+  gateway:
+    name: anysource-gateway
+    selector:
+      istio: ingressgateway
+    servers:
+      - port:
+          number: 80
+          name: http
+          protocol: HTTP
+        hosts:
+          - "*"
+      - port:
+          number: 443
+          name: https
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: anysource-tls
+        hosts:
+          - "*"
+
+  # Virtual Service configuration (optional - only if creating Istio resources)
+  virtualService:
+    name: anysource-vs
+    hosts:
+      - "*"
+    gateways:
+      - anysource-gateway
+    http:
+      - match:
+          - uri:
+              prefix: "/api/"
+        route:
+          - destination:
+              host: anysource-backend
+              port:
+                number: 8000
+      - match:
+          - uri:
+              prefix: "/"
+        route:
+          - destination:
+              host: anysource-frontend
+              port:
+                number: 80
+
+# PostgreSQL configuration (for dev environment)
+postgresql:
+  enabled: true
+  fullnameOverride: "postgresql"
+  auth:
+    postgresPassword: "postgres123"
+    username: "postgres"
+    password: "postgres123"
+    database: "postgres"
+    replicationPassword: "replication123"
+
+  # High Availability Configuration
+  architecture: replication
+
+  # Primary server configuration
+  primary:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ebs-gp3
+
+  # Read replicas configuration for HA
+  readReplicas:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 400m
+        memory: 1Gi
+      limits:
+        cpu: 400m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ebs-gp3
+
+# Redis configuration (for dev environment)
+redis:
+  enabled: true
+  fullnameOverride: "redis"
+  auth:
+    enabled: true
+    password: "redis123"
+  master:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ebs-gp3
+  replica:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    persistence:
+      storageClass: ebs-gp3
+
+# External database configuration (for production)
+externalDatabase:
+  enabled: false
+  type: postgresql
+  host: ""
+  port: 5432
+  database: "postgres"
+  username: "postgres"
+  password: ""
+  # Password should be provided via secret
+  existingSecret: ""
+  existingSecretPasswordKey: "password"
+
+# External Redis configuration (for production)
+externalRedis:
+  enabled: false
+  host: ""
+  port: 6379
+  password: ""
+  # Password should be provided via secret
+  existingSecret: ""
+  existingSecretPasswordKey: "password"
+
+# Cert-manager configuration
+certManager:
+  enabled: true
+  issuer:
+    name: letsencrypt-prod
+    email: "admin@example.com"
+    server: https://acme-v02.api.letsencrypt.org/directory
+
+# AWS ACM certificate (for AWS environments)
+# When enabled, this will use an existing ACM certificate instead of cert-manager
+# Requirements:
+# 1. Set certManager.enabled: false
+# 2. Set awsCertificate.enabled: true
+# 3. Provide the ACM certificate ARN
+# 4. Set ingress.tls.enabled: false (ACM handles TLS termination)
+# 5. HTTPS redirects are automatically enabled when cert-manager is disabled
+awsCertificate:
+  enabled: false
+  arn: "" # Example: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+podSecurityContext:
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod annotations
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8000"
+  prometheus.io/path: "/metrics"
+
+# Node selector, tolerations and affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Network policies
+networkPolicy:
+  enabled: false
+  # Optional: CIDR of your VPC to allow backend egress to RDS (5432)
+  # and ElastiCache/Redis (6379). Example: "10.0.0.0/16"
+  vpcCidr: ""
+
+# Storage Class Configuration
+storageClass:
+  enabled: true
+  name: ebs-gp3
+  isDefault: false
+  provisioner: ebs.csi.aws.com
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
+  reclaimPolicy: Delete
+  parameters:
+    type: gp3
+    encrypted: "true"
+    # Optional: Uncomment and adjust for production workloads
+    iops: "3000"
+    throughput: "125"
+    kmsKeyId: ""
+    # Additional parameters can be added here
+    additionalParameters: {}

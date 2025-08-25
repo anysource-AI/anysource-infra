@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+data:
+  environment: {{ .Values.global.environment | quote }}
+  domain: {{ .Values.global.domain | quote }}
+  postgres_server: {{ include "anysource.database.host" . | quote }}
+  postgres_port: {{ include "anysource.database.port" . | quote }}
+  postgres_db: {{ include "anysource.database.name" . | quote }}
+  postgres_user: {{ include "anysource.database.username" . | quote }}
+  redis_host: {{ include "anysource.redis.host" . | quote }}
+  redis_port: {{ include "anysource.redis.port" . | quote }}

@@ -1,0 +1,101 @@
+# Development values file
+# Includes embedded PostgreSQL and Redis for development
+
+global:
+  domain: "mcp.dev.example.com"
+  environment: "development"
+  # Anysource support will provide this
+  auth_domain: "your-tenant.us.auth0.com"
+  # Anysource support will provide this
+  auth_client_id: "your-auth-client-id"
+
+
+# Enable embedded databases for development
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres123"
+    username: "postgres"
+    password: "postgres123"
+    database: "postgres"
+  primary:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 250m
+        memory: 512Mi
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "redis123"
+  master:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+  replica:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    replicaCount: 1
+
+# Use ALB ingress for development (same as production)
+ingress:
+  enabled: true
+  className: "alb"
+  # HTTPS redirects enabled since cert-manager is disabled
+  # Note: When cert-manager is disabled, redirects are automatically enabled
+  forceHttps: true
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  tls:
+    enabled: true
+
+# Enable cert-manager for development (for TLS)
+certManager:
+  enabled: false
+
+# Development resource allocation (smaller)
+backend:
+  replicas: 1
+
+  # Development secrets - these should be changed for production
+  secrets:
+    SECRET_KEY: "dev-secret-key-change-in-production-minimum-32-chars"
+    MASTER_SALT: "dev-master-salt-change-in-production-minimum-32-chars"
+
+frontend:
+  replicas: 1
+
+# HPA configuration for development (disabled or minimal)
+hpa:
+  backend:
+    enabled: false
+  frontend:
+    enabled: false
+
+# Relaxed security context for development
+securityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  readOnlyRootFilesystem: false
+
+# Service account without special annotations
+serviceAccount:
+  create: true
+  name: "anysource-dev-sa"

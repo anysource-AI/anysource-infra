@@ -1,0 +1,109 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "anysource.fullname" . }}-backend-netpol
+  labels:
+    {{- include "anysource.backend.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "anysource.backend.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- include "anysource.frontend.selectorLabels" . | nindent 10 }}
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: {{ .Values.backend.port }}
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: {{ if eq (default "standalone" .Values.postgresql.architecture) "replication" }}postgresql-primary{{ else }}postgresql{{ end }}
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  {{- if .Values.networkPolicy.vpcCidr }}
+  - to:
+    - ipBlock:
+        cidr: {{ .Values.networkPolicy.vpcCidr | quote }}
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - ipBlock:
+        cidr: {{ .Values.networkPolicy.vpcCidr | quote }}
+    ports:
+    - protocol: TCP
+      port: 6379
+  {{- end }}
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "anysource.fullname" . }}-frontend-netpol
+  labels:
+    {{- include "anysource.frontend.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "anysource.frontend.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: {{ .Values.frontend.port }}
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- include "anysource.backend.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.backend.port }}
+{{- end }}
