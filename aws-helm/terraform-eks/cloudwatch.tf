@@ -87,12 +87,19 @@ module "alb_latency_alarm" {
   insufficient_data_actions = []
 }
 
-module "asg_cpu_utilization" {
-  source   = "terraform-aws-modules/cloudwatch/aws//modules/metric-alarm"
-  version  = "~> 3.0"
-  for_each = var.node_groups
+# Get autoscaling groups for the cluster
+data "aws_autoscaling_groups" "cluster_asgs" {
+  filter {
+    name   = "tag:eks:cluster-name"
+    values = [local.cluster_name]
+  }
+}
 
-  alarm_name          = "${local.cluster_name}-${each.key}-cpu-utilization"
+# Create CPU utilization alarm for each ASG in the cluster
+resource "aws_cloudwatch_metric_alarm" "asg_cpu_utilization" {
+  for_each = toset(data.aws_autoscaling_groups.cluster_asgs.names)
+
+  alarm_name          = "${each.key}-cpu-utilization"
   alarm_description   = "ASG ${each.key} CPUUtilization exceeds threshold"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.asg_cpu_evaluation_periods
@@ -104,7 +111,7 @@ module "asg_cpu_utilization" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    AutoScalingGroupName = "${local.name_prefix}-${each.key}"
+    AutoScalingGroupName = each.key
   }
 
   alarm_actions             = []

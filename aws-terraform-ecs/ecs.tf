@@ -56,9 +56,9 @@ module "ecs" {
 
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = {
-    PUBLIC_AUTH_DOMAIN     = var.auth_domain
-    PUBLIC_AUTH_CLIENT_ID  = var.auth_client_id
-    PUBLIC_APP_URL         = local.app_url
+    PUBLIC_AUTH_DOMAIN    = var.auth_domain
+    PUBLIC_AUTH_CLIENT_ID = var.auth_client_id
+    PUBLIC_APP_URL        = local.app_url
   }
 
   depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]

@@ -195,10 +195,10 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   depends_on = [module.rds]
 }
 
-# Redis CloudWatch Alarms
+# Redis CloudWatch Alarms - Dynamic for multiple clusters
 resource "aws_cloudwatch_metric_alarm" "redis_cpu_utilization" {
-  count               = var.enable_monitoring ? 1 : 0
-  alarm_name          = "${var.project}-${var.environment}-redis-cpu-utilization"
+  count               = var.enable_monitoring ? aws_elasticache_replication_group.redis.num_cache_clusters : 0
+  alarm_name          = "${var.project}-${var.environment}-redis-cpu-utilization-${format("%03d", count.index + 1)}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -206,17 +206,17 @@ resource "aws_cloudwatch_metric_alarm" "redis_cpu_utilization" {
   period              = "300"
   statistic           = "Average"
   threshold           = "80"
-  alarm_description   = "This metric monitors ElastiCache cpu utilization"
+  alarm_description   = "This metric monitors ElastiCache cpu utilization for cluster node ${format("%03d", count.index + 1)}"
   alarm_actions       = local.alarm_actions
 
   dimensions = {
-    CacheClusterId = aws_elasticache_replication_group.redis.replication_group_id
+    CacheClusterId = "${aws_elasticache_replication_group.redis.replication_group_id}-${format("%03d", count.index + 1)}"
   }
 }
 
 resource "aws_cloudwatch_metric_alarm" "redis_memory_utilization" {
-  count               = var.enable_monitoring ? 1 : 0
-  alarm_name          = "${var.project}-${var.environment}-redis-memory-utilization"
+  count               = var.enable_monitoring ? aws_elasticache_replication_group.redis.num_cache_clusters : 0
+  alarm_name          = "${var.project}-${var.environment}-redis-memory-utilization-${format("%03d", count.index + 1)}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "DatabaseMemoryUsagePercentage"
@@ -224,11 +224,11 @@ resource "aws_cloudwatch_metric_alarm" "redis_memory_utilization" {
   period              = "300"
   statistic           = "Average"
   threshold           = "85"
-  alarm_description   = "This metric monitors ElastiCache memory utilization"
+  alarm_description   = "This metric monitors ElastiCache memory utilization for cluster node ${format("%03d", count.index + 1)}"
   alarm_actions       = local.alarm_actions
 
   dimensions = {
-    CacheClusterId = aws_elasticache_replication_group.redis.replication_group_id
+    CacheClusterId = "${aws_elasticache_replication_group.redis.replication_group_id}-${format("%03d", count.index + 1)}"
   }
 }
 

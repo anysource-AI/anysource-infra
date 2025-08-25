@@ -159,7 +159,7 @@ ingress:
   # HTTPS redirect control:
   # - false: Disable redirects (default when cert-manager is enabled for HTTP-01 challenges)
   # - true: Force redirects (automatically enabled when cert-manager is disabled)
-  # Note: Template conditionally applies alb.ingress.kubernetes.io/redirect-to-https annotation
+  # Note: Template conditionally applies alb.ingress.kubernetes.io/ssl-redirect annotation
   forceHttps: false
   annotations:
     kubernetes.io/ingress.class: alb
