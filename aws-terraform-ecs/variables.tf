@@ -213,6 +213,14 @@ variable "hf_token" {
   sensitive   = true
 }
 
+# Sentry Configuration
+variable "sentry_dsn" {
+  type        = string
+  description = "Sentry DSN for error tracking and monitoring"
+  default     = ""
+  sensitive   = true
+}
+
 # S3 Configuration (Optional)
 variable "buckets_conf" {
   type        = map(object({ acl = string }))

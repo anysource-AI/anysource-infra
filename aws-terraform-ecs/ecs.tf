@@ -52,6 +52,8 @@ module "ecs" {
     POSTGRES_PASSWORD = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_PASSWORD::"
     SECRET_KEY        = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
     MASTER_SALT       = "${aws_secretsmanager_secret.app_secrets.arn}:MASTER_SALT::"
+    SENTRY_DSN        = "${aws_secretsmanager_secret.app_secrets.arn}:SENTRY_DSN::"
+    HF_TOKEN          = "${aws_secretsmanager_secret.app_secrets.arn}:HF_TOKEN::"
   }
 
   # Frontend-specific environment variables (non-sensitive)
