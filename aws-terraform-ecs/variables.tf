@@ -116,6 +116,12 @@ variable "database_config" {
     backup_retention    = optional(number, 7)
     subnet_type         = optional(string, "private") # "public" or "private"
     force_ssl           = optional(bool, false)
+    # Database connection pool settings
+    pool_size           = optional(number, 50)   # Number of connections to maintain in the pool
+    max_overflow        = optional(number, 50)   # Additional connections allowed beyond pool_size
+    pool_timeout        = optional(number, 30)   # Seconds to wait for a connection from the pool
+    pool_recycle        = optional(number, 3600) # Seconds before recreating a connection (1 hour)
+    pool_pre_ping       = optional(bool, true)   # Test connections before use to handle disconnections
   })
   default = {}
 }
@@ -123,7 +129,7 @@ variable "database_config" {
 variable "workers" {
   type        = number
   description = "Number of workers for the backend"
-  default     = 1
+  default     = null # Set to null to use the number of CPUs on the node
 }
 
 # ALB/Security Configuration
@@ -165,6 +171,7 @@ variable "hosted_zone_id" {
 # Application Services Configuration with Smart Defaults
 variable "services_configurations" {
   type = map(object({
+    name                              = string
     path_pattern                      = list(string)
     health_check_path                 = string
     protocol                          = optional(string, "HTTP")
@@ -173,12 +180,12 @@ variable "services_configurations" {
     memory                            = optional(number) # Will use service-specific defaults if not provided
     host_port                         = optional(number, 8000)
     container_port                    = optional(number, 8000)
-    desired_count                     = optional(number, 2)  # Production-ready default
-    max_capacity                      = optional(number, 10) # Allow scaling
-    min_capacity                      = optional(number, 2)
+    desired_count                     = optional(number, 3)  # Production-ready default
+    max_capacity                      = optional(number, 20) # Allow scaling
+    min_capacity                      = optional(number, 3)
     cpu_auto_scalling_target_value    = optional(number, 70)
     memory_auto_scalling_target_value = optional(number, 80)
-    priority                          = optional(number) # Priority for ALB listener rules - lower numbers have higher precedence (1 is highest priority)
+    priority                          = number # Priority for ALB listener rules - lower numbers have higher precedence (1 is highest priority)
   }))
   default = {
     "backend" = {
@@ -189,8 +196,8 @@ variable "services_configurations" {
       host_port         = 8000
       port              = 8000
       priority          = 1
-      cpu               = 2048
-      memory            = 4096
+      cpu               = 4096
+      memory            = 8192
     }
     "frontend" = {
       name              = "frontend"
@@ -198,9 +205,10 @@ variable "services_configurations" {
       health_check_path = "/"
       container_port    = 80
       host_port         = 80
+      port              = 80
       priority          = 2
-      cpu               = 512
-      memory            = 1024
+      cpu               = 1024
+      memory            = 2048
     }
   }
 }
@@ -210,6 +218,14 @@ variable "hf_token" {
   type        = string
   description = "HuggingFace token for downloading models (used by prompt protection)"
   default     = "" # Must be provided via tfvars or environment variable
+  sensitive   = true
+}
+
+# Sentry Configuration
+variable "sentry_dsn" {
+  type        = string
+  description = "Sentry DSN for error tracking and monitoring"
+  default     = ""
   sensitive   = true
 }
 
@@ -335,4 +351,11 @@ variable "deletion_protection" {
   type        = bool
   description = "Enable deletion protection for RDS clusters"
   default     = true
+}
+
+# Redis Configuration
+variable "redis_node_type" {
+  type        = string
+  description = "ElastiCache Redis node type"
+  default     = "cache.t3.medium"
 }

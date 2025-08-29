@@ -63,6 +63,13 @@ database_config = {
   backup_retention    = 30        # Backup retention in days
   subnet_type         = "private" # Use private subnets
   force_ssl           = true      # Require SSL connections (true = required, false = optional)
+  
+  # Database connection pool settings (optional - defaults shown)
+  pool_size           = 50        # Number of connections to maintain in the pool (default: 50)
+  max_overflow        = 50        # Additional connections beyond pool_size (default: 50, total: 100)
+  pool_timeout        = 30        # Seconds to wait for a connection (default: 30)
+  pool_recycle        = 3600      # Seconds before recreating connections (default: 3600 = 1 hour)
+  pool_pre_ping       = true      # Test connections before use (default: true)
 }
 
 # ========================================
@@ -88,7 +95,7 @@ services_configurations = {
     env_vars = {
       DEBUG     = "False"
       LOG_LEVEL = "INFO"
-      WORKERS   = "1"
+      WORKERS   = "4"
     }
   }
 

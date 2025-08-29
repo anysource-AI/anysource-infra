@@ -6,7 +6,7 @@ locals {
     "name"        = var.project
   }
   flow_log_cloudwatch_log_group_name = "/aws/vpc-flow-log/${var.project}-${var.environment}"
-  flow_log_iam_role_name = "vpc-flow-logs-role-${var.project}-${var.environment}"
+  flow_log_iam_role_name             = "vpc-flow-logs-role-${var.project}-${var.environment}"
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 resource "aws_vpc" "main" {

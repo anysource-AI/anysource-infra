@@ -45,6 +45,12 @@ module "ecs" {
     APP_URL              = local.app_url
     BACKEND_CORS_ORIGINS = local.app_url
     WORKERS              = var.workers
+    # Database connection pool settings
+    DB_POOL_SIZE         = var.database_config.pool_size
+    DB_MAX_OVERFLOW      = var.database_config.max_overflow
+    DB_POOL_TIMEOUT      = var.database_config.pool_timeout
+    DB_POOL_RECYCLE      = var.database_config.pool_recycle
+    DB_POOL_PRE_PING     = var.database_config.pool_pre_ping
   }
 
   # Backend-specific secrets from AWS Secrets Manager
@@ -52,6 +58,8 @@ module "ecs" {
     POSTGRES_PASSWORD = "${aws_secretsmanager_secret.app_secrets.arn}:PLATFORM_DB_PASSWORD::"
     SECRET_KEY        = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
     MASTER_SALT       = "${aws_secretsmanager_secret.app_secrets.arn}:MASTER_SALT::"
+    SENTRY_DSN        = "${aws_secretsmanager_secret.app_secrets.arn}:SENTRY_DSN::"
+    HF_TOKEN          = "${aws_secretsmanager_secret.app_secrets.arn}:HF_TOKEN::"
   }
 
   # Frontend-specific environment variables (non-sensitive)
@@ -59,6 +67,7 @@ module "ecs" {
     PUBLIC_AUTH_DOMAIN    = var.auth_domain
     PUBLIC_AUTH_CLIENT_ID = var.auth_client_id
     PUBLIC_APP_URL        = local.app_url
+    PUBLIC_BACKEND_URL    = local.app_url
   }
 
   depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]

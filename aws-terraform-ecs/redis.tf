@@ -37,7 +37,7 @@ resource "aws_elasticache_replication_group" "redis" {
   replication_group_id = "${var.project}-${var.environment}-redis"
   description          = "Redis cluster for ${var.project} ${var.environment}"
 
-  node_type            = "cache.t3.micro"
+  node_type            = var.redis_node_type
   port                 = 6379
   parameter_group_name = "default.redis7"
 
