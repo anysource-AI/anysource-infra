@@ -20,7 +20,11 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 resource "random_password" "db_password" {
   length           = 32
   special          = true
-  override_special = "!#$%^&*()-_=+[]{}|;:,.<>?~"
+  override_special = "!()_-="
+  min_lower        = 8
+  min_upper        = 8
+  min_numeric      = 8
+  min_special      = 8
 }
 
 resource "random_password" "secret_key" {

@@ -55,6 +55,7 @@ variable "target_groups" {
     health_check_path = string
     protocol          = optional(string, "HTTP") // Optional protocol
     port              = optional(number, 3000)   // Optional port
+    priority          = number                   // Priority for ALB listener rules
 
   }))
 

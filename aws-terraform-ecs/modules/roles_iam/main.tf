@@ -4,8 +4,8 @@ locals {
 }
 
 resource "aws_iam_role" "role" {
-  for_each           = toset(var.role_names)
-  name               = "${var.project}-${var.environment}-${each.key}"
+  for_each = toset(var.role_names)
+  name     = "${var.project}-${var.environment}-${each.key}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

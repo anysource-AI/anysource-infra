@@ -27,7 +27,7 @@ locals {
   node_group_defaults = {
     capacity_type  = var.environment == "production" ? "ON_DEMAND" : "SPOT"
     disk_size      = var.environment == "production" ? 50 : 20
-    instance_types = var.environment == "production" ? ["t3.large", "t3.xlarge"] : ["t3.small", "t3.medium"]
+    instance_types = var.environment == "production" ? ["m6i.2xlarge", "m6i.4xlarge"] : ["m6i.xlarge", "m6i.2xlarge"]
 
     # Security and maintenance
     enable_monitoring = true

@@ -278,11 +278,11 @@ variable "node_groups" {
   }))
   default = {
     default = {
-      instance_types = ["t3.medium"]
+      instance_types = ["m6i.2xlarge"]
       scaling_config = {
-        desired_size = 3
-        max_size     = 10
-        min_size     = 2
+        desired_size = 6
+        max_size     = 20
+        min_size     = 4
       }
       disk_size = 20
     }

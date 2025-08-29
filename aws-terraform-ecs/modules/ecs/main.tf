@@ -1,5 +1,14 @@
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "${var.project}-${var.environment}-cluster"
+
+  service_connect_defaults {
+    namespace = aws_service_discovery_http_namespace.service_connect.arn
+  }
+}
+
+resource "aws_service_discovery_http_namespace" "service_connect" {
+  name        = "${var.project}-${var.environment}"
+  description = "Service Connect namespace for ${var.project} ${var.environment}"
 }
 
 resource "aws_cloudwatch_log_group" "ecs_cw_log_group" {
@@ -82,11 +91,13 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
           {
             containerPort = each.value.container_port
             hostPort      = each.value.host_port
+            name          = "http"
+            appProtocol   = "http"
           }
         ],
         environment = concat(
           [
-            for key, value in (each.key == "backend" ? var.backend_env_vars : var.frontend_env_vars) : {
+            for key, value in(each.key == "backend" ? var.backend_env_vars : var.frontend_env_vars) : {
               name  = key
               value = value
             }
@@ -95,7 +106,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         ),
         secrets = concat(
           [
-            for key, value in (each.key == "backend" ? var.backend_secret_vars : {}) : {
+            for key, value in(each.key == "backend" ? var.backend_secret_vars : {}) : {
               name      = key
               valueFrom = value
             }
@@ -129,6 +140,11 @@ resource "aws_ecs_service" "private_service" {
   desired_count                     = each.value.desired_count
   health_check_grace_period_seconds = each.key == "backend" ? var.health_check_grace_period_seconds : null
 
+  depends_on = [
+    aws_ecs_cluster.ecs_cluster,
+    aws_service_discovery_http_namespace.service_connect
+  ]
+
   network_configuration {
     subnets = var.private_subnets
     security_groups = [
@@ -140,6 +156,21 @@ resource "aws_ecs_service" "private_service" {
     target_group_arn = var.public_alb_target_groups[each.key].arn
     container_name   = each.key
     container_port   = each.value.container_port
+  }
+
+  dynamic "service_connect_configuration" {
+    for_each = each.key == "backend" ? [1] : []
+    content {
+      enabled = true
+      service {
+        port_name      = "http"
+        discovery_name = var.services_configurations["backend"].name
+        client_alias {
+          port     = each.value.container_port
+          dns_name = var.services_configurations["backend"].name
+        }
+      }
+    }
   }
 }
 
