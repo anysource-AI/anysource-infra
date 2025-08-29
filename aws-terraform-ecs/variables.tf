@@ -116,6 +116,12 @@ variable "database_config" {
     backup_retention    = optional(number, 7)
     subnet_type         = optional(string, "private") # "public" or "private"
     force_ssl           = optional(bool, false)
+    # Database connection pool settings
+    pool_size           = optional(number, 50)   # Number of connections to maintain in the pool
+    max_overflow        = optional(number, 50)   # Additional connections allowed beyond pool_size
+    pool_timeout        = optional(number, 30)   # Seconds to wait for a connection from the pool
+    pool_recycle        = optional(number, 3600) # Seconds before recreating a connection (1 hour)
+    pool_pre_ping       = optional(bool, true)   # Test connections before use to handle disconnections
   })
   default = {}
 }

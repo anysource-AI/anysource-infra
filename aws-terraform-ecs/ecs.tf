@@ -45,6 +45,12 @@ module "ecs" {
     APP_URL              = local.app_url
     BACKEND_CORS_ORIGINS = local.app_url
     WORKERS              = var.workers
+    # Database connection pool settings
+    DB_POOL_SIZE         = var.database_config.pool_size
+    DB_MAX_OVERFLOW      = var.database_config.max_overflow
+    DB_POOL_TIMEOUT      = var.database_config.pool_timeout
+    DB_POOL_RECYCLE      = var.database_config.pool_recycle
+    DB_POOL_PRE_PING     = var.database_config.pool_pre_ping
   }
 
   # Backend-specific secrets from AWS Secrets Manager
