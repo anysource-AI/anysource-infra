@@ -67,7 +67,7 @@ module "ecs" {
     PUBLIC_AUTH_DOMAIN    = var.auth_domain
     PUBLIC_AUTH_CLIENT_ID = var.auth_client_id
     PUBLIC_APP_URL        = local.app_url
-    PUBLIC_BACKEND_URL    = "http://${var.services_configurations["backend"].name}:${var.services_configurations["backend"].container_port}"
+    PUBLIC_BACKEND_URL    = local.app_url
   }
 
   depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
