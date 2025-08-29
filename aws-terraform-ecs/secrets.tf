@@ -20,7 +20,11 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 resource "random_password" "db_password" {
   length           = 32
   special          = true
-  override_special = "!#$%^&*()-_=+[]{}|;:,.<>?~"
+  override_special = "!()_-="
+  min_lower        = 8
+  min_upper        = 8
+  min_numeric      = 8
+  min_special      = 8
 }
 
 resource "random_password" "secret_key" {
@@ -41,6 +45,7 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     SECRET_KEY           = random_password.secret_key.result
     MASTER_SALT          = random_password.master_salt.result
     HF_TOKEN             = var.hf_token
+    SENTRY_DSN           = var.sentry_dsn
     }, var.domain_name != "" ? {
     # When domain is provided, use HTTPS with domain
     APP_URL              = "https://${var.domain_name}"

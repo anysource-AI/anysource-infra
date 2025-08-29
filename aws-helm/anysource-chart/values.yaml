@@ -39,11 +39,11 @@ backend:
   # Resource configuration
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 4000m
+      memory: 8192Mi
     limits:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 4000m
+      memory: 8192Mi
 
   # Health checks
   livenessProbe:
@@ -66,9 +66,15 @@ backend:
 
   # Environment variables
   env:
-    WORKERS: "1"
+    # WORKERS: "1" # Optional, will default to the number of CPUs on the node
     HOST: "0.0.0.0"
     PORT: "8000"
+    # Database connection pool settings
+    DB_POOL_SIZE: "50" # Number of connections to maintain in the pool
+    DB_MAX_OVERFLOW: "50" # Additional connections beyond pool_size (total: 100)
+    DB_POOL_TIMEOUT: "30" # Seconds to wait for a connection
+    DB_POOL_RECYCLE: "3600" # Seconds before recreating connections (1 hour)
+    DB_POOL_PRE_PING: "true" # Test connections before use
 
   # Secrets (will be created from values)
   secrets:
@@ -84,11 +90,11 @@ frontend:
   # Resource configuration
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 1000m
+      memory: 2048Mi
     limits:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 1000m
+      memory: 2048Mi
 
   # Health checks
   livenessProbe:
@@ -119,11 +125,11 @@ prestart:
   args: ["scripts/prestart.sh"]
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 1000m
+      memory: 2048Mi
     limits:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 1000m
+      memory: 2048Mi
 
 # HPA configuration
 hpa:
@@ -241,11 +247,11 @@ postgresql:
   primary:
     resources:
       requests:
-        cpu: 500m
-        memory: 1Gi
+        cpu: 4000m
+        memory: 8192Mi
       limits:
-        cpu: 500m
-        memory: 1Gi
+        cpu: 4000m
+        memory: 8192Mi
     persistence:
       enabled: true
       size: 10Gi
@@ -256,11 +262,11 @@ postgresql:
     replicaCount: 1
     resources:
       requests:
-        cpu: 400m
-        memory: 1Gi
+        cpu: 4000m
+        memory: 8192Mi
       limits:
-        cpu: 400m
-        memory: 1Gi
+        cpu: 4000m
+        memory: 8192Mi
     persistence:
       enabled: true
       size: 10Gi
@@ -276,11 +282,11 @@ redis:
   master:
     resources:
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 1000m
+        memory: 2048Mi
       limits:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 1000m
+        memory: 2048Mi
     persistence:
       enabled: true
       size: 5Gi
@@ -288,11 +294,11 @@ redis:
   replica:
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 1000m
+        memory: 2048Mi
       limits:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 1000m
+        memory: 2048Mi
     persistence:
       storageClass: ebs-gp3
 

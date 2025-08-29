@@ -260,8 +260,8 @@ terraform apply
 
 ### Getting Help
 
-- **Logs:** CloudWatch `/aws/ecs/anysource-[env]` (main containers)
-- **Migration Logs:** CloudWatch `prestart-logs-[env]` (database setup)
+- **Logs:** CloudWatch `anysource-backend-logs-[env]`, `anysource-frontend-logs-[env]` (main containers)
+- **Migration Logs:** CloudWatch `anysource-prestart-logs-[env]` (database setup)
 - **Events:** ECS service events in AWS Console
 - **Validation:** `terraform validate`
 - **Planning:** `terraform plan` before applying changes
@@ -299,15 +299,16 @@ Anysource ECS deployments include comprehensive monitoring:
 
 ### CloudWatch Integration
 
-- **Logs:** All containers stream logs to `/aws/ecs/anysource-[env]` and `prestart-logs-[env]`
+- **Logs:** All containers stream logs to `anysource-[service]-logs-[env]` and `anysource-prestart-logs-[env]`
 - **Metrics:** CPU, memory, task count, and health check metrics
 - **Alarms:** Service health and resource saturation alerts
 - **Dashboards:** Built-in ECS service dashboards
 
 ### Log Groups
 
-- `/aws/ecs/anysource-[environment]` - Main application logs
-- `prestart-logs-[environment]` - Database migration and setup logs
+- `anysource-backend-logs-[environment]` - Backend application logs
+- `anysource-frontend-logs-[environment]` - Frontend application logs
+- `anysource-prestart-logs-[environment]` - Database migration and setup logs
 
 ### Troubleshooting
 

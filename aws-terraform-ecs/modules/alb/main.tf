@@ -74,7 +74,7 @@ resource "aws_lb_listener" "alb_listener_https" {
 resource "aws_lb_listener_rule" "alb_listener_rule_https" {
   for_each     = var.enable_https ? var.target_groups : {}
   listener_arn = aws_lb_listener.alb_listener_https[0].arn
-  priority     = lookup(each.value, "priority", null)
+  priority     = each.value.priority
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.alb_target_group[each.key].arn
@@ -93,7 +93,7 @@ resource "aws_lb_listener_rule" "alb_listener_rule_https" {
 resource "aws_lb_listener_rule" "alb_listener_rule_http" {
   for_each     = var.enable_https ? {} : var.target_groups
   listener_arn = aws_lb_listener.alb_listener_http.arn
-  priority     = lookup(each.value, "priority", null)
+  priority     = each.value.priority
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.alb_target_group[each.key].arn
