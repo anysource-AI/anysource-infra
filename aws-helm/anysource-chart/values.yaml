@@ -75,6 +75,8 @@ backend:
     DB_POOL_TIMEOUT: "30" # Seconds to wait for a connection
     DB_POOL_RECYCLE: "3600" # Seconds before recreating connections (1 hour)
     DB_POOL_PRE_PING: "true" # Test connections before use
+    # Tokenizers configuration for LlamaFirewall parallel processing
+    TOKENIZERS_PARALLELISM: "true"
 
   # Secrets (will be created from values)
   secrets:

@@ -51,6 +51,8 @@ module "ecs" {
     DB_POOL_TIMEOUT      = var.database_config.pool_timeout
     DB_POOL_RECYCLE      = var.database_config.pool_recycle
     DB_POOL_PRE_PING     = var.database_config.pool_pre_ping
+    # Tokenizers configuration for LlamaFirewall parallel processing
+    TOKENIZERS_PARALLELISM = "true"
   }
 
   # Backend-specific secrets from AWS Secrets Manager
