@@ -6,15 +6,13 @@ Deploy Anysource on AWS ECS using Terraform. This infrastructure supports develo
 
 1. **Choose your deployment type:**
 
-   - [**No Domain**](examples/no_domain.tfvars) - Simple HTTP deployment (development/testing)
-   - [**Custom Domain**](examples/custom_domain.tfvars) - HTTPS with your domain (production)
+   - [**Custom Domain**](examples/custom_domain.tfvars) - HTTPS with your domain (production-ready)
    - [**Custom Deployment**](examples/custom_deployment.tfvars) - Full enterprise customization
 
 2. **Copy and configure:**
 
    ```bash
    # Choose one based on your needs
-   cp examples/no_domain.tfvars terraform.tfvars
    cp examples/custom_domain.tfvars terraform.tfvars
    cp examples/custom_deployment.tfvars terraform.tfvars
 
@@ -40,26 +38,9 @@ Deploy Anysource on AWS ECS using Terraform. This infrastructure supports develo
 
 ## Configuration Examples
 
-### No Domain Deployment (HTTP Only)
-
-Perfect for development and testing environments.
-
-```hcl
-environment     = "development"
-region          = "us-east-1"
-hf_token        = "hf_your_token_here"
-
-ecr_repositories = {
-  backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
-  frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
-}
-```
-
-**Access:** Via ALB DNS name on HTTP (see `application_url` output)
-
 ### Custom Domain Deployment (HTTPS)
 
-Production-ready with automatic SSL certificates.
+All deployments require a custom domain and use HTTPS with automatic SSL certificates.
 
 ```hcl
 environment     = "production"
@@ -98,7 +79,7 @@ terraform apply
 
 ```
 ┌─────────────┐
-│ Application │ ← https://your-domain.com (or ALB DNS)
+│ Application │ ← https://your-domain.com
 │ Load Balancer│
 └──────┬──────┘
        │
@@ -120,7 +101,7 @@ terraform apply
 - **Database:** Aurora PostgreSQL with automated backups
 - **Cache:** Redis ElastiCache cluster
 - **Security:** ALB with SSL termination, security groups, secrets management
-- **DNS:** Optional Route53 integration or external DNS management
+- **DNS:** Route53 integration or external DNS management
 
 **Container Architecture:**
 
@@ -137,6 +118,7 @@ All deployments need these values:
 | ------------------ | ---------------------------------------------------------- | ---------------------------- |
 | `environment`      | Environment name                                           | `"production"`               |
 | `region`           | AWS region                                                 | `"us-east-1"`                |
+| `domain_name`      | Custom domain for HTTPS access                             | `"mcp.yourcompany.com"`      |
 | `hf_token`         | HuggingFace token                                          | `"hf_your_token"`            |
 | `auth_domain`      | Auth tenant domain (will be provided by Anysource support) | `"your-tenant.us.auth0.com"` |
 | `auth_client_id`   | Auth client ID (will be provided by Anysource support)     | `"your-auth-client-id"`      |
@@ -191,14 +173,12 @@ After deployment, you'll get:
 
 ### Development
 
-- HTTP-only access
 - Minimal resources
 - Local Terraform state
 - Cost-optimized
 
 ### Production
 
-- HTTPS with SSL certificates
 - Auto-scaling enabled
 - S3 backend for state
 - High availability

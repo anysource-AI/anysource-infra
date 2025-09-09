@@ -8,7 +8,7 @@ locals {
   # This will cause an error if any services are missing ECR URIs
   validate_ecr_completeness = length(local.missing_ecr_services) == 0 ? true : tobool("ERROR: Missing ECR repository URIs for services: ${join(", ", local.missing_ecr_services)}. All services must have explicit ECR URIs defined in ecr_repositories variable.")
 
-  app_url = var.domain_name == "" ? "http://${module.private_alb.alb_dns_name}" : "https://${var.domain_name}"
+  app_url = "https://${var.domain_name}"
 }
 
 module "ecs" {

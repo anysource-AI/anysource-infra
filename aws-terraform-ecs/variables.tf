@@ -28,8 +28,11 @@ variable "environment" {
 
 variable "domain_name" {
   type        = string
-  description = "Domain name for the application (optional - if not provided, ALB DNS name will be used)"
-  default     = ""
+  description = "Domain name for the application (required)"
+  validation {
+    condition     = length(var.domain_name) > 0
+    error_message = "Domain name is required for all deployments."
+  }
 }
 
 variable "account" {
