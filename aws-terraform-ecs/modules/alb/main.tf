@@ -7,7 +7,7 @@ resource "aws_lb" "alb" {
   load_balancer_type         = var.load_balancer_type
   subnets                    = var.subnets
   security_groups            = var.security_groups
-  idle_timeout               = 120
+  idle_timeout               = 300
   drop_invalid_header_fields = true
 }
 
