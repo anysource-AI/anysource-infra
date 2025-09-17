@@ -45,6 +45,8 @@ module "ecs" {
     APP_URL              = local.app_url
     BACKEND_CORS_ORIGINS = local.app_url
     WORKERS              = var.workers
+    # AWS region for Bedrock and other AWS services
+    AWS_REGION = var.region
     # Database connection pool settings
     DB_POOL_SIZE     = var.database_config.pool_size
     DB_MAX_OVERFLOW  = var.database_config.max_overflow

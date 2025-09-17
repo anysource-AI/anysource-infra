@@ -374,15 +374,6 @@ variable "cluster_addons" {
 # Application-specific Configuration (Optional)
 ########################################################################################################################
 
-variable "domain_name" {
-  type        = string
-  description = "Domain name for the application (required)"
-  validation {
-    condition     = length(var.domain_name) > 0
-    error_message = "Domain name is required for all deployments."
-  }
-}
-
 variable "additional_tags" {
   type        = map(string)
   description = "Additional tags to apply to all resources"
