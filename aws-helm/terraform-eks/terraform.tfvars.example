@@ -95,6 +95,3 @@ additional_tags = {
   CostCenter  = "engineering"
   Project     = "anysource"
 }
-
-# Optional: Domain name for applications
-# domain_name = "example.com"

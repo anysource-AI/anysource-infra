@@ -9,14 +9,13 @@ module "private_alb" {
   target_groups      = var.services_configurations
   internal           = var.alb_access_type == "private"
   security_groups    = [module.sg_private_alb.security_group_id]
-  certificate_arn    = local.enable_https ? (var.ssl_certificate_arn != "" ? var.ssl_certificate_arn : module.certificate_alb[0].certificate_arn) : ""
-  enable_https       = local.enable_https
+  certificate_arn    = var.ssl_certificate_arn != "" ? var.ssl_certificate_arn : module.certificate_alb[0].certificate_arn
   depends_on         = [module.vpc, module.sg_private_alb]
 }
 
-# Certificate creation (only if HTTPS is enabled, domain is provided, and not using existing certificate)
+# Certificate creation (only if not using existing certificate)
 module "certificate_alb" {
-  count       = local.enable_https && var.domain_name != "" && var.ssl_certificate_arn == "" ? 1 : 0
+  count       = var.ssl_certificate_arn == "" ? 1 : 0
   source      = "./modules/acm"
   domain_name = var.domain_name
   environment = var.environment

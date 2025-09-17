@@ -111,6 +111,11 @@ backend:
       cpu: 1000m
       memory: 2Gi
 
+  # Production environment variables
+  env:
+    # AWS region matching the infrastructure
+    AWS_REGION: "us-east-1"
+
   # Production secrets - THESE MUST BE CHANGED FOR PRODUCTION
   # These values should be overridden with actual secure values
   secrets:
@@ -163,8 +168,10 @@ networkPolicy:
 serviceAccount:
   create: true
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/your-role-name"
-  name: "anysource-sa"
+    # This should be set to the output from terraform-eks: anysource_service_account_role_arn
+    # Example: eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/project-environment-anysource-role"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/your-project-environment-anysource-role"
+  name: "anysource"
 
 # Node selector for production workloads
 nodeSelector:

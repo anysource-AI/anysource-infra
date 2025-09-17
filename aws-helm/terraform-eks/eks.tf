@@ -115,3 +115,93 @@ module "load_balancer_controller_irsa_role" {
 
   tags = local.common_tags
 }
+
+########################################################################################################################
+# Anysource Application IAM Role (IRSA)
+########################################################################################################################
+
+module "anysource_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name = "${local.name_prefix}-anysource-role"
+
+  # Custom policy with Bedrock permissions
+  role_policy_arns = {
+    anysource_policy = aws_iam_policy.anysource_policy.arn
+  }
+
+  oidc_providers = {
+    ex = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["default:anysource"]
+    }
+  }
+
+  tags = local.common_tags
+}
+
+# Custom IAM policy for Anysource application
+resource "aws_iam_policy" "anysource_policy" {
+  name        = "${local.name_prefix}-anysource-policy"
+  description = "IAM policy for Anysource application with Bedrock Guardrails permissions"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "secretsmanager:GetSecretValue"
+        Resource = [
+          "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.project}-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.project}-*/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.project}-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:*-logs-*:*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:CreateGuardrail",
+          "bedrock:GetGuardrail",
+          "bedrock:ListGuardrails",
+          "bedrock:UpdateGuardrail",
+          "bedrock:DeleteGuardrail",
+          "bedrock-runtime:ApplyGuardrail"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}

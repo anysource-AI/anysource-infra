@@ -75,6 +75,18 @@ resource "aws_iam_policy" "policy" {
       "Resource": [
         "arn:aws:logs:${var.region}:${var.account}:log-group:*-logs-${var.environment}:*"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:CreateGuardrail",
+        "bedrock:GetGuardrail", 
+        "bedrock:ListGuardrails",
+        "bedrock:UpdateGuardrail",
+        "bedrock:DeleteGuardrail",
+        "bedrock-runtime:ApplyGuardrail"
+      ],
+      "Resource": "*"
     }
   ]
 }

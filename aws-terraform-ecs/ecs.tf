@@ -8,7 +8,7 @@ locals {
   # This will cause an error if any services are missing ECR URIs
   validate_ecr_completeness = length(local.missing_ecr_services) == 0 ? true : tobool("ERROR: Missing ECR repository URIs for services: ${join(", ", local.missing_ecr_services)}. All services must have explicit ECR URIs defined in ecr_repositories variable.")
 
-  app_url = var.domain_name == "" ? "http://${module.private_alb.alb_dns_name}" : "https://${var.domain_name}"
+  app_url = "https://${var.domain_name}"
 }
 
 module "ecs" {
@@ -45,12 +45,16 @@ module "ecs" {
     APP_URL              = local.app_url
     BACKEND_CORS_ORIGINS = local.app_url
     WORKERS              = var.workers
+    # AWS region for Bedrock and other AWS services
+    AWS_REGION = var.region
     # Database connection pool settings
-    DB_POOL_SIZE         = var.database_config.pool_size
-    DB_MAX_OVERFLOW      = var.database_config.max_overflow
-    DB_POOL_TIMEOUT      = var.database_config.pool_timeout
-    DB_POOL_RECYCLE      = var.database_config.pool_recycle
-    DB_POOL_PRE_PING     = var.database_config.pool_pre_ping
+    DB_POOL_SIZE     = var.database_config.pool_size
+    DB_MAX_OVERFLOW  = var.database_config.max_overflow
+    DB_POOL_TIMEOUT  = var.database_config.pool_timeout
+    DB_POOL_RECYCLE  = var.database_config.pool_recycle
+    DB_POOL_PRE_PING = var.database_config.pool_pre_ping
+    # Tokenizers configuration for LlamaFirewall parallel processing
+    TOKENIZERS_PARALLELISM = "true"
   }
 
   # Backend-specific secrets from AWS Secrets Manager

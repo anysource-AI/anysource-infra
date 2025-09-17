@@ -69,12 +69,16 @@ backend:
     # WORKERS: "1" # Optional, will default to the number of CPUs on the node
     HOST: "0.0.0.0"
     PORT: "8000"
+    # AWS region for Bedrock and other AWS services
+    AWS_REGION: "us-east-1" # Default region, override in production values
     # Database connection pool settings
     DB_POOL_SIZE: "50" # Number of connections to maintain in the pool
     DB_MAX_OVERFLOW: "50" # Additional connections beyond pool_size (total: 100)
     DB_POOL_TIMEOUT: "30" # Seconds to wait for a connection
     DB_POOL_RECYCLE: "3600" # Seconds before recreating connections (1 hour)
     DB_POOL_PRE_PING: "true" # Test connections before use
+    # Tokenizers configuration for LlamaFirewall parallel processing
+    TOKENIZERS_PARALLELISM: "true"
 
   # Secrets (will be created from values)
   secrets:
@@ -359,8 +363,12 @@ podSecurityContext:
 # Service account
 serviceAccount:
   create: true
-  annotations: {}
-  name: ""
+  annotations: 
+    # Add IRSA role annotation for AWS Bedrock permissions
+    # This should be set to the output from terraform-eks: anysource_service_account_role_arn
+    # Example: eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/project-environment-anysource-role"
+    eks.amazonaws.com/role-arn: ""
+  name: "anysource"
 
 # Pod annotations
 podAnnotations:

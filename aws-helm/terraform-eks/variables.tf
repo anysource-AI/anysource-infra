@@ -374,12 +374,6 @@ variable "cluster_addons" {
 # Application-specific Configuration (Optional)
 ########################################################################################################################
 
-variable "domain_name" {
-  type        = string
-  description = "Domain name for the application (optional)"
-  default     = ""
-}
-
 variable "additional_tags" {
   type        = map(string)
   description = "Additional tags to apply to all resources"

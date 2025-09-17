@@ -7,7 +7,7 @@ resource "aws_lb" "alb" {
   load_balancer_type         = var.load_balancer_type
   subnets                    = var.subnets
   security_groups            = var.security_groups
-  idle_timeout               = 120
+  idle_timeout               = 300
   drop_invalid_header_fields = true
 }
 
@@ -31,30 +31,16 @@ resource "aws_lb_listener" "alb_listener_http" {
   protocol          = "HTTP"
 
   default_action {
-    type = var.enable_https ? "redirect" : "fixed-response"
-
-    dynamic "redirect" {
-      for_each = var.enable_https ? [1] : []
-      content {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-
-    dynamic "fixed_response" {
-      for_each = var.enable_https ? [] : [1]
-      content {
-        content_type = "text/plain"
-        message_body = "No routes defined"
-        status_code  = "200"
-      }
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
     }
   }
 }
 
 resource "aws_lb_listener" "alb_listener_https" {
-  count             = var.enable_https ? 1 : 0
   load_balancer_arn = aws_lb.alb.id
   port              = 443
   protocol          = "HTTPS"
@@ -72,27 +58,8 @@ resource "aws_lb_listener" "alb_listener_https" {
 }
 
 resource "aws_lb_listener_rule" "alb_listener_rule_https" {
-  for_each     = var.enable_https ? var.target_groups : {}
-  listener_arn = aws_lb_listener.alb_listener_https[0].arn
-  priority     = each.value.priority
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.alb_target_group[each.key].arn
-  }
-  condition {
-    path_pattern {
-      values = each.value.path_pattern
-    }
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_lb_listener_rule" "alb_listener_rule_http" {
-  for_each     = var.enable_https ? {} : var.target_groups
-  listener_arn = aws_lb_listener.alb_listener_http.arn
+  for_each     = var.target_groups
+  listener_arn = aws_lb_listener.alb_listener_https.arn
   priority     = each.value.priority
   action {
     type             = "forward"

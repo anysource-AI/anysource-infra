@@ -169,6 +169,10 @@ resource "aws_ecs_service" "private_service" {
           port     = each.value.container_port
           dns_name = var.services_configurations["backend"].name
         }
+        timeout {
+          idle_timeout_seconds        = 300 # 5 minutes
+          per_request_timeout_seconds = 300 # 5 minutes
+        }
       }
     }
   }
