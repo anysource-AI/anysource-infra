@@ -362,13 +362,11 @@ podSecurityContext:
 
 # Service account
 serviceAccount:
-  create: true
-  annotations: 
+  annotations:
     # Add IRSA role annotation for AWS Bedrock permissions
     # This should be set to the output from terraform-eks: anysource_service_account_role_arn
     # Example: eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/project-environment-anysource-role"
     eks.amazonaws.com/role-arn: ""
-  name: "anysource"
 
 # Pod annotations
 podAnnotations:
