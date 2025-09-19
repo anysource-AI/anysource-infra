@@ -166,12 +166,10 @@ networkPolicy:
 
 # Service account with AWS IAM role
 serviceAccount:
-  create: true
   annotations:
     # This should be set to the output from terraform-eks: anysource_service_account_role_arn
     # Example: eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/project-environment-anysource-role"
     eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/your-project-environment-anysource-role"
-  name: "anysource"
 
 # Node selector for production workloads
 nodeSelector:

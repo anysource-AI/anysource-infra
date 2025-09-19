@@ -3,9 +3,8 @@ locals {
   hash_production = "tAYIZg"
 }
 
-resource "aws_iam_role" "role" {
-  for_each = toset(var.role_names)
-  name     = "${var.project}-${var.environment}-${each.key}"
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.project}-${var.environment}-ecs-task-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -28,10 +27,9 @@ resource "aws_iam_role" "role" {
   })
 }
 
-resource "aws_iam_policy" "policy" {
-  for_each    = toset(var.role_names)
-  name        = "${var.project}-${var.environment}-${each.key}-policy"
-  description = "Least privilege policy for ${var.project}-${var.environment}-${each.key}"
+resource "aws_iam_policy" "ecs_task_policy" {
+  name        = "${var.project}-${var.environment}-ecs-task-policy"
+  description = "Least privilege policy for ${var.project}-${var.environment}-ecs-task-role"
 
   policy = <<EOF
 {
@@ -80,11 +78,13 @@ resource "aws_iam_policy" "policy" {
       "Effect": "Allow",
       "Action": [
         "bedrock:CreateGuardrail",
-        "bedrock:GetGuardrail", 
+        "bedrock:GetGuardrail",
         "bedrock:ListGuardrails",
         "bedrock:UpdateGuardrail",
         "bedrock:DeleteGuardrail",
-        "bedrock-runtime:ApplyGuardrail"
+        "bedrock:ApplyGuardrail",
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
       ],
       "Resource": "*"
     }
@@ -94,7 +94,6 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "policy_attachment" {
-  for_each   = toset(var.role_names)
-  role       = aws_iam_role.role[each.key].name
-  policy_arn = aws_iam_policy.policy[each.key].arn
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.ecs_task_policy.arn
 }

@@ -134,7 +134,7 @@ module "anysource_irsa_role" {
   oidc_providers = {
     ex = {
       provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["default:anysource"]
+      namespace_service_accounts = ["anysource-production:anysource"]
     }
   }
 
@@ -196,7 +196,9 @@ resource "aws_iam_policy" "anysource_policy" {
           "bedrock:ListGuardrails",
           "bedrock:UpdateGuardrail",
           "bedrock:DeleteGuardrail",
-          "bedrock-runtime:ApplyGuardrail"
+          "bedrock:ApplyGuardrail",
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream"
         ]
         Resource = "*"
       }

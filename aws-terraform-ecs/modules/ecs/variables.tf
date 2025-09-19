@@ -43,6 +43,9 @@ variable "services_names" {
 variable "ecs_task_execution_role_arn" {
   type = string
 }
+variable "ecs_task_role_arn" {
+  type = string
+}
 
 variable "vpc_id" {
   type = string

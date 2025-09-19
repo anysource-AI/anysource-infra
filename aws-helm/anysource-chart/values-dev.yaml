@@ -9,7 +9,6 @@ global:
   # Anysource support will provide this
   auth_client_id: "your-auth-client-id"
 
-
 # Enable embedded databases for development
 postgresql:
   enabled: true
@@ -97,5 +96,4 @@ securityContext:
 
 # Service account without special annotations
 serviceAccount:
-  create: true
-  name: "anysource-dev-sa"
+  annotations: {}
