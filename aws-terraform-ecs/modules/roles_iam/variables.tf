@@ -1,8 +1,3 @@
-variable "role_names" {
-  type        = list(string)
-  description = "The role_names of the roles"
-}
-
 variable "environment" {
   type        = string
   description = "The environment name"
@@ -35,14 +30,5 @@ variable "region" {
   validation {
     condition     = length(var.region) > 0
     error_message = "region cannot be empty"
-  }
-}
-
-variable "suffix_secret_hash" {
-  type        = string
-  description = "The suffix_secret_hash of the secret name"
-  validation {
-    condition     = length(var.suffix_secret_hash) > 0
-    error_message = "the suffix of the secret name is missing"
   }
 }

@@ -22,6 +22,7 @@ module "ecs" {
   services_names                    = keys(var.services_configurations)
   ecr_repositories                  = var.ecr_repositories
   ecs_task_execution_role_arn       = module.iam.ecs_task_execution_role_arn
+  ecs_task_role_arn                 = module.roles_micro_services.ecs_task_role_arn
   private_subnets                   = module.vpc.private_subnets
   public_subnets                    = module.vpc.public_subnets
   public_alb_security_group         = module.sg_private_alb

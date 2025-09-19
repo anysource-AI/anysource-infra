@@ -83,11 +83,7 @@ app.kubernetes.io/component: frontend
 Create the name of the service account to use
 */}}
 {{- define "anysource.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "anysource.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
+anysource
 {{- end }}
 
 {{/*

@@ -21,6 +21,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   for_each                 = var.services_configurations
   family                   = "${var.project}-${each.key}-${var.environment}"
   execution_role_arn       = var.ecs_task_execution_role_arn
+  task_role_arn            = var.ecs_task_role_arn
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   memory                   = each.value.memory
