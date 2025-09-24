@@ -1,6 +1,8 @@
 locals {
-  prefix_target_group_length = var.environment == "production" ? 17 : 24
+  target_group_name_suffix = "-tg-${var.project}-${var.environment}"
+  max_prefix_length        = 32 - (length(local.target_group_name_suffix))
 }
+
 resource "aws_lb" "alb" {
   name                       = var.name
   internal                   = var.internal
@@ -12,8 +14,10 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_target_group" "alb_target_group" {
-  for_each    = var.target_groups
-  name        = "${substr(each.key, 0, min(length(each.key), local.prefix_target_group_length))}-tg-${var.environment}" // if future problem occur, pay attention that can do "local" that separate production and stg by length.
+  for_each = var.target_groups
+  # if a future naming length problem occurs (aws target group name limit is 32 characters),
+  # we can enhance the local variable to compress further (hashing or other methods).
+  name        = "${substr(each.key, 0, min(length(each.key), local.max_prefix_length))}${local.target_group_name_suffix}"
   port        = each.value.port
   protocol    = each.value.protocol
   target_type = "ip"

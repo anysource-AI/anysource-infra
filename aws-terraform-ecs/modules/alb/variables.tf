@@ -7,6 +7,11 @@ variable "name" {
   }
 }
 
+variable "project" {
+  type        = string
+  description = "The name of the application"
+}
+
 variable "environment" {
   type        = string
   description = "The environment of the ALB"

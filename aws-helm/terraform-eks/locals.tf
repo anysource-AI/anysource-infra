@@ -25,7 +25,7 @@ locals {
 
   # Node group defaults based on environment
   node_group_defaults = {
-    capacity_type  = var.environment == "production" ? "ON_DEMAND" : "SPOT"
+    capacity_type  = "ON_DEMAND"
     disk_size      = var.environment == "production" ? 50 : 20
     instance_types = var.environment == "production" ? ["m6i.2xlarge", "m6i.4xlarge"] : ["m6i.xlarge", "m6i.2xlarge"]
 

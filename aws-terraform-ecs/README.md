@@ -6,14 +6,14 @@ Deploy Anysource on AWS ECS using Terraform. This infrastructure supports develo
 
 1. **Choose your deployment type:**
 
-   - [**Custom Domain**](examples/custom_domain.tfvars) - HTTPS with your domain (production-ready)
+   - [**Standard Deployment**](examples/standard_deployment.tfvars) - Standard production deployment with recommended defaults
    - [**Custom Deployment**](examples/custom_deployment.tfvars) - Full enterprise customization
 
 2. **Copy and configure:**
 
    ```bash
    # Choose one based on your needs
-   cp examples/custom_domain.tfvars terraform.tfvars
+   cp examples/standard_deployment.tfvars terraform.tfvars
    cp examples/custom_deployment.tfvars terraform.tfvars
 
    # Edit the required values
@@ -38,15 +38,14 @@ Deploy Anysource on AWS ECS using Terraform. This infrastructure supports develo
 
 ## Configuration Examples
 
-### Custom Domain Deployment (HTTPS)
+### Standard Deployment (HTTPS)
 
-All deployments require a custom domain and use HTTPS with automatic SSL certificates.
+Production-ready with SSL termination via AWS Certificate Manager (ACM).
 
 ```hcl
 environment     = "production"
 region          = "us-east-1"
 domain_name     = "mcp.yourcompany.com"  # Your domain
-hf_token        = "hf_your_token_here"
 
 ecr_repositories = {
   backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
@@ -56,7 +55,7 @@ ecr_repositories = {
 
 **Access:** https://mcp.yourcompany.com
 
-- For custom domain deployments, you **must** provide an ACM certificate ARN via the `certificate_arn` variable in your tfvars file. This certificate must cover your chosen domain (e.g., mcp.yourcompany.com). See the `examples/custom_domain.tfvars` for details.
+Provide an ACM certificate ARN via `ssl_certificate_arn` (in the same AWS region as the ALB). The certificate must cover your domain (e.g., mcp.yourcompany.com). See `examples/standard_deployment.tfvars` for details.
 
 ## Backend Configuration
 
@@ -114,15 +113,14 @@ terraform apply
 
 All deployments need these values:
 
-| Variable           | Description                                                | Example                      |
-| ------------------ | ---------------------------------------------------------- | ---------------------------- |
-| `environment`      | Environment name                                           | `"production"`               |
-| `region`           | AWS region                                                 | `"us-east-1"`                |
-| `domain_name`      | Custom domain for HTTPS access                             | `"mcp.yourcompany.com"`      |
-| `hf_token`         | HuggingFace token                                          | `"hf_your_token"`            |
-| `auth_domain`      | Auth tenant domain (will be provided by Anysource support) | `"your-tenant.us.auth0.com"` |
-| `auth_client_id`   | Auth client ID (will be provided by Anysource support)     | `"your-auth-client-id"`      |
-| `ecr_repositories` | Container image URIs                                       | See examples                 |
+| Variable           | Description                                            | Example                 |
+| ------------------ | ------------------------------------------------------ | ----------------------- |
+| `account`          | AWS account ID                                         | `"123456789012"`        |
+| `region`           | AWS region                                             | `"us-east-1"`           |
+| `domain_name`      | Custom domain for HTTPS access                         | `"mcp.yourcompany.com"` |
+| `auth_client_id`   | Auth client ID (will be provided by Anysource support) | `"your-auth-client-id"` |
+| `auth_api_key`     | Auth API key (will be provided by Anysource support)   | `"your-auth-api-key"`   |
+| `ecr_repositories` | Container image URIs                                   | See examples            |
 
 ## Optional Configuration
 
@@ -157,6 +155,19 @@ services_configurations = {
   }
 }
 ```
+
+## Secrets Management
+
+This deployment creates the following secrets in AWS Secrets Manager:
+
+| Secret                 | Description                       | Required |
+| ---------------------- | --------------------------------- | -------- |
+| `SECRET_KEY`           | JWT secret key for authentication | ✓        |
+| `MASTER_SALT`          | Master salt for encryption        | ✓        |
+| `AUTH_API_KEY`         | Authentication API key            | ✓        |
+| `PLATFORM_DB_PASSWORD` | PostgreSQL database password      | ✓        |
+
+**Note:** The `SECRET_KEY`, `MASTER_SALT`, and `PLATFORM_DB_PASSWORD` are automatically generated during deployment. The `AUTH_API_KEY` is created from the `auth_api_key` variable.
 
 ## Outputs
 

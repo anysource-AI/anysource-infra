@@ -8,3 +8,11 @@ output "aws_cloudwatch_log_group" {
 output "aws_ecs_task_definition" {
   value = [for taskdef in aws_ecs_task_definition.ecs_task_definition : taskdef]
 }
+
+output "ecs_cluster_arn" {
+  value = aws_ecs_cluster.ecs_cluster.arn
+}
+
+output "backend_security_group_id" {
+  value = module.sg_backend.security_group_id
+}

@@ -1,6 +1,6 @@
 locals {
   db_engine   = "aurora"
-  environment = var.environment == "eu" ? "eu" : (var.environment == "production" ? "prod" : "stg")
+  environment = var.environment == "production" ? "prod" : var.environment
 }
 
 data "aws_secretsmanager_secret" "db_password" {
