@@ -64,8 +64,8 @@ spec:
               value: "https://{{ .Values.global.domain }}"
             - name: BACKEND_CORS_ORIGINS
               value: "https://{{ .Values.global.domain }}"
-            - name: AUTH_DOMAIN
-              value: {{ .Values.global.auth_domain | quote }}
+            - name: AUTH_CLIENT_ID
+              value: {{ .Values.global.auth_client_id | quote }}
           {{- if .Values.backend.secrets }}
           envFrom:
             - secretRef:
@@ -117,8 +117,8 @@ spec:
               value: "https://{{ .Values.global.domain }}"
             - name: BACKEND_CORS_ORIGINS
               value: "https://{{ .Values.global.domain }}"
-            - name: AUTH_DOMAIN
-              value: {{ .Values.global.auth_domain | quote }}
+            - name: AUTH_CLIENT_ID
+              value: {{ .Values.global.auth_client_id | quote }}
             {{- range $key, $value := .Values.backend.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}

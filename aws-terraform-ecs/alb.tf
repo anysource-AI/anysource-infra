@@ -3,6 +3,7 @@ module "private_alb" {
   source             = "./modules/alb"
   name               = "${var.project}-${var.alb_access_type}-alb-${var.environment}"
   load_balancer_type = "application"
+  project            = var.project
   environment        = var.environment
   subnets            = module.vpc.public_subnets
   vpc_id             = module.vpc.vpc_id

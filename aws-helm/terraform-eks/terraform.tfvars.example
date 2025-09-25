@@ -1,7 +1,8 @@
 # AWS Configuration
 region  = "us-east-1"
-profile = "default"
 account = "123456789012"  # Replace with your AWS Account ID
+# Optional: AWS Profile (if not using default credentials)
+# profile = "your-aws-profile"
 
 # Project Configuration
 project     = "anysource"
@@ -37,9 +38,6 @@ enable_cluster_encryption = true
 cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 cloudwatch_log_group_retention_in_days = 400
 
-# Cost Optimization
-enable_spot_instances = false  # Set to true for non-production to save costs
-spot_instance_interruption_behavior = "terminate"
 
 # Node Groups Configuration
 node_groups = {

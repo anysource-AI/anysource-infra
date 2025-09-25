@@ -35,26 +35,26 @@ The chart manages configuration through globals, environment variables and secre
 #### Globals
 
 - `domain` - The domain name for the application
-- `auth_domain` - The domain of the Auth tenant for the application (Anysource support will provide this)
 - `auth_client_id` - The client ID of the Auth application (Anysource support will provide this)
 
 #### Secret (sensitive configuration)
 
 - `SECRET_KEY` - JWT secret key for authentication
 - `MASTER_SALT` - Master salt for encryption
+- `AUTH_API_KEY` - Authentication API key (Anysource support will provide this)
 
 These can be configured in your values file:
 
 ```yaml
 global:
   domain: "mcp.dev.anysource.com"
-  auth_domain: "your-tenant.us.auth0.com"
   auth_client_id: "your-auth-client-id"
 # [...]
 backend:
   secrets:
     SECRET_KEY: "your-jwt-secret-key-minimum-32-characters"
     MASTER_SALT: "your-master-salt-minimum-32-characters"
+    AUTH_API_KEY: "sk_live_your_auth_api_key_here"
 ```
 
 **Security Note**: Always use secure, randomly generated values for secrets in production environments.

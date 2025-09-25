@@ -7,17 +7,22 @@ variable "region_az" {
   type        = list(string)
 }
 
-variable "name" {
-  description = "name of VPC"
-}
-
 variable "environment" {
   description = "environment"
   type        = string
+  validation {
+    condition     = length(var.environment) > 0
+    error_message = "Environment name cannot be empty"
+  }
 }
+
 variable "project" {
+  type        = string
   description = "project name"
-  default     = "anysource"
+  validation {
+    condition     = length(var.project) > 0
+    error_message = "Project name cannot be empty"
+  }
 }
 
 variable "vpc_cidr" {

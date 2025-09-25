@@ -5,27 +5,6 @@ variable "region" {
   description = "AWS region"
 }
 
-variable "profile" {
-  type        = string
-  description = "AWS profile"
-  default     = "default"
-}
-
-variable "project" {
-  type        = string
-  description = "Project name"
-  default     = "anysource"
-}
-
-variable "environment" {
-  description = "Environment (production, staging, development)"
-  type        = string
-  validation {
-    condition     = contains(["production", "staging", "development"], var.environment)
-    error_message = "Environment must be one of: production, staging, development"
-  }
-}
-
 variable "domain_name" {
   type        = string
   description = "Domain name for the application (required)"
@@ -36,24 +15,27 @@ variable "domain_name" {
 }
 
 variable "account" {
-  type = string
-}
-
-variable "suffix_secret_hash" {
   type        = string
-  description = "Suffix for secret names to ensure uniqueness"
-  default     = ""
+  description = "AWS account ID"
 }
 
 # Auth Configuration
-variable "auth_domain" {
-  type        = string
-  description = "Auth domain for authentication (e.g., anysource-acme-inc.us.auth0.com). This will be provided by the Anysource team."
-}
-
 variable "auth_client_id" {
   type        = string
-  description = "Auth client ID for the frontend application. This will be provided by the Anysource team."
+  description = "Auth client ID for authentication. This will be provided by the Anysource team."
+  validation {
+    condition     = length(var.auth_client_id) > 0
+    error_message = "auth_client_id must not be empty. Ask Anysource support for your auth_client_id."
+  }
+}
+variable "auth_api_key" {
+  type        = string
+  description = "Auth API key for authentication. This will be provided by the Anysource team."
+  sensitive   = true
+  validation {
+    condition     = length(var.auth_api_key) > 0
+    error_message = "auth_api_key must not be empty. Ask Anysource support for your auth_api_key."
+  }
 }
 
 # ECR Configuration
@@ -68,6 +50,30 @@ variable "ecr_repositories" {
       can(regex("^(public\\.ecr\\.aws/[^/]+/[^:]+:[^:]+|[0-9]+\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+)$", uri))
     ])
     error_message = "ECR repository URIs must be either public ECR (public.ecr.aws/namespace/repo:tag) or private ECR (account.dkr.ecr.region.amazonaws.com/repo:tag) format"
+  }
+}
+
+variable "project" {
+  type        = string
+  description = "Project name"
+  default     = "anysource"
+  validation {
+    condition     = length(var.project) <= 10 && length(var.project) > 0
+    error_message = "Project name must be between 1 and 10 characters."
+  }
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9-]+$", var.project))
+    error_message = "Project name must contain only alphanumeric characters and hyphens."
+  }
+}
+
+variable "environment" {
+  description = "Environment (production, staging, development)"
+  type        = string
+  default     = "production"
+  validation {
+    condition     = contains(["production", "staging", "development"], var.environment)
+    error_message = "Environment must be one of: production, staging, development"
   }
 }
 
@@ -96,7 +102,7 @@ variable "public_subnets" {
   default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 }
 
-# Database Configuration - Simplified
+# Database Configuration
 variable "database_name" {
   description = "Database name"
   type        = string
@@ -107,6 +113,7 @@ variable "database_username" {
   description = "Database master username"
   type        = string
   sensitive   = true
+  default     = "postgres"
 }
 
 variable "database_config" {
@@ -214,14 +221,6 @@ variable "services_configurations" {
       memory            = 2048
     }
   }
-}
-
-# HuggingFace Configuration
-variable "hf_token" {
-  type        = string
-  description = "HuggingFace token for downloading models (used by prompt protection)"
-  default     = "" # Must be provided via tfvars or environment variable
-  sensitive   = true
 }
 
 # Sentry Configuration
@@ -361,4 +360,28 @@ variable "redis_node_type" {
   type        = string
   description = "ElastiCache Redis node type"
   default     = "cache.t3.medium"
+}
+
+# Version Configuration
+variable "version_url" {
+  type        = string
+  description = "URL endpoint for version information"
+  default     = "https://anysource-version.s3.amazonaws.com/version.json"
+}
+
+# SCIM / Directory Sync Configuration
+variable "directory_sync_enabled" {
+  type        = bool
+  description = "Enable SCIM / Directory Sync scheduled task"
+  default     = true
+}
+
+variable "directory_sync_interval_minutes" {
+  type        = number
+  description = "Interval in minutes between directory sync runs"
+  default     = 10
+  validation {
+    condition     = var.directory_sync_interval_minutes >= 1 && var.directory_sync_interval_minutes <= 1440
+    error_message = "Directory sync interval must be between 1 and 1440 minutes (24 hours)"
+  }
 }
