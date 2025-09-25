@@ -239,22 +239,6 @@ variable "cloudwatch_log_group_retention_in_days" {
 # Node Groups Configuration
 ########################################################################################################################
 
-variable "enable_spot_instances" {
-  type        = bool
-  description = "Enable spot instances for cost optimization (not recommended for production)"
-  default     = false
-}
-
-variable "spot_instance_interruption_behavior" {
-  type        = string
-  description = "Behavior when a spot instance is interrupted"
-  default     = "terminate"
-
-  validation {
-    condition     = contains(["hibernate", "stop", "terminate"], var.spot_instance_interruption_behavior)
-    error_message = "Spot instance interruption behavior must be one of: hibernate, stop, terminate."
-  }
-}
 
 variable "node_groups" {
   description = "Map of EKS managed node group definitions to create"

@@ -3,8 +3,6 @@ global:
   domain: "mcp.example.com"
   environment: "production"
   # Anysource support will provide this
-  auth_domain: "your-tenant.us.auth0.com"
-  # Anysource support will provide this
   auth_client_id: "your-auth-client-id"
 
 # Name overrides
@@ -84,6 +82,7 @@ backend:
   secrets:
     SECRET_KEY: "your-secret-key-here-change-in-production"
     MASTER_SALT: "your-master-salt-here-change-in-production"
+    AUTH_API_KEY: "sk_live_your_auth_api_key_here"
 
 # Frontend service configuration
 frontend:
@@ -404,3 +403,25 @@ storageClass:
     kmsKeyId: ""
     # Additional parameters can be added here
     additionalParameters: {}
+
+# ========================================
+# SCIM / Directory Sync Configuration
+# ========================================
+directorySync:
+  # Enable directory sync CronJob
+  enabled: true
+
+  # Cron schedule (defaults to "*/10 * * * *" - every 10 minutes)
+  # Override with custom schedule if needed:
+  # schedule: "*/15 * * * *"  # every 15 minutes
+  # schedule: "0 */2 * * *"   # every 2 hours
+  # schedule: "0 0 * * *"     # daily at midnight
+
+  # Resource configuration for sync jobs
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2048Mi
+    limits:
+      cpu: 1000m
+      memory: 2048Mi

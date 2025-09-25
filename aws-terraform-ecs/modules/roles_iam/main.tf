@@ -1,8 +1,3 @@
-locals {
-  environment     = var.environment == "production" ? "prod" : "stg"
-  hash_production = "tAYIZg"
-}
-
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.project}-${var.environment}-ecs-task-role"
   assume_role_policy = jsonencode({
@@ -39,7 +34,7 @@ resource "aws_iam_policy" "ecs_task_policy" {
       "Effect": "Allow",
       "Action": "secretsmanager:GetSecretValue",
       "Resource": [
-        "arn:aws:secretsmanager:${var.region}:${var.account}:secret:${var.project}-${local.environment}*"
+        "arn:aws:secretsmanager:${var.region}:${var.account}:secret:${var.project}-${var.environment}*"
       ]
     },
     {

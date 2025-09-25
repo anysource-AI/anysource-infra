@@ -1,35 +1,30 @@
 # ========================================
-# CUSTOM DOMAIN DEPLOYMENT CONFIGURATION
+# STANDARD DEPLOYMENT CONFIGURATION
 # ========================================
-# Standard HTTPS deployment with automatic SSL certificate
-# Perfect for production with your own domain
+# Standard HTTPS deployment with existing SSL certificate
+# Uses our recommended defaults. Perfect for production use.
 
 # Required Configuration
-environment       = "production"
-region            = "us-east-1"
-domain_name       = "mcp.yourcompany.com"      # Replace with your domain
-auth_domain       = "your-tenant.us.auth0.com" # will be provided by Anysource support
-auth_client_id    = "your-auth0-client-id"     # will be provided by Anysource support
-database_username = "postgres"
-
+region      = "us-east-1"
+domain_name = "mcp.yourcompany.com" # Replace with your domain
+# ACM Certificate ARN for your domain (required for HTTPS)
+ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+# Will be provided by Anysource support:
+auth_client_id = "auth-provider-client-id"
 # ECR Configuration (required)
 ecr_repositories = {
   backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
   frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
 }
 
-# Secrets Configuration
-suffix_secret_hash = "ANY2025"
-
-# Required: HuggingFace token for prompt protection models
-hf_token = "hf_your_token_here" # Replace with your actual token
-
-# ACM Certificate ARN for your domain (required for HTTPS)
-certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id" # Replace with your ACM certificate ARN
+# Secrets
+auth_api_key = "auth-provider-api-key" # will be provided by Anysource support
 
 # ========================================
 # OPTIONAL CUSTOMIZATION
 # ========================================
+
+# database_username = "postgres"
 
 # Network Security (optional)
 # alb_allowed_cidrs = [
@@ -59,7 +54,7 @@ certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certifica
 # ========================================
 # DEPLOYMENT FEATURES
 # ========================================
-# ✓ HTTPS with automatic SSL certificate (ACM)
+# ✓ HTTPS using existing ACM certificate
 # ✓ Automatic DNS validation
 # ✓ Production-ready defaults
 # ✓ Professional domain access
@@ -69,9 +64,7 @@ certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certifica
 # ========================================
 # QUICK DEPLOYMENT
 # ========================================
-# 1. Copy this file: cp examples/custom_domain.tfvars terraform.tfvars
-# 2. Update domain_name to your actual domain
-# 3. Update your email and HF token
-# 4. Ensure domain DNS points to AWS (or manage externally)
-# 5. Deploy: terraform apply
-# 6. Access via https://your-domain.com 
+# 1. Copy this file: cp examples/standard_deployment.tfvars terraform.tfvars
+# 2. Set required values
+# 3. Deploy: terraform apply
+# 4. Access via https://your-domain.com

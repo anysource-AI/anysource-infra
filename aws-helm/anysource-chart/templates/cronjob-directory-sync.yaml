@@ -1,0 +1,102 @@
+{{- if .Values.directorySync.enabled | default true }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "anysource.fullname" . }}-directory-sync
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+    app.kubernetes.io/component: directory-sync
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.directorySync.schedule | default "*/10 * * * *" | quote }}
+  concurrencyPolicy: Forbid  # Prevent concurrent runs
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 3600 # 1 hour timeout
+      template:
+        metadata:
+          labels:
+            {{- include "anysource.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: directory-sync
+          {{- with .Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          restartPolicy: OnFailure
+          {{- if .Values.image.backend.pullSecrets }}
+          imagePullSecrets:
+            {{- toYaml .Values.image.backend.pullSecrets | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "anysource.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+          - name: directory-sync
+            securityContext:
+              {{- toYaml .Values.securityContext | nindent 14 }}
+            image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+            imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+            command: ["uv", "run", "python", "-m", "app.directory_sync.worker"]
+            env:
+              - name: POSTGRES_SERVER
+                value: {{ include "anysource.database.host" . | quote }}
+              - name: POSTGRES_PORT
+                value: {{ include "anysource.database.port" . | quote }}
+              - name: POSTGRES_DB
+                value: {{ include "anysource.database.name" . | quote }}
+              - name: POSTGRES_USER
+                value: {{ include "anysource.database.username" . | quote }}
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    {{- if .Values.externalDatabase.enabled }}
+                    name: {{ .Values.externalDatabase.existingSecret | default "db-secret" }}
+                    key: {{ .Values.externalDatabase.existingSecretPasswordKey | default "password" }}
+                    {{- else if .Values.postgresql.enabled }}
+                    name: postgresql
+                    key: postgres-password
+                    {{- end }}
+              - name: REDIS_URL
+                value: {{ include "anysource.redis.url" . | quote | trim }}
+              - name: ENVIRONMENT
+                value: {{ .Values.global.environment | quote }}
+              - name: AUTH_CLIENT_ID
+                value: {{ .Values.global.auth_client_id | quote }}
+              # Directory sync specific configuration
+              - name: DIRECTORY_SYNC_TIMEOUT_SECONDS
+                value: {{ .Values.directorySync.timeoutSeconds | default 1800 | quote }}
+              - name: DIRECTORY_SYNC_BATCH_SIZE
+                value: {{ .Values.directorySync.batchSize | default 100 | quote }}
+              {{- range $key, $value := .Values.backend.env }}
+              - name: {{ $key }}
+                value: {{ $value | quote }}
+              {{- end }}
+            # Inherit all backend secrets (includes SECRET_KEY, MASTER_SALT, AUTH_API_KEY, etc.)
+            {{- if .Values.backend.secrets }}
+            envFrom:
+              - secretRef:
+                  name: backend-secret
+            {{- end }}
+            resources:
+              {{- toYaml .Values.directorySync.resources | nindent 14 }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

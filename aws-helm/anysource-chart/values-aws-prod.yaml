@@ -5,8 +5,6 @@ global:
   domain: "mcp.example.com"
   environment: "production"
   # Anysource support will provide this
-  auth_domain: "your-tenant.us.auth0.com"
-  # Anysource support will provide this
   auth_client_id: "your-auth-client-id"
 
 # Disable embedded databases for production (using AWS RDS)
@@ -121,6 +119,7 @@ backend:
   secrets:
     SECRET_KEY: "CHANGE-THIS-TO-A-SECURE-SECRET-KEY-MINIMUM-32-CHARACTERS"
     MASTER_SALT: "CHANGE-THIS-TO-A-SECURE-MASTER-SALT-MINIMUM-32-CHARACTERS"
+    AUTH_API_KEY: "sk_live_your_auth_api_key_here"
 
 frontend:
   replicas: 3

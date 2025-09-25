@@ -44,8 +44,8 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     PLATFORM_DB_PASSWORD = random_password.db_password.result
     SECRET_KEY           = random_password.secret_key.result
     MASTER_SALT          = random_password.master_salt.result
-    HF_TOKEN             = var.hf_token
     SENTRY_DSN           = var.sentry_dsn
+    AUTH_API_KEY         = var.auth_api_key
     }, var.domain_name != "" ? {
     # When domain is provided, use HTTPS with domain
     APP_URL              = "https://${var.domain_name}"
