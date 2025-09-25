@@ -7,6 +7,11 @@ locals {
 
   # This will cause an error if any services are missing ECR URIs
   validate_ecr_completeness = length(local.missing_ecr_services) == 0 ? true : tobool("ERROR: Missing ECR repository URIs for services: ${join(", ", local.missing_ecr_services)}. All services must have explicit ECR URIs defined in ecr_repositories variable.")
+
+  # Extract image tags from ECR repository URIs
+  # ECR URIs format: account.dkr.ecr.region.amazonaws.com/repo:tag or public.ecr.aws/namespace/repo:tag
+  backend_image_tag  = length(split(":", var.ecr_repositories["backend"])) > 1 ? reverse(split(":", var.ecr_repositories["backend"]))[0] : "latest"
+  frontend_image_tag = length(split(":", var.ecr_repositories["frontend"])) > 1 ? reverse(split(":", var.ecr_repositories["frontend"]))[0] : "latest"
 }
 
 module "ecs" {

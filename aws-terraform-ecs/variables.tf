@@ -362,7 +362,13 @@ variable "redis_node_type" {
   default     = "cache.t3.medium"
 }
 
-########################################################################################################################
+# Version Configuration
+variable "version_url" {
+  type        = string
+  description = "URL endpoint for version information"
+  default     = "https://anysource-version.s3.amazonaws.com/version.json"
+}
+
 # SCIM / Directory Sync Configuration
 variable "directory_sync_enabled" {
   type        = bool

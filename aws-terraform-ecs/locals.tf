@@ -39,8 +39,11 @@ locals {
 
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = {
-    PUBLIC_AUTH_CLIENT_ID = var.auth_client_id
-    PUBLIC_APP_URL        = local.app_url
-    PUBLIC_BACKEND_URL    = local.app_url
+    PUBLIC_AUTH_CLIENT_ID  = var.auth_client_id
+    PUBLIC_APP_URL         = local.app_url
+    PUBLIC_BACKEND_URL     = local.app_url
+    PUBLIC_BACKEND_VERSION = local.backend_image_tag
+    PUBLIC_WEBAPP_VERSION  = local.frontend_image_tag
+    PUBLIC_VERSION_URL     = var.version_url
   }
 }
