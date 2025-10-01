@@ -61,6 +61,7 @@ resource "aws_rds_cluster" "rds_cluster" {
     min_capacity = var.min_capacity
     max_capacity = var.max_capacity
   }
+
   skip_final_snapshot      = true
   deletion_protection      = var.deletion_protection
   delete_automated_backups = false
@@ -68,6 +69,7 @@ resource "aws_rds_cluster" "rds_cluster" {
   vpc_security_group_ids   = [aws_security_group.rds_security_group.id]
   db_subnet_group_name     = aws_db_subnet_group.subnet_group.name
   enable_http_endpoint     = local.environment == "prod" ? false : true
+
 
   # Performance Insights configuration
   performance_insights_enabled          = true
