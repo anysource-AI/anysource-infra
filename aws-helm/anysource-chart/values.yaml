@@ -4,6 +4,8 @@ global:
   environment: "production"
   # Anysource support will provide this
   auth_client_id: "your-auth-client-id"
+  security:
+    allowInsecureImages: true
 
 # Name overrides
 # Provide a name in place of the chart name
