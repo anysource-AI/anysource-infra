@@ -59,6 +59,29 @@ backend:
 
 **Security Note**: Always use secure, randomly generated values for secrets in production environments.
 
+## Bitnami Legacy Images Migration
+
+This chart has been migrated to use **Bitnami Legacy Images** for immediate compatibility:
+
+- **Legacy container images** from `docker.io/bitnamilegacy/`
+- **Compatible with existing deployments**
+- **Non-root user execution** (user ID 1001)
+- **Seccomp profiles** and security contexts
+- **Network policies** for additional isolation
+
+### Migration Benefits
+
+- **Immediate compatibility** with existing deployments
+- **No breaking changes** to current functionality
+- **Maintains security contexts** and best practices
+- **Easy rollback** if needed
+
+### Important Notes
+
+- **Legacy images** will not receive future security updates
+- **Plan migration** to AWS managed services or Bitnami Secure Images
+- **Monitor for security vulnerabilities** in legacy images
+
 ## Prerequisites
 
 ### For Development Environment:
