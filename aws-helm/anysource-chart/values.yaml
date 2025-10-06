@@ -4,6 +4,8 @@ global:
   environment: "production"
   # Anysource support will provide this
   auth_client_id: "your-auth-client-id"
+  security:
+    allowInsecureImages: true
 
 # Name overrides
 # Provide a name in place of the chart name
@@ -232,10 +234,27 @@ istio:
               port:
                 number: 80
 
-# PostgreSQL configuration (for dev environment)
+# PostgreSQL configuration with Bitnami Legacy Images
 postgresql:
   enabled: true
   fullnameOverride: "postgresql"
+
+  # Use Bitnami Legacy Images (for compatibility)
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: "17.6.0-debian-12-r4"
+    pullPolicy: IfNotPresent
+
+  # Volume permissions using legacy image
+  volumePermissions:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/os-shell
+      tag: "12-debian-12-r51"
+      pullPolicy: IfNotPresent
+
   auth:
     postgresPassword: "postgres123"
     username: "postgres"
@@ -275,13 +294,31 @@ postgresql:
       size: 10Gi
       storageClass: ebs-gp3
 
-# Redis configuration (for dev environment)
+# Redis configuration with Bitnami Legacy Images
 redis:
   enabled: true
   fullnameOverride: "redis"
+
+  # Use Bitnami Legacy Images (for compatibility)
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/redis
+    tag: "7.4.3-debian-12-r0"
+    pullPolicy: IfNotPresent
+
+  # Metrics using legacy image
+  metrics:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/redis-exporter
+      tag: "1.76.0-debian-12-r0"
+      pullPolicy: IfNotPresent
+
   auth:
     enabled: true
     password: "redis123"
+
   master:
     resources:
       requests:
@@ -294,6 +331,7 @@ redis:
       enabled: true
       size: 5Gi
       storageClass: ebs-gp3
+
   replica:
     resources:
       requests:
@@ -348,14 +386,14 @@ awsCertificate:
   enabled: false
   arn: "" # Example: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
 
-# Security context
+# Security context for Bitnami Legacy Images compatibility
 securityContext:
   runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
+  runAsUser: 1001
+  runAsGroup: 1001
 
 podSecurityContext:
-  fsGroup: 1000
+  fsGroup: 1001
   seccompProfile:
     type: RuntimeDefault
 
