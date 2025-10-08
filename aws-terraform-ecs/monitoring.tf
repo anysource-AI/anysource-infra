@@ -249,7 +249,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_target_response_time" {
     TargetGroup  = module.alb.target_groups[each.key].arn_suffix
   }
 
-  depends_on = [module.alb]
+  depends_on = [module.ecs]
 }
 
 # ALB 5XX Error Alarm
@@ -288,6 +288,6 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
     TargetGroup  = module.alb.target_groups[each.key].arn_suffix
   }
 
-  depends_on = [module.alb]
+  depends_on = [module.ecs]
 }
 
