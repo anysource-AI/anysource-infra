@@ -1,5 +1,5 @@
 # ALB Security Group with configurable access
-module "sg_private_alb" {
+module "sg_alb" {
   source      = "./modules/security-group"
   name        = "${var.project}-${var.alb_access_type}-alb-sg"
   description = "${var.project} ${var.alb_access_type} ALB security group"

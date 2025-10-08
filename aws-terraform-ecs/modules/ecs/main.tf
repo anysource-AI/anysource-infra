@@ -17,6 +17,13 @@ resource "aws_cloudwatch_log_group" "ecs_cw_log_group" {
   retention_in_days = 365
 }
 
+# Trigger replacement when ECR image changes
+resource "terraform_data" "image_trigger" {
+  for_each = var.services_configurations
+
+  input = var.ecr_repositories[each.key]
+}
+
 resource "aws_ecs_task_definition" "ecs_task_definition" {
   for_each                 = var.services_configurations
   family                   = "${var.project}-${each.key}-${var.environment}"
@@ -36,8 +43,14 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
       condition     = var.ecr_repositories[each.key] != null && var.ecr_repositories[each.key] != ""
       error_message = "ECR repository URI for service '${each.key}' cannot be null or empty. This prevents fallback to Docker Hub (:latest) which can cause rate limiting and security issues."
     }
-    ignore_changes = [family]
+    ignore_changes        = [family, container_definitions]
+    create_before_destroy = true
+    replace_triggered_by  = [terraform_data.image_trigger[each.key]]
   }
+
+  # Prevent Terraform from deregistering old task definition revisions
+  # This ensures we can rollback to previous versions if needed
+  skip_destroy = true
   container_definitions = jsonencode(concat(
     each.key == "backend" ? [
       {

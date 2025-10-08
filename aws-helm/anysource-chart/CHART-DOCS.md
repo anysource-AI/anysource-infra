@@ -1,6 +1,6 @@
 # anysource
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
+![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.3](https://img.shields.io/badge/AppVersion-1.1.3-informational?style=flat-square)
 
 Anysource application Helm chart for Kubernetes deployment
 
@@ -31,6 +31,7 @@ Anysource application Helm chart for Kubernetes deployment
 | affinity | object | `{}` |  |
 | awsCertificate.arn | string | `""` |  |
 | awsCertificate.enabled | bool | `false` |  |
+| backend.config | object | `{}` |  |
 | backend.env.AWS_REGION | string | `"us-east-1"` |  |
 | backend.env.DB_MAX_OVERFLOW | string | `"50"` |  |
 | backend.env.DB_POOL_PRE_PING | string | `"true"` |  |
@@ -109,6 +110,7 @@ Anysource application Helm chart for Kubernetes deployment
 | global.auth_client_id | string | `"your-auth-client-id"` |  |
 | global.domain | string | `"mcp.example.com"` |  |
 | global.environment | string | `"production"` |  |
+| global.security.allowInsecureImages | bool | `true` |  |
 | hpa.backend.enabled | bool | `true` |  |
 | hpa.backend.maxReplicas | int | `20` |  |
 | hpa.backend.minReplicas | int | `3` |  |
@@ -134,8 +136,8 @@ Anysource application Helm chart for Kubernetes deployment
 | ingress.annotations."kubernetes.io/ingress.class" | string | `"alb"` |  |
 | ingress.className | string | `"alb"` |  |
 | ingress.enabled | bool | `true` |  |
-| ingress.forceHttps | bool | `false` |  |
-| ingress.tls.enabled | bool | `true` |  |
+| ingress.forceHttps | bool | `true` |  |
+| ingress.tls.enabled | bool | `false` |  |
 | ingress.tls.secretName | string | `"anysource-tls"` |  |
 | nameOverride | string | `""` |  |
 | networkPolicy.enabled | bool | `false` |  |
@@ -144,7 +146,7 @@ Anysource application Helm chart for Kubernetes deployment
 | podAnnotations."prometheus.io/path" | string | `"/metrics"` |  |
 | podAnnotations."prometheus.io/port" | string | `"8000"` |  |
 | podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
-| podSecurityContext.fsGroup | int | `1000` |  |
+| podSecurityContext.fsGroup | int | `1001` |  |
 | podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
 | postgresql.architecture | string | `"replication"` |  |
 | postgresql.auth.database | string | `"postgres"` |  |
@@ -154,6 +156,10 @@ Anysource application Helm chart for Kubernetes deployment
 | postgresql.auth.username | string | `"postgres"` |  |
 | postgresql.enabled | bool | `true` |  |
 | postgresql.fullnameOverride | string | `"postgresql"` |  |
+| postgresql.image.pullPolicy | string | `"IfNotPresent"` |  |
+| postgresql.image.registry | string | `"docker.io"` |  |
+| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
+| postgresql.image.tag | string | `"17.6.0-debian-12-r4"` |  |
 | postgresql.primary.persistence.enabled | bool | `true` |  |
 | postgresql.primary.persistence.size | string | `"10Gi"` |  |
 | postgresql.primary.persistence.storageClass | string | `"ebs-gp3"` |  |
@@ -162,13 +168,18 @@ Anysource application Helm chart for Kubernetes deployment
 | postgresql.primary.resources.requests.cpu | string | `"4000m"` |  |
 | postgresql.primary.resources.requests.memory | string | `"8192Mi"` |  |
 | postgresql.readReplicas.persistence.enabled | bool | `true` |  |
-| postgresql.readReplicas.persistence.size | string | `"10Gi"` |  |
+| postgresql.readReplicas.persistence.size | string | `"5Gi"` |  |
 | postgresql.readReplicas.persistence.storageClass | string | `"ebs-gp3"` |  |
 | postgresql.readReplicas.replicaCount | int | `1` |  |
 | postgresql.readReplicas.resources.limits.cpu | string | `"4000m"` |  |
 | postgresql.readReplicas.resources.limits.memory | string | `"8192Mi"` |  |
 | postgresql.readReplicas.resources.requests.cpu | string | `"4000m"` |  |
 | postgresql.readReplicas.resources.requests.memory | string | `"8192Mi"` |  |
+| postgresql.volumePermissions.enabled | bool | `true` |  |
+| postgresql.volumePermissions.image.pullPolicy | string | `"IfNotPresent"` |  |
+| postgresql.volumePermissions.image.registry | string | `"docker.io"` |  |
+| postgresql.volumePermissions.image.repository | string | `"bitnamilegacy/os-shell"` |  |
+| postgresql.volumePermissions.image.tag | string | `"12-debian-12-r51"` |  |
 | prestart.args[0] | string | `"scripts/prestart.sh"` |  |
 | prestart.command[0] | string | `"bash"` |  |
 | prestart.enabled | bool | `true` |  |
@@ -182,6 +193,10 @@ Anysource application Helm chart for Kubernetes deployment
 | redis.auth.password | string | `"redis123"` |  |
 | redis.enabled | bool | `true` |  |
 | redis.fullnameOverride | string | `"redis"` |  |
+| redis.image.pullPolicy | string | `"IfNotPresent"` |  |
+| redis.image.registry | string | `"docker.io"` |  |
+| redis.image.repository | string | `"bitnamilegacy/redis"` |  |
+| redis.image.tag | string | `"7.4.3-debian-12-r0"` |  |
 | redis.master.persistence.enabled | bool | `true` |  |
 | redis.master.persistence.size | string | `"5Gi"` |  |
 | redis.master.persistence.storageClass | string | `"ebs-gp3"` |  |
@@ -189,6 +204,13 @@ Anysource application Helm chart for Kubernetes deployment
 | redis.master.resources.limits.memory | string | `"2048Mi"` |  |
 | redis.master.resources.requests.cpu | string | `"1000m"` |  |
 | redis.master.resources.requests.memory | string | `"2048Mi"` |  |
+| redis.metrics.enabled | bool | `true` |  |
+| redis.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
+| redis.metrics.image.registry | string | `"docker.io"` |  |
+| redis.metrics.image.repository | string | `"bitnamilegacy/redis-exporter"` |  |
+| redis.metrics.image.tag | string | `"1.76.0-debian-12-r0"` |  |
+| redis.replica.persistence.enabled | bool | `true` |  |
+| redis.replica.persistence.size | string | `"8Gi"` |  |
 | redis.replica.persistence.storageClass | string | `"ebs-gp3"` |  |
 | redis.replica.replicaCount | int | `1` |  |
 | redis.replica.resources.limits.cpu | string | `"1000m"` |  |
@@ -196,7 +218,7 @@ Anysource application Helm chart for Kubernetes deployment
 | redis.replica.resources.requests.cpu | string | `"1000m"` |  |
 | redis.replica.resources.requests.memory | string | `"2048Mi"` |  |
 | securityContext.readOnlyRootFilesystem | bool | `false` |  |
-| securityContext.runAsGroup | int | `1000` |  |
+| securityContext.runAsGroup | int | `1001` |  |
 | securityContext.runAsNonRoot | bool | `false` |  |
 | securityContext.runAsUser | int | `0` |  |
 | service.backend.port | int | `8000` |  |

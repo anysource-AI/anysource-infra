@@ -245,11 +245,11 @@ resource "aws_cloudwatch_metric_alarm" "alb_target_response_time" {
   actions_enabled     = false
 
   dimensions = {
-    LoadBalancer = module.private_alb.alb_arn_suffix
-    TargetGroup  = module.private_alb.target_groups[each.key].arn_suffix
+    LoadBalancer = module.alb.alb_arn_suffix
+    TargetGroup  = module.alb.target_groups[each.key].arn_suffix
   }
 
-  depends_on = [module.private_alb]
+  depends_on = [module.alb]
 }
 
 # ALB 5XX Error Alarm
@@ -264,7 +264,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
   threshold           = var.alb_5xx_alarm_threshold
   alarm_description   = "Alarm when the ALB returns 5XX errors"
   dimensions = {
-    LoadBalancer = module.private_alb.alb_arn_suffix
+    LoadBalancer = module.alb.alb_arn_suffix
   }
   treat_missing_data = "notBreaching"
   actions_enabled    = false
@@ -284,10 +284,10 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
   actions_enabled     = false
 
   dimensions = {
-    LoadBalancer = module.private_alb.alb_arn_suffix
-    TargetGroup  = module.private_alb.target_groups[each.key].arn_suffix
+    LoadBalancer = module.alb.alb_arn_suffix
+    TargetGroup  = module.alb.target_groups[each.key].arn_suffix
   }
 
-  depends_on = [module.private_alb]
+  depends_on = [module.alb]
 }
 

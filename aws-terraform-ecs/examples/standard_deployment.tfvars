@@ -11,7 +11,7 @@ domain_name = "mcp.yourcompany.com" # Replace with your domain
 # WorkOS config
 # Will be provided by Anysource support:
 auth_client_id = "auth-provider-client-id"
-auth_api_key = "auth-provider-api-key"
+auth_api_key   = "auth-provider-api-key"
 
 # ACM Certificate ARN for your domain (required for HTTPS)
 ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"

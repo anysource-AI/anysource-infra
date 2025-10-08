@@ -22,11 +22,13 @@ cluster_version = "1.33"
 # Cluster endpoint access
 cluster_endpoint_public_access       = true
 cluster_endpoint_private_access      = true
-cluster_endpoint_public_access_cidrs = [] # Restrict this in production - add your IP ranges
+# Add your trusted IP addresses in CIDR format - this restricts access to the EKS public API endpoint
+cluster_endpoint_public_access_cidrs = ["203.0.113.1/32", "198.51.100.0/24"] # Restrict this in production
 
 # Security Configuration
-# Add your trusted IP addresses in CIDR format for enhanced security
-whitelist_ips = ["203.0.113.1/32", "198.51.100.0/24"]
+# Note: IP whitelisting for EKS endpoint access is handled by cluster_endpoint_public_access_cidrs above
+# Leave whitelist_ips empty unless you need additional custom security group rules
+whitelist_ips = []
 
 # KMS Key administrators (optional)
 # kms_key_administrators = ["arn:aws:iam::123456789012:root"]
