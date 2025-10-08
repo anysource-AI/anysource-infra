@@ -13,36 +13,34 @@ This directory contains Kubernetes Helm charts for deploying Anysource on Kubern
 
 ```
 aws-helm/
-├── anysource-chart/             # Main Helm chart
-│   ├── Chart.yaml               # Chart metadata and dependencies
-│   ├── values.yaml              # Default values
-│   ├── values-dev.yaml          # Development environment values
-│   ├── values-aws-prod.yaml     # AWS production values (external RDS/ElastiCache, ACM, ALB, secrets)
-│   ├── README.md                # Detailed chart documentation
-│   ├── charts/                  # Chart dependencies
-│   └── templates/               # Kubernetes templates
-│       ├── _helpers.tpl         # Template helpers
-│       ├── serviceaccount.yaml  # Service account
-│       ├── secrets.yaml         # Secrets management
-│       ├── configmap.yaml       # Configuration
+├── anysource-chart/                    # Main Helm chart
+│   ├── Chart.yaml                      # Chart metadata and dependencies
+│   ├── values.yaml                     # Default values
+│   ├── values-dev.yaml                 # Development environment values
+│   ├── values-aws-prod.yaml            # AWS production values (external RDS/ElastiCache, ACM, ALB, secrets)
+│   ├── README.md                       # Detailed chart documentation
+│   ├── charts/                         # Chart dependencies
+│   └── templates/                      # Kubernetes templates
+│       ├── _helpers.tpl                # Template helpers
+│       ├── serviceaccount.yaml         # Service account
+│       ├── secrets.yaml                # Secrets management
+│       ├── configmap.yaml              # Configuration
 │       ├── backend-deployment.yaml     # Backend deployment
 │       ├── frontend-deployment.yaml    # Frontend deployment
-│       ├── services.yaml        # Services
-│       ├── ingress.yaml         # Ingress configuration
-│       ├── hpa.yaml             # Horizontal Pod Autoscaler
-│       ├── certificates.yaml    # TLS certificates
-│       ├── networkpolicies.yaml # Network security policies
-│       ├── poddisruptionbudget.yaml # High availability
-│       ├── storageclass.yaml    # Storage class configuration
-│       ├── istio-gateway.yaml   # Istio gateway (optional)
-│       ├── istio-virtualservice.yaml # Istio virtual service (optional)
-│       └── tests/               # Helm tests
-└── terraform-eks/               # EKS cluster provisioning
-    ├── eks.tf                   # EKS cluster configuration
-    ├── variables.tf             # Terraform variables
-    ├── outputs.tf               # Terraform outputs
-    ├── terraform.tfvars.example # Example configuration
-    └── README.md                # EKS Terraform documentation
+│       ├── services.yaml               # Services
+│       ├── ingress.yaml                # Ingress configuration
+│       ├── hpa.yaml                    # Horizontal Pod Autoscaler
+│       ├── certificates.yaml           # TLS certificates
+│       ├── networkpolicies.yaml        # Network security policies
+│       ├── poddisruptionbudget.yaml    # High availability
+│       ├── storageclass.yaml           # Storage class configuration
+│       └── tests/                      # Helm tests
+└── terraform-eks/                      # EKS cluster provisioning
+    ├── eks.tf                          # EKS cluster configuration
+    ├── variables.tf                    # Terraform variables
+    ├── outputs.tf                      # Terraform outputs
+    ├── terraform.tfvars.example        # Example configuration
+    └── README.md                       # EKS Terraform documentation
 ```
 
 ## Quick Start

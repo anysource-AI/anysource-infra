@@ -28,8 +28,8 @@ module "ecs" {
   ecs_task_role_arn                 = module.roles_micro_services.ecs_task_role_arn
   private_subnets                   = module.vpc.private_subnets
   public_subnets                    = module.vpc.public_subnets
-  public_alb_security_group         = module.sg_private_alb
-  public_alb_target_groups          = module.private_alb.target_groups
+  public_alb_security_group         = module.sg_alb
+  public_alb_target_groups          = module.alb.target_groups
   prestart_container_cpu            = var.prestart_container_cpu
   prestart_container_memory         = var.prestart_container_memory
   prestart_timeout_seconds          = var.prestart_timeout_seconds
@@ -44,5 +44,5 @@ module "ecs" {
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = local.frontend_env_vars
 
-  depends_on = [module.iam, module.vpc, module.sg_private_alb, module.private_alb, aws_secretsmanager_secret_version.app_secrets]
+  depends_on = [module.iam, module.vpc, module.sg_alb, module.alb, aws_secretsmanager_secret_version.app_secrets]
 }

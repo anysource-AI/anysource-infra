@@ -12,6 +12,7 @@ backend.tfvars
 **/prod.tfvars
 **/staging.tfvars
 **/dev.tfvars
+terraform.tfvars
 *.config
 
 # ========================================

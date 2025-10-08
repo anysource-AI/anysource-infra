@@ -30,3 +30,8 @@ output "anysource_service_account_role_arn" {
   description = "ARN of the IAM role for Anysource service account (IRSA)"
   value       = module.anysource_irsa_role.iam_role_arn
 }
+
+output "load_balancer_controller_role_arn" {
+  description = "ARN of the IAM role for AWS Load Balancer Controller (IRSA)"
+  value       = module.load_balancer_controller_irsa_role.iam_role_arn
+}

@@ -31,7 +31,7 @@ module "eks" {
   # Encryption configuration
   create_kms_key                  = var.enable_cluster_encryption
   kms_key_description             = "EKS Secret Encryption Key for ${local.cluster_name}"
-  kms_key_deletion_window_in_days = var.environment == "production" ? 30 : 7
+  kms_key_deletion_window_in_days = 7
   enable_kms_key_rotation         = true
   kms_key_administrators          = var.kms_key_administrators
 
@@ -102,7 +102,7 @@ module "load_balancer_controller_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
 
-  role_name = "AmazonEKSLoadBalancerControllerRole"
+  role_name = "${local.name_prefix}-alb-controller-role"
 
   attach_load_balancer_controller_policy = true
 

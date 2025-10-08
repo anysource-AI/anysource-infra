@@ -1,4 +1,4 @@
-{{- if and .Values.ingress.enabled (not .Values.istio.enabled) -}}
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -13,8 +13,10 @@ metadata:
     alb.ingress.kubernetes.io/certificate-arn: {{ .Values.awsCertificate.arn }}
     {{- end }}
     {{- if eq .Values.ingress.className "alb" }}
+    {{- if not (hasKey .Values.ingress.annotations "alb.ingress.kubernetes.io/load-balancer-name") }}
     # Explicitly set ALB name to avoid duplication (max 32 chars for ALB names)
     alb.ingress.kubernetes.io/load-balancer-name: {{ printf "%s-alb" (include "anysource.fullname" . | trunc 28 | trimSuffix "-") }}
+    {{- end }}
     {{- end }}
     {{- if and .Values.ingress.forceHttps (not .Values.certManager.enabled) }}
     # Force HTTPS redirects when explicitly enabled and cert-manager is disabled

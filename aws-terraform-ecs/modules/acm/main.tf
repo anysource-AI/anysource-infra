@@ -1,4 +1,4 @@
-# # Request and validate an SSL certificate from AWS Certificate Manager (ACM)
+# Request and validate an SSL certificate from AWS Certificate Manager (ACM)
 resource "aws_acm_certificate" "certificate" {
   domain_name       = var.domain_name
   validation_method = "DNS"

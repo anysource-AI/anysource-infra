@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=values.schema.json
 # Global configuration
 global:
   domain: "mcp.example.com"
@@ -86,6 +87,9 @@ backend:
     MASTER_SALT: "your-master-salt-here-change-in-production"
     AUTH_API_KEY: "sk_live_your_auth_api_key_here"
 
+  # Configuration (non-sensitive environment variables)
+  config: {}
+
 # Frontend service configuration
 frontend:
   name: frontend
@@ -140,15 +144,15 @@ prestart:
 hpa:
   backend:
     enabled: true
-    minReplicas: 2
-    maxReplicas: 10
+    minReplicas: 3
+    maxReplicas: 20
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
 
   frontend:
     enabled: true
-    minReplicas: 2
-    maxReplicas: 5
+    minReplicas: 3
+    maxReplicas: 20
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
 
@@ -171,7 +175,7 @@ ingress:
   # - false: Disable redirects (default when cert-manager is enabled for HTTP-01 challenges)
   # - true: Force redirects (automatically enabled when cert-manager is disabled)
   # Note: Template conditionally applies alb.ingress.kubernetes.io/ssl-redirect annotation
-  forceHttps: false
+  forceHttps: true
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
@@ -179,60 +183,9 @@ ingress:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
   tls:
-    enabled: true
+    enabled: false
     secretName: anysource-tls
 
-# Istio configuration (for clusters with existing Istio installation)
-istio:
-  enabled: false
-  # TLS secret name for Istio Gateway (if creating Istio resources)
-  tlsSecretName: "anysource-tls"
-  # Gateway configuration (optional - only if creating Istio resources)
-  gateway:
-    name: anysource-gateway
-    selector:
-      istio: ingressgateway
-    servers:
-      - port:
-          number: 80
-          name: http
-          protocol: HTTP
-        hosts:
-          - "*"
-      - port:
-          number: 443
-          name: https
-          protocol: HTTPS
-        tls:
-          mode: SIMPLE
-          credentialName: anysource-tls
-        hosts:
-          - "*"
-
-  # Virtual Service configuration (optional - only if creating Istio resources)
-  virtualService:
-    name: anysource-vs
-    hosts:
-      - "*"
-    gateways:
-      - anysource-gateway
-    http:
-      - match:
-          - uri:
-              prefix: "/api/"
-        route:
-          - destination:
-              host: anysource-backend
-              port:
-                number: 8000
-      - match:
-          - uri:
-              prefix: "/"
-        route:
-          - destination:
-              host: anysource-frontend
-              port:
-                number: 80
 
 # PostgreSQL configuration with Bitnami Legacy Images
 postgresql:
@@ -291,7 +244,7 @@ postgresql:
         memory: 8192Mi
     persistence:
       enabled: true
-      size: 10Gi
+      size: 5Gi
       storageClass: ebs-gp3
 
 # Redis configuration with Bitnami Legacy Images
@@ -333,6 +286,7 @@ redis:
       storageClass: ebs-gp3
 
   replica:
+    replicaCount: 1
     resources:
       requests:
         cpu: 1000m
@@ -341,6 +295,8 @@ redis:
         cpu: 1000m
         memory: 2048Mi
     persistence:
+      enabled: true
+      size: 8Gi
       storageClass: ebs-gp3
 
 # External database configuration (for production)
@@ -368,10 +324,10 @@ externalRedis:
 
 # Cert-manager configuration
 certManager:
-  enabled: true
+  enabled: false
   issuer:
     name: letsencrypt-prod
-    email: "admin@example.com"
+    email: "your-email@example.com"
     server: https://acme-v02.api.letsencrypt.org/directory
 
 # AWS ACM certificate (for AWS environments)
@@ -388,9 +344,10 @@ awsCertificate:
 
 # Security context for Bitnami Legacy Images compatibility
 securityContext:
-  runAsNonRoot: true
-  runAsUser: 1001
+  runAsNonRoot: false
+  runAsUser: 0
   runAsGroup: 1001
+  readOnlyRootFilesystem: false
 
 podSecurityContext:
   fsGroup: 1001

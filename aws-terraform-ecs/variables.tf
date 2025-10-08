@@ -128,11 +128,11 @@ variable "database_config" {
     force_ssl                  = optional(bool, false)
     auto_minor_version_upgrade = optional(bool, false)
     # Database connection pool settings
-    pool_size                  = optional(number, 50)   # Number of connections to maintain in the pool
-    max_overflow               = optional(number, 50)   # Additional connections allowed beyond pool_size
-    pool_timeout               = optional(number, 30)   # Seconds to wait for a connection from the pool
-    pool_recycle               = optional(number, 3600) # Seconds before recreating a connection (1 hour)
-    pool_pre_ping              = optional(bool, true)   # Test connections before use to handle disconnections
+    pool_size     = optional(number, 50)   # Number of connections to maintain in the pool
+    max_overflow  = optional(number, 50)   # Additional connections allowed beyond pool_size
+    pool_timeout  = optional(number, 30)   # Seconds to wait for a connection from the pool
+    pool_recycle  = optional(number, 3600) # Seconds before recreating a connection (1 hour)
+    pool_pre_ping = optional(bool, true)   # Test connections before use to handle disconnections
   })
   default = {}
 }
@@ -308,23 +308,6 @@ variable "rds_alarm_config" {
   }
 }
 
-variable "enable_chatbot_alerts" {
-  description = "Enable monitoring alerts via AWS Chatbot (much simpler than SNS for enterprise)"
-  type        = bool
-  default     = false
-}
-
-variable "slack_channel_id" {
-  description = "Slack channel ID for alerts (e.g., C1234567890)"
-  type        = string
-  default     = ""
-}
-
-variable "slack_team_id" {
-  description = "Slack team/workspace ID (e.g., T1234567890)"
-  type        = string
-  default     = ""
-}
 
 variable "prestart_container_cpu" {
   type        = number

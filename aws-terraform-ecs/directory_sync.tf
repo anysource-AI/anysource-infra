@@ -31,6 +31,13 @@ resource "aws_cloudwatch_log_group" "directory_sync_logs" {
   }
 }
 
+# Trigger replacement when ECR backend image changes
+resource "terraform_data" "directory_sync_image_trigger" {
+  count = var.directory_sync_enabled ? 1 : 0
+
+  input = var.ecr_repositories["backend"]
+}
+
 # ECS Task Definition for directory sync
 resource "aws_ecs_task_definition" "directory_sync" {
   depends_on = [module.iam]
@@ -43,35 +50,32 @@ resource "aws_ecs_task_definition" "directory_sync" {
   cpu                      = 256
   memory                   = 512
 
-  # Lifecycle management
-  lifecycle {
-    ignore_changes = [family]
+  tags = {
+    Name        = "${var.project}-directory-sync-task-${var.environment}"
+    Environment = var.environment
+    Project     = var.project
   }
 
+  # Lifecycle management
+  lifecycle {
+    ignore_changes        = [family, container_definitions]
+    create_before_destroy = true
+    replace_triggered_by  = [terraform_data.directory_sync_image_trigger[0]]
+  }
+
+  # Prevent Terraform from deregistering old task definition revisions
+  # This ensures we can rollback to previous versions if needed
+  skip_destroy = true
+
   container_definitions = jsonencode([{
-    name  = "directory-sync"
-    image = var.ecr_repositories["backend"]
-
-    # Command to run sync once and exit
+    name    = "directory-sync"
+    image   = var.ecr_repositories["backend"]
     command = ["uv", "run", "python", "-m", "app.directory_sync.worker"]
-
-    # Environment variables (merge backend vars with sync-specific vars)
     environment = concat(
       [for k, v in local.backend_env_vars : { name = k, value = tostring(v) }],
-      [
-        { name = "DIRECTORY_SYNC_TIMEOUT_SECONDS", value = "1800" } # 30 minutes
-      ]
+      [{ name = "DIRECTORY_SYNC_TIMEOUT_SECONDS", value = "1800" }]
     )
-
-    # Secrets (same as backend)
-    secrets = [
-      for key, value in local.backend_secret_vars : {
-        name      = key
-        valueFrom = value
-      }
-    ]
-
-    # Logging configuration
+    secrets = [for key, value in local.backend_secret_vars : { name = key, valueFrom = value }]
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -80,16 +84,8 @@ resource "aws_ecs_task_definition" "directory_sync" {
         awslogs-stream-prefix = "directory-sync"
       }
     }
-
-    # Resource limits
     essential = true
   }])
-
-  tags = {
-    Name        = "${var.project}-directory-sync-task-${var.environment}"
-    Environment = var.environment
-    Project     = var.project
-  }
 }
 
 # IAM Role for CloudWatch Events to execute ECS tasks
