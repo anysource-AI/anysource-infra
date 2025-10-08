@@ -1,7 +1,7 @@
 # ALB Security Group with configurable access
-module "sg_private_alb" {
+module "sg_alb" {
   source      = "./modules/security-group"
-  name        = "${var.project}-${var.alb_access_type}-alb-sg"
+  name        = "${var.project}-${var.alb_access_type}-alb"
   description = "${var.project} ${var.alb_access_type} ALB security group"
   vpc_id      = module.vpc.vpc_id
 

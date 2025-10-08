@@ -23,11 +23,11 @@ locals {
     ClusterName = local.cluster_name
   }, var.additional_tags)
 
-  # Node group defaults based on environment
+  # Node group defaults
   node_group_defaults = {
     capacity_type  = "ON_DEMAND"
-    disk_size      = var.environment == "production" ? 50 : 20
-    instance_types = var.environment == "production" ? ["m6i.2xlarge", "m6i.4xlarge"] : ["m6i.xlarge", "m6i.2xlarge"]
+    disk_size      = 50
+    instance_types = ["m6i.2xlarge", "m6i.4xlarge"]
 
     # Security and maintenance
     enable_monitoring = true
@@ -37,7 +37,7 @@ locals {
       xvda = {
         device_name = "/dev/xvda"
         ebs = {
-          volume_size           = var.environment == "production" ? 50 : 20
+          volume_size           = 50
           volume_type           = "gp3"
           iops                  = 3000
           throughput            = 150

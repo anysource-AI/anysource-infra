@@ -1,5 +1,5 @@
 locals {
-  target_group_name_suffix = "-tg-${var.project}-${var.environment}"
+  target_group_name_suffix = "-${var.name}"
   max_prefix_length        = 32 - (length(local.target_group_name_suffix))
 }
 

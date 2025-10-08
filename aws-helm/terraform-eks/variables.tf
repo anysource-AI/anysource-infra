@@ -152,15 +152,15 @@ variable "cluster_endpoint_public_access_cidrs" {
 
 variable "whitelist_ips" {
   type        = list(string)
-  description = "List of IP addresses/CIDR blocks to whitelist for EKS cluster access"
+  description = "List of IP addresses/CIDR blocks to whitelist for EKS cluster access (optional, use cluster_endpoint_public_access_cidrs for endpoint access)"
   default     = []
   validation {
-    condition = length(var.whitelist_ips) > 0 && alltrue([
+    condition = alltrue([
       for ip in var.whitelist_ips : (
         can(cidrhost(ip, 0)) || can(regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", ip))
       )
     ])
-    error_message = "whitelist_ips must not be empty and each entry must be a valid IPv4 address or CIDR block."
+    error_message = "Each whitelist_ips entry must be a valid IPv4 address or CIDR block."
   }
 }
 

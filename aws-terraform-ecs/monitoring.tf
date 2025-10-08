@@ -1,7 +1,5 @@
 # Local variables for monitoring
 locals {
-  # Use Chatbot for enterprise alerting - much simpler than SNS
-  alarm_actions = var.enable_chatbot_alerts ? [aws_sns_topic.chatbot_topic[0].arn] : []
   # Only create alarms for services when monitoring is enabled
   monitored_services = var.enable_monitoring ? var.services_configurations : {}
 }
@@ -18,7 +16,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_utilization" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "This metric monitors ecs cpu utilization"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     ServiceName = "${each.key}-service"
@@ -39,7 +37,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_utilization" {
   statistic           = "Average"
   threshold           = "85"
   alarm_description   = "This metric monitors ecs memory utilization"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     ServiceName = "${each.key}-service"
@@ -61,7 +59,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu_utilization" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "This metric monitors RDS cpu utilization"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -81,7 +79,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_database_connections" {
   statistic           = "Average"
   threshold           = "50"
   alarm_description   = "This metric monitors RDS database connections"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -102,7 +100,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_freeable_memory" {
   threshold           = var.rds_alarm_config["FreeableMemory"].threshold
   unit                = var.rds_alarm_config["FreeableMemory"].unit
   alarm_description   = "Alarm when RDS FreeableMemory is low"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -123,7 +121,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_disk_queue_depth" {
   threshold           = var.rds_alarm_config["DiskQueueDepth"].threshold
   unit                = var.rds_alarm_config["DiskQueueDepth"].unit
   alarm_description   = "Alarm when RDS DiskQueueDepth is high"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -144,7 +142,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_write_iops" {
   threshold           = var.rds_alarm_config["WriteIOPS"].threshold
   unit                = var.rds_alarm_config["WriteIOPS"].unit
   alarm_description   = "Alarm when RDS WriteIOPS is high"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -165,7 +163,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_read_iops" {
   threshold           = var.rds_alarm_config["ReadIOPS"].threshold
   unit                = var.rds_alarm_config["ReadIOPS"].unit
   alarm_description   = "Alarm when RDS ReadIOPS is high"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -186,7 +184,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   threshold           = var.rds_alarm_config["Storage"].threshold
   unit                = var.rds_alarm_config["Storage"].unit
   alarm_description   = "Alarm when RDS storage is low"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     DBClusterIdentifier = module.rds[each.key].cluster_identifier
@@ -207,7 +205,7 @@ resource "aws_cloudwatch_metric_alarm" "redis_cpu_utilization" {
   statistic           = "Average"
   threshold           = "80"
   alarm_description   = "This metric monitors ElastiCache cpu utilization for cluster node ${format("%03d", count.index + 1)}"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     CacheClusterId = "${aws_elasticache_replication_group.redis.replication_group_id}-${format("%03d", count.index + 1)}"
@@ -225,7 +223,7 @@ resource "aws_cloudwatch_metric_alarm" "redis_memory_utilization" {
   statistic           = "Average"
   threshold           = "85"
   alarm_description   = "This metric monitors ElastiCache memory utilization for cluster node ${format("%03d", count.index + 1)}"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
     CacheClusterId = "${aws_elasticache_replication_group.redis.replication_group_id}-${format("%03d", count.index + 1)}"
@@ -244,14 +242,14 @@ resource "aws_cloudwatch_metric_alarm" "alb_target_response_time" {
   statistic           = "Average"
   threshold           = "5"
   alarm_description   = "This metric monitors ALB target response time"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
-    LoadBalancer = module.private_alb.alb_arn_suffix
-    TargetGroup  = module.private_alb.target_groups[each.key].arn_suffix
+    LoadBalancer = module.alb.alb_arn_suffix
+    TargetGroup  = module.alb.target_groups[each.key].arn_suffix
   }
 
-  depends_on = [module.private_alb]
+  depends_on = [module.alb]
 }
 
 # ALB 5XX Error Alarm
@@ -266,7 +264,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
   threshold           = var.alb_5xx_alarm_threshold
   alarm_description   = "Alarm when the ALB returns 5XX errors"
   dimensions = {
-    LoadBalancer = module.private_alb.alb_arn_suffix
+    LoadBalancer = module.alb.alb_arn_suffix
   }
   treat_missing_data = "notBreaching"
   actions_enabled    = false
@@ -283,72 +281,13 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
   statistic           = "Average"
   threshold           = "0"
   alarm_description   = "This metric monitors ALB unhealthy targets"
-  alarm_actions       = local.alarm_actions
+  actions_enabled     = false
 
   dimensions = {
-    LoadBalancer = module.private_alb.alb_arn_suffix
-    TargetGroup  = module.private_alb.target_groups[each.key].arn_suffix
+    LoadBalancer = module.alb.alb_arn_suffix
+    TargetGroup  = module.alb.target_groups[each.key].arn_suffix
   }
 
-  depends_on = [module.private_alb]
+  depends_on = [module.alb]
 }
 
-# AWS Chatbot Integration (Much simpler than SNS for enterprise)
-resource "aws_sns_topic" "chatbot_topic" {
-  count             = var.enable_chatbot_alerts ? 1 : 0
-  name              = "${var.project}-${var.environment}-chatbot-alerts"
-  kms_master_key_id = "alias/aws/sns"
-
-  tags = {
-    Name        = "${var.project}-${var.environment}-chatbot-alerts"
-    Environment = var.environment
-  }
-}
-
-# Chatbot configuration for Slack (requires manual setup in AWS Console)
-resource "aws_chatbot_slack_channel_configuration" "alerts" {
-  count              = var.enable_chatbot_alerts && var.slack_channel_id != "" ? 1 : 0
-  configuration_name = "${var.project}-${var.environment}-alerts"
-  iam_role_arn       = aws_iam_role.chatbot_role[0].arn
-  slack_channel_id   = var.slack_channel_id
-  slack_team_id      = var.slack_team_id
-  sns_topic_arns     = [aws_sns_topic.chatbot_topic[0].arn]
-
-  logging_level = "ERROR"
-}
-
-# Get current AWS caller identity
-data "aws_caller_identity" "current" {}
-
-# IAM role for Chatbot
-resource "aws_iam_role" "chatbot_role" {
-  count = var.enable_chatbot_alerts ? 1 : 0
-  name  = "${var.project}-${var.environment}-chatbot-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "chatbot.amazonaws.com"
-        }
-        Condition = {
-          StringEquals = {
-            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
-          }
-          ArnLike = {
-            "aws:SourceArn" = "arn:aws:chatbot::${data.aws_caller_identity.current.account_id}:chat-configuration/slack-channel/*"
-          }
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "chatbot_policy" {
-  count      = var.enable_chatbot_alerts ? 1 : 0
-  role       = aws_iam_role.chatbot_role[0].name
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess"
-}

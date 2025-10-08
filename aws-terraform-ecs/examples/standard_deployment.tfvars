@@ -7,18 +7,20 @@
 # Required Configuration
 region      = "us-east-1"
 domain_name = "mcp.yourcompany.com" # Replace with your domain
-# ACM Certificate ARN for your domain (required for HTTPS)
-ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+
+# WorkOS config
 # Will be provided by Anysource support:
 auth_client_id = "auth-provider-client-id"
+auth_api_key   = "auth-provider-api-key"
+
+# ACM Certificate ARN for your domain (required for HTTPS)
+ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+
 # ECR Configuration (required)
 ecr_repositories = {
-  backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
-  frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
+  backend  = "public.ecr.aws/anysource/anysource-api:latest"
+  frontend = "public.ecr.aws/anysource/anysource-web:latest"
 }
-
-# Secrets
-auth_api_key = "auth-provider-api-key" # will be provided by Anysource support
 
 # ========================================
 # OPTIONAL CUSTOMIZATION

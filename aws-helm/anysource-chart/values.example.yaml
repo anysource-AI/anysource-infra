@@ -1,0 +1,120 @@
+# Example values file for Anysource Helm Chart
+# Copy this file to values-<customer>.yaml and customize for your deployment
+
+global:
+  # Your domain name - REQUIRED
+  domain: "your-domain.com"
+
+  # Environment (development, staging, production)
+  environment: "production"
+
+  # Authentication configuration - REQUIRED
+  # Get these from your Auth0 or authentication provider
+  auth_client_id: "your_auth_client_id_here"
+
+# Override Container image tags - Update to desired version
+# image:
+#   backend:
+#     tag: "latest"
+#   frontend:
+#     tag: "latest"
+
+# prestart:
+#   image:
+#     tag: "latest"
+
+# PostgreSQL Configuration
+# Choose between embedded PostgreSQL or external database
+postgresql:
+  # Set to true for embedded PostgreSQL (development/testing)
+  # Set to false for production with external RDS
+  enabled: true
+
+  auth:
+    # Change these passwords for production!
+    postgresPassword: "change-me-postgres-password"
+    username: "postgres"
+    password: "change-me-postgres-password"
+    database: "postgres"
+    replicationPassword: "change-me-replication-password"
+
+# Redis Configuration
+# Choose between embedded Redis or external Redis/ElastiCache
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "change-me-redis-password"
+
+# External Database Configuration (for production)
+# Enable this when postgresql.enabled: false
+externalDatabase:
+  enabled: false
+  # host: "your-rds-endpoint.region.rds.amazonaws.com"
+  # port: 5432
+  # database: "anysource"
+  # username: "anysource_user"
+  # password: "your-database-password"
+
+# External Redis Configuration (for production)
+# Enable this when redis.enabled: false
+externalRedis:
+  enabled: false
+  # host: "your-elasticache-endpoint.cache.amazonaws.com"
+  # port: 6379
+  # password: "your-redis-password"
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "alb"
+
+  # Force HTTPS redirects
+  forceHttps: true
+
+  # TLS configuration
+  tls:
+    # Set to false when using AWS ACM certificates
+    enabled: false
+
+# Certificate Management
+# Choose between cert-manager (Let's Encrypt) or AWS ACM
+
+# Option 1: AWS ACM Certificate
+awsCertificate:
+  enabled: true # Set to true to use AWS ACM
+  arn: "arn:aws:acm:region:account:certificate/certificate-id" # REQUIRED
+
+# Option 2: cert-manager (Let's Encrypt)
+# certManager:
+#   enabled: false # Set to true to use cert-manager
+#   issuer:
+#     name: letsencrypt-prod
+#     email: "your-email@example.com" # REQUIRED for Let's Encrypt
+#     server: https://acme-v02.api.letsencrypt.org/directory
+
+# Backend Configuration
+backend:
+  # Application configuration
+  config:
+    BACKEND_CORS_ORIGINS: "https://your-domain.com"
+    APP_URL: "https://your-domain.com"
+
+  # Application secrets - CHANGE THESE FOR PRODUCTION!
+  secrets:
+    SECRET_KEY: "change-me-secret-key-minimum-32-characters-long"
+    MASTER_SALT: "change-me-master-salt-minimum-32-characters-long"
+    AUTH_API_KEY: "your-auth-api-key-here"
+
+# Service Account Configuration
+serviceAccount:
+  annotations:
+    # AWS IAM role for service account (IRSA)
+    # Replace with your actual IAM role ARN
+    eks.amazonaws.com/role-arn: "arn:aws:iam::account:role/your-anysource-role"
+
+# Network Policy Configuration
+networkPolicy:
+  enabled: true
+  # CIDR of your VPC (required for external database/Redis access)
+  vpcCidr: "10.0.0.0/16" # Adjust to your VPC CIDR
