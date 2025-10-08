@@ -1,28 +1,28 @@
 # AWS Configuration
 region  = "us-east-1"
-account = "123456789012"  # Replace with your AWS Account ID
+account = "123456789012" # Replace with your AWS Account ID
 # Optional: AWS Profile (if not using default credentials)
 # profile = "your-aws-profile"
 
 # Project Configuration
 project     = "anysource"
-environment = "development"  # Options: development, staging, production
+environment = "development" # Options: development, staging, production
 
 # Network Configuration
-vpc_id = "vpc-12345678"  # Replace with your VPC ID
+vpc_id = "vpc-12345678" # Replace with your VPC ID
 
 # Subnet IDs
 private_subnet_ids = ["subnet-12345", "subnet-67890", "subnet-abcde"] # Replace with your private subnet IDs
 public_subnet_ids  = ["subnet-fghij", "subnet-klmno", "subnet-pqrst"] # Replace with your public subnet IDs
 
 # EKS Configuration
-cluster_name    = ""  # Will default to "{project}-{environment}-eks"
+cluster_name    = "" # Will default to "{project}-{environment}-eks"
 cluster_version = "1.33"
 
 # Cluster endpoint access
 cluster_endpoint_public_access       = true
 cluster_endpoint_private_access      = true
-cluster_endpoint_public_access_cidrs = []  # Restrict this in production - add your IP ranges
+cluster_endpoint_public_access_cidrs = [] # Restrict this in production - add your IP ranges
 
 # Security Configuration
 # Add your trusted IP addresses in CIDR format for enhanced security
@@ -35,7 +35,7 @@ whitelist_ips = ["203.0.113.1/32", "198.51.100.0/24"]
 enable_cluster_encryption = true
 
 # Logging Configuration
-cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+cluster_enabled_log_types              = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 cloudwatch_log_group_retention_in_days = 400
 
 
@@ -58,38 +58,9 @@ node_groups = {
 
 }
 
-# Cluster Add-ons
-cluster_addons = {
-  coredns = {
-    preserve                    = true
-    resolve_conflicts_on_create = "OVERWRITE"
-    resolve_conflicts_on_update = "PRESERVE"
-  }
-  kube-proxy = {
-    preserve                    = true
-    resolve_conflicts_on_create = "OVERWRITE"
-    resolve_conflicts_on_update = "PRESERVE"
-  }
-  vpc-cni = {
-    preserve                    = true
-    resolve_conflicts_on_create = "OVERWRITE"
-    resolve_conflicts_on_update = "PRESERVE"
-  }
-  aws-ebs-csi-driver = {
-    preserve                    = true
-    resolve_conflicts_on_create = "OVERWRITE"
-    resolve_conflicts_on_update = "PRESERVE"
-  }
-  eks-pod-identity-agent = {
-    preserve                    = true
-    resolve_conflicts_on_create = "OVERWRITE"
-    resolve_conflicts_on_update = "PRESERVE"
-  }
-}
-
 # Optional: Additional tags
 additional_tags = {
-  Owner       = "platform-team"
-  CostCenter  = "engineering"
-  Project     = "anysource"
+  Owner      = "platform-team"
+  CostCenter = "engineering"
+  Project    = "anysource"
 }

@@ -1,0 +1,1192 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Anysource Helm Chart Values Schema",
+  "description": "Schema for validating anysource Helm chart values. This schema ensures that all values.yaml files used with the anysource Helm chart conform to the expected structure and data types.",
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global configuration",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "description": "Global domain name for the application"
+        },
+        "environment": {
+          "type": "string",
+          "description": "Environment name (e.g., production, staging, development)"
+        },
+        "auth_client_id": {
+          "type": "string",
+          "description": "Auth client ID for authentication"
+        }
+      },
+      "required": ["domain", "environment", "auth_client_id"]
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Provide a name in place of the chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Provide a name to substitute for the full names of resources"
+    },
+    "image": {
+      "type": "object",
+      "description": "Image configuration",
+      "properties": {
+        "backend": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Backend image repository"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Backend image tag"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "description": "Image pull policy"
+            },
+            "pullSecrets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Image pull secrets"
+            }
+          },
+          "required": ["repository", "tag", "pullPolicy"]
+        },
+        "frontend": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Frontend image repository"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Frontend image tag"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "description": "Image pull policy"
+            },
+            "pullSecrets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Image pull secrets"
+            }
+          },
+          "required": ["repository", "tag", "pullPolicy"]
+        }
+      },
+      "required": ["backend", "frontend"]
+    },
+    "backend": {
+      "type": "object",
+      "description": "Backend service configuration",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Backend service name"
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of backend replicas"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Backend service port"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$",
+                  "description": "CPU request (e.g., 1000m, 1)"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$",
+                  "description": "Memory request (e.g., 512Mi, 1Gi)"
+                }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$",
+                  "description": "CPU limit (e.g., 1000m, 1)"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$",
+                  "description": "Memory limit (e.g., 512Mi, 1Gi)"
+                }
+              }
+            }
+          }
+        },
+        "livenessProbe": {
+          "type": "object",
+          "properties": {
+            "httpGet": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer"
+                }
+              }
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            }
+          }
+        },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "httpGet": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer"
+                }
+              }
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            }
+          }
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables for backend"
+        },
+        "secrets": {
+          "type": "object",
+          "properties": {
+            "SECRET_KEY": {
+              "type": "string",
+              "description": "Secret key for the application"
+            },
+            "MASTER_SALT": {
+              "type": "string",
+              "description": "Master salt for encryption"
+            },
+            "AUTH_API_KEY": {
+              "type": "string",
+              "description": "Auth API key"
+            }
+          },
+          "required": ["SECRET_KEY", "MASTER_SALT", "AUTH_API_KEY"]
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Non-sensitive configuration for backend"
+        }
+      },
+      "required": ["name", "replicas", "port", "resources", "secrets"]
+    },
+    "frontend": {
+      "type": "object",
+      "description": "Frontend service configuration",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Frontend service name"
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of frontend replicas"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Frontend service port"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                }
+              }
+            }
+          }
+        },
+        "livenessProbe": {
+          "type": "object",
+          "properties": {
+            "httpGet": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer"
+                }
+              }
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            }
+          }
+        },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "httpGet": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "integer"
+                }
+              }
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "required": ["name", "replicas", "port", "resources"]
+    },
+    "prestart": {
+      "type": "object",
+      "description": "Database prestart init container configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable prestart init container"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Prestart image repository"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Prestart image tag"
+            }
+          }
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Prestart container command"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Prestart container arguments"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hpa": {
+      "type": "object",
+      "description": "Horizontal Pod Autoscaler configuration",
+      "properties": {
+        "backend": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable HPA for backend"
+            },
+            "minReplicas": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum number of replicas"
+            },
+            "maxReplicas": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum number of replicas"
+            },
+            "targetCPUUtilizationPercentage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Target CPU utilization percentage"
+            },
+            "targetMemoryUtilizationPercentage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Target memory utilization percentage"
+            }
+          }
+        },
+        "frontend": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable HPA for frontend"
+            },
+            "minReplicas": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum number of replicas"
+            },
+            "maxReplicas": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum number of replicas"
+            },
+            "targetCPUUtilizationPercentage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Target CPU utilization percentage"
+            },
+            "targetMemoryUtilizationPercentage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Target memory utilization percentage"
+            }
+          }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Service configuration",
+      "properties": {
+        "backend": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"],
+              "description": "Service type"
+            },
+            "port": {
+              "type": "integer",
+              "description": "Service port"
+            },
+            "targetPort": {
+              "type": "integer",
+              "description": "Target port"
+            }
+          },
+          "required": ["type", "port", "targetPort"]
+        },
+        "frontend": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"],
+              "description": "Service type"
+            },
+            "port": {
+              "type": "integer",
+              "description": "Service port"
+            },
+            "targetPort": {
+              "type": "integer",
+              "description": "Target port"
+            }
+          },
+          "required": ["type", "port", "targetPort"]
+        }
+      },
+      "required": ["backend", "frontend"]
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "forceHttps": {
+          "type": "boolean",
+          "description": "Force HTTPS redirects"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Ingress annotations"
+        },
+        "tls": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable TLS"
+            },
+            "secretName": {
+              "type": "string",
+              "description": "TLS secret name"
+            }
+          }
+        }
+      },
+      "required": ["enabled", "className"]
+    },
+    "postgresql": {
+      "type": "object",
+      "description": "PostgreSQL configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable PostgreSQL"
+        },
+        "fullnameOverride": {
+          "type": "string",
+          "description": "Override the full name"
+        },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "postgresPassword": {
+              "type": "string",
+              "description": "PostgreSQL password"
+            },
+            "username": {
+              "type": "string",
+              "description": "PostgreSQL username"
+            },
+            "password": {
+              "type": "string",
+              "description": "PostgreSQL password"
+            },
+            "database": {
+              "type": "string",
+              "description": "PostgreSQL database name"
+            },
+            "replicationPassword": {
+              "type": "string",
+              "description": "Replication password"
+            }
+          }
+        },
+        "architecture": {
+          "type": "string",
+          "enum": ["standalone", "replication"],
+          "description": "PostgreSQL architecture"
+        },
+        "primary": {
+          "type": "object",
+          "properties": {
+            "resources": {
+              "type": "object",
+              "properties": {
+                "requests": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                },
+                "limits": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                }
+              }
+            },
+            "persistence": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "size": {
+                  "type": "string",
+                  "pattern": "^\\d+(Gi|Ti)?$"
+                },
+                "storageClass": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "readReplicas": {
+          "type": "object",
+          "properties": {
+            "replicaCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "resources": {
+              "type": "object",
+              "properties": {
+                "requests": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                },
+                "limits": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                }
+              }
+            },
+            "persistence": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "size": {
+                  "type": "string",
+                  "pattern": "^\\d+(Gi|Ti)?$"
+                },
+                "storageClass": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "redis": {
+      "type": "object",
+      "description": "Redis configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Redis"
+        },
+        "fullnameOverride": {
+          "type": "string",
+          "description": "Override the full name"
+        },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable Redis authentication"
+            },
+            "password": {
+              "type": "string",
+              "description": "Redis password"
+            }
+          }
+        },
+        "master": {
+          "type": "object",
+          "properties": {
+            "resources": {
+              "type": "object",
+              "properties": {
+                "requests": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                },
+                "limits": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                }
+              }
+            },
+            "persistence": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "size": {
+                  "type": "string",
+                  "pattern": "^\\d+(Gi|Ti)?$"
+                },
+                "storageClass": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "replica": {
+          "type": "object",
+          "properties": {
+            "replicaCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "resources": {
+              "type": "object",
+              "properties": {
+                "requests": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                },
+                "limits": {
+                  "type": "object",
+                  "properties": {
+                    "cpu": {
+                      "type": "string",
+                      "pattern": "^\\d+[m]?$"
+                    },
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                    }
+                  }
+                }
+              }
+            },
+            "persistence": {
+              "type": "object",
+              "properties": {
+                "storageClass": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "externalDatabase": {
+      "type": "object",
+      "description": "External database configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable external database"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["postgresql", "mysql", "mariadb"],
+          "description": "Database type"
+        },
+        "host": {
+          "type": "string",
+          "description": "Database host"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Database port"
+        },
+        "database": {
+          "type": "string",
+          "description": "Database name"
+        },
+        "username": {
+          "type": "string",
+          "description": "Database username"
+        },
+        "password": {
+          "type": "string",
+          "description": "Database password"
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Existing secret name"
+        },
+        "existingSecretPasswordKey": {
+          "type": "string",
+          "description": "Password key in existing secret"
+        }
+      }
+    },
+    "externalRedis": {
+      "type": "object",
+      "description": "External Redis configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable external Redis"
+        },
+        "host": {
+          "type": "string",
+          "description": "Redis host"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Redis port"
+        },
+        "password": {
+          "type": "string",
+          "description": "Redis password"
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Existing secret name"
+        },
+        "existingSecretPasswordKey": {
+          "type": "string",
+          "description": "Password key in existing secret"
+        }
+      }
+    },
+    "certManager": {
+      "type": "object",
+      "description": "Cert-manager configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable cert-manager"
+        },
+        "issuer": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Issuer name"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Issuer email"
+            },
+            "server": {
+              "type": "string",
+              "format": "uri",
+              "description": "ACME server URL"
+            }
+          }
+        }
+      }
+    },
+    "awsCertificate": {
+      "type": "object",
+      "description": "AWS ACM certificate configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable AWS certificate"
+        },
+        "arn": {
+          "type": "string",
+          "pattern": "^(arn:aws:acm:[a-z0-9-]+:[0-9]+:certificate/[a-f0-9-]+)?$",
+          "description": "ACM certificate ARN"
+        }
+      }
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Security context",
+      "properties": {
+        "runAsNonRoot": {
+          "type": "boolean",
+          "description": "Run as non-root user"
+        },
+        "runAsUser": {
+          "type": "integer",
+          "description": "User ID to run as"
+        },
+        "runAsGroup": {
+          "type": "integer",
+          "description": "Group ID to run as"
+        },
+        "readOnlyRootFilesystem": {
+          "type": "boolean",
+          "description": "Read-only root filesystem"
+        }
+      }
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "description": "Pod security context",
+      "properties": {
+        "fsGroup": {
+          "type": "integer",
+          "description": "File system group"
+        },
+        "seccompProfile": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["RuntimeDefault", "Localhost", "Unconfined"]
+            }
+          }
+        }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "description": "Service account configuration",
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Service account annotations"
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Pod annotations"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Node selector"
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["Equal", "Exists"]
+          },
+          "value": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "string",
+            "enum": ["NoSchedule", "PreferNoSchedule", "NoExecute"]
+          }
+        }
+      },
+      "description": "Pod tolerations"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Pod affinity rules"
+    },
+    "networkPolicy": {
+      "type": "object",
+      "description": "Network policy configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable network policies"
+        },
+        "vpcCidr": {
+          "type": "string",
+          "pattern": "^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}/\\d{1,2})?$",
+          "description": "VPC CIDR block"
+        }
+      }
+    },
+    "storageClass": {
+      "type": "object",
+      "description": "Storage class configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable storage class"
+        },
+        "name": {
+          "type": "string",
+          "description": "Storage class name"
+        },
+        "isDefault": {
+          "type": "boolean",
+          "description": "Set as default storage class"
+        },
+        "provisioner": {
+          "type": "string",
+          "description": "Storage provisioner"
+        },
+        "volumeBindingMode": {
+          "type": "string",
+          "enum": ["Immediate", "WaitForFirstConsumer"],
+          "description": "Volume binding mode"
+        },
+        "allowVolumeExpansion": {
+          "type": "boolean",
+          "description": "Allow volume expansion"
+        },
+        "reclaimPolicy": {
+          "type": "string",
+          "enum": ["Retain", "Delete", "Recycle"],
+          "description": "Reclaim policy"
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Storage type"
+            },
+            "encrypted": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "description": "Enable encryption"
+            },
+            "iops": {
+              "type": "string",
+              "pattern": "^\\d+$",
+              "description": "IOPS"
+            },
+            "throughput": {
+              "type": "string",
+              "pattern": "^\\d+$",
+              "description": "Throughput"
+            },
+            "kmsKeyId": {
+              "type": "string",
+              "description": "KMS key ID"
+            },
+            "additionalParameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Additional parameters"
+            }
+          }
+        }
+      }
+    },
+    "directorySync": {
+      "type": "object",
+      "description": "Directory sync configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable directory sync"
+        },
+        "schedule": {
+          "type": "string",
+          "pattern": "^\\*|\\d+\\s+\\*|\\d+\\s+\\d+\\s+\\*|\\d+\\s+\\d+\\s+\\d+\\s+\\*|\\d+\\s+\\d+\\s+\\d+\\s+\\d+\\s+\\*$",
+          "description": "Cron schedule for directory sync"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "pattern": "^\\d+[m]?$"
+                },
+                "memory": {
+                  "type": "string",
+                  "pattern": "^\\d+(Mi|Gi|M|G)?$"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "global",
+    "image",
+    "backend",
+    "frontend",
+    "service",
+    "ingress"
+  ]
+}
