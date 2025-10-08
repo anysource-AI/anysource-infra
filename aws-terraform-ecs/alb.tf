@@ -1,7 +1,7 @@
 # ALB with configurable certificate and access type
 module "alb" {
   source             = "./modules/alb"
-  name               = "${var.project}-${var.alb_access_type}-alb-${var.environment}"
+  name               = "${var.project}-${var.alb_access_type}-${var.environment}"
   load_balancer_type = "application"
   project            = var.project
   environment        = var.environment
