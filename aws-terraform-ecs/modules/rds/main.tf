@@ -18,8 +18,9 @@ resource "aws_rds_cluster_parameter_group" "rds_cluster_pg" {
   description = "RDS cluster parameter group for ${var.project} ${local.environment} with SSL enforcement"
 
   parameter {
-    name  = "rds.force_ssl"
-    value = var.force_ssl ? "1" : "0"
+    name         = "rds.force_ssl"
+    value        = var.force_ssl ? "1" : "0"
+    apply_method = "pending-reboot"
   }
 
   parameter {
