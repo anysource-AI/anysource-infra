@@ -13,7 +13,7 @@ resource "aws_service_discovery_http_namespace" "service_connect" {
 
 resource "aws_cloudwatch_log_group" "ecs_cw_log_group" {
   for_each          = toset(var.services_names)
-  name              = "anysource-${each.key}-logs-${var.environment}"
+  name              = "anysource-${each.key}-logs-${var.project}-${var.environment}"
   retention_in_days = 365
 }
 
@@ -81,7 +81,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         logConfiguration = {
           logDriver = "awslogs"
           options = {
-            awslogs-group         = "anysource-prestart-logs-${var.environment}"
+            awslogs-group         = "anysource-prestart-logs-${var.project}-${var.environment}"
             awslogs-region        = var.region
             awslogs-stream-prefix = var.project
           }
@@ -130,7 +130,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         logConfiguration = {
           logDriver = "awslogs"
           options = {
-            awslogs-group         = "anysource-${each.key}-logs-${var.environment}"
+            awslogs-group         = "anysource-${each.key}-logs-${var.project}-${var.environment}"
             awslogs-region        = var.region
             awslogs-stream-prefix = var.project
           }
@@ -141,7 +141,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
 }
 
 resource "aws_cloudwatch_log_group" "prestart_cw_log_group" {
-  name              = "anysource-prestart-logs-${var.environment}"
+  name              = "anysource-prestart-logs-${var.project}-${var.environment}"
   retention_in_days = 365
 }
 
