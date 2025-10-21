@@ -18,6 +18,8 @@ locals {
     WORKERS              = var.workers
     # AWS region for Bedrock and other AWS services
     AWS_REGION = var.region
+    # Bedrock Guardrail for prompt attack detection
+    BEDROCK_GUARDRAIL_ARN = aws_bedrock_guardrail.guardrail.guardrail_arn
     # Database connection pool settings
     DB_POOL_SIZE     = var.database_config.pool_size
     DB_MAX_OVERFLOW  = var.database_config.max_overflow

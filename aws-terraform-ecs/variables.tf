@@ -369,3 +369,4 @@ variable "directory_sync_interval_minutes" {
     error_message = "Directory sync interval must be between 1 and 1440 minutes (24 hours)"
   }
 }
+
