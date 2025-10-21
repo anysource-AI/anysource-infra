@@ -63,6 +63,41 @@ spec:
                 name: {{ .Values.backend.name }}
                 port:
                   number: {{ .Values.service.backend.port }}
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /redoc
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /openapi.json
+            pathType: Exact
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /health/detailed
+            pathType: Exact
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
           - path: /
             pathType: Prefix
             backend:
