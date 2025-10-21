@@ -44,5 +44,5 @@ module "ecs" {
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = local.frontend_env_vars
 
-  depends_on = [module.iam, module.vpc, module.sg_alb, module.alb, aws_secretsmanager_secret_version.app_secrets]
+  depends_on = [module.iam, module.vpc, module.sg_alb, module.alb, aws_secretsmanager_secret_version.app_secrets, aws_bedrock_guardrail.guardrail]
 }
