@@ -201,7 +201,7 @@ variable "services_configurations" {
   default = {
     "backend" = {
       name              = "backend"
-      path_pattern      = ["/api/*"]
+      path_pattern      = ["/api/*", "/docs*", "/redoc*", "/openapi.json"]
       health_check_path = "/api/v1/utils/health-check/"
       container_port    = 8000
       host_port         = 8000
