@@ -353,6 +353,13 @@ variable "version_url" {
   default     = "https://anysource-version.s3.amazonaws.com/version.json"
 }
 
+# OAuth Broker Configuration
+variable "oauth_broker_url" {
+  type        = string
+  description = "OAuth Broker URL for OAuth flow handling"
+  default     = ""
+}
+
 # SCIM / Directory Sync Configuration
 variable "directory_sync_enabled" {
   type        = bool

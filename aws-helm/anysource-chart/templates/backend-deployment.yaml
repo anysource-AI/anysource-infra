@@ -66,6 +66,10 @@ spec:
               value: "https://{{ .Values.global.domain }}"
             - name: AUTH_CLIENT_ID
               value: {{ .Values.global.auth_client_id | quote }}
+            {{- if .Values.global.oauth_broker_url }}
+            - name: OAUTH_BROKER_URL
+              value: {{ .Values.global.oauth_broker_url | quote }}
+            {{- end }}
           {{- if .Values.backend.secrets }}
           envFrom:
             - secretRef:
@@ -119,6 +123,10 @@ spec:
               value: "https://{{ .Values.global.domain }}"
             - name: AUTH_CLIENT_ID
               value: {{ .Values.global.auth_client_id | quote }}
+            {{- if .Values.global.oauth_broker_url }}
+            - name: OAUTH_BROKER_URL
+              value: {{ .Values.global.oauth_broker_url | quote }}
+            {{- end }}
             {{- range $key, $value := .Values.backend.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}

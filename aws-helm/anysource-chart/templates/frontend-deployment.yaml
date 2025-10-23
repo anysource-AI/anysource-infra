@@ -46,6 +46,10 @@ spec:
               value: {{ .Values.global.auth_client_id | quote }}
             - name: PUBLIC_APP_URL
               value: "https://{{ .Values.global.domain }}"
+            {{- if .Values.global.oauth_broker_url }}
+            - name: PUBLIC_OAUTH_BROKER_URL
+              value: {{ .Values.global.oauth_broker_url | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
           volumeMounts:

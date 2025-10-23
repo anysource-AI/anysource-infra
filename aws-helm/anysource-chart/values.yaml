@@ -5,6 +5,8 @@ global:
   environment: "production"
   # Anysource support will provide this
   auth_client_id: "your-auth-client-id"
+  # OAuth Broker URL (optional, set to empty string to disable)
+  oauth_broker_url: ""
   security:
     allowInsecureImages: true
 
