@@ -34,6 +34,7 @@ module "ecs" {
   prestart_container_memory         = var.prestart_container_memory
   prestart_timeout_seconds          = var.prestart_timeout_seconds
   health_check_grace_period_seconds = var.health_check_grace_period_seconds
+  enable_ecs_exec                   = var.enable_ecs_exec
 
   # Backend-specific environment variables (non-sensitive)
   backend_env_vars = local.backend_env_vars

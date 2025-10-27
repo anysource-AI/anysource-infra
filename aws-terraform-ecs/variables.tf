@@ -365,3 +365,9 @@ variable "directory_sync_interval_minutes" {
   }
 }
 
+variable "enable_ecs_exec" {
+  type        = bool
+  description = "Enable ECS Exec for interactive shell access to backend containers. Use only for development and testing purposes."
+  default     = false
+}
+
