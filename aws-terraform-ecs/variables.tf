@@ -127,6 +127,7 @@ variable "database_config" {
     subnet_type                = optional(string, "private") # "public" or "private"
     force_ssl                  = optional(bool, false)
     auto_minor_version_upgrade = optional(bool, false)
+    skip_final_snapshot        = optional(bool, false)
     # Database connection pool settings
     pool_size     = optional(number, 50)   # Number of connections to maintain in the pool
     max_overflow  = optional(number, 50)   # Additional connections allowed beyond pool_size
@@ -230,19 +231,6 @@ variable "sentry_dsn" {
   description = "Sentry DSN for error tracking and monitoring"
   default     = ""
   sensitive   = true
-}
-
-# S3 Configuration (Optional)
-variable "buckets_conf" {
-  type        = map(object({ acl = string }))
-  description = "S3 bucket configurations"
-  default     = {}
-}
-
-variable "buckets_conf_new" {
-  type        = map(object({ acl = string }))
-  description = "Additional S3 bucket configurations"
-  default     = {}
 }
 
 # Monitoring and Alerting Configuration
