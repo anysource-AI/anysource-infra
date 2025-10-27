@@ -201,7 +201,7 @@ variable "services_configurations" {
   default = {
     "backend" = {
       name              = "backend"
-      path_pattern      = ["/api/*"]
+      path_pattern      = ["/api/*", "/docs*", "/redoc*", "/openapi.json"]
       health_check_path = "/api/v1/utils/health-check/"
       container_port    = 8000
       host_port         = 8000
@@ -353,6 +353,13 @@ variable "version_url" {
   default     = "https://anysource-version.s3.amazonaws.com/version.json"
 }
 
+# OAuth Broker Configuration
+variable "oauth_broker_url" {
+  type        = string
+  description = "OAuth Broker URL for OAuth flow handling"
+  default     = ""
+}
+
 # SCIM / Directory Sync Configuration
 variable "directory_sync_enabled" {
   type        = bool
@@ -369,3 +376,4 @@ variable "directory_sync_interval_minutes" {
     error_message = "Directory sync interval must be between 1 and 1440 minutes (24 hours)"
   }
 }
+

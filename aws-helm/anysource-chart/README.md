@@ -88,6 +88,8 @@ Set these values in your values file:
 global:
   domain: "your-domain.com"
   auth_client_id: "your-auth-client-id"
+  # OAuth Broker URL (optional, for OAuth flow handling)
+  oauth_broker_url: "https://oauth.staging.runlayer.com"
 
 backend:
   secrets:
