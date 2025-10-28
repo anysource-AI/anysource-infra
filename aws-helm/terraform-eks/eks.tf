@@ -203,6 +203,8 @@ module "alb_latency_alarm" {
 ########################################################################################################################
 
 # Get autoscaling groups for the cluster (only when creating EKS)
+# Note: No explicit depends_on to avoid for_each issues when EKS resources change
+# The data source will be read after ASGs are created through implicit dependencies
 data "aws_autoscaling_groups" "cluster_asgs" {
   count = var.create_eks ? 1 : 0
 
@@ -210,13 +212,12 @@ data "aws_autoscaling_groups" "cluster_asgs" {
     name   = "tag:eks:cluster-name"
     values = [local.cluster_name]
   }
-
-  depends_on = [module.eks]
 }
 
 # Create CPU utilization alarm for each ASG in the cluster (only when creating EKS)
+# Note: This uses a try() to handle cases where ASG names aren't yet available
 resource "aws_cloudwatch_metric_alarm" "asg_cpu_utilization" {
-  for_each = var.create_eks ? toset(data.aws_autoscaling_groups.cluster_asgs[0].names) : toset([])
+  for_each = var.create_eks ? toset(try(data.aws_autoscaling_groups.cluster_asgs[0].names, [])) : toset([])
 
   alarm_name          = "${each.key}-cpu-utilization"
   alarm_description   = "ASG ${each.key} CPUUtilization exceeds threshold"
