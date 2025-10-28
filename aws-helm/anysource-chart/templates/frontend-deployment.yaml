@@ -46,6 +46,14 @@ spec:
               value: {{ .Values.global.auth_client_id | quote }}
             - name: PUBLIC_APP_URL
               value: "https://{{ .Values.global.domain }}"
+            - name: PUBLIC_BACKEND_URL
+              value: "https://{{ .Values.global.domain }}"
+            - name: PUBLIC_BACKEND_VERSION
+              value: {{ .Values.image.backend.tag | quote }}
+            - name: PUBLIC_WEBAPP_VERSION
+              value: {{ .Values.image.frontend.tag | quote }}
+            - name: PUBLIC_VERSION_URL
+              value: {{ .Values.global.version_url | default "https://anysource-version.s3.amazonaws.com/version.json" | quote }}
             {{- if .Values.global.oauth_broker_url }}
             - name: PUBLIC_OAUTH_BROKER_URL
               value: {{ .Values.global.oauth_broker_url | quote }}

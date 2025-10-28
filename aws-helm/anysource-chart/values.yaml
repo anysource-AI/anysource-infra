@@ -7,6 +7,8 @@ global:
   auth_client_id: "your-auth-client-id"
   # OAuth Broker URL (optional, set to empty string to disable)
   oauth_broker_url: ""
+  # Version URL endpoint for version information (optional)
+  version_url: "https://anysource-version.s3.amazonaws.com/version.json"
   security:
     allowInsecureImages: true
 

@@ -114,6 +114,7 @@ Anysource application Helm chart for Kubernetes deployment
 | global.environment | string | `"production"` |  |
 | global.oauth_broker_url | string | `""` |  |
 | global.security.allowInsecureImages | bool | `true` |  |
+| global.version_url | string | `"https://anysource-version.s3.amazonaws.com/version.json"` |  |
 | hpa.backend.enabled | bool | `true` |  |
 | hpa.backend.maxReplicas | int | `20` |  |
 | hpa.backend.minReplicas | int | `3` |  |
