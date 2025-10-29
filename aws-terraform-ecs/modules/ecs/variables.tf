@@ -100,3 +100,9 @@ variable "health_check_grace_period_seconds" {
   description = "Grace period in seconds before health checks start"
   default     = 120
 }
+
+variable "enable_ecs_exec" {
+  type        = bool
+  description = "Enable ECS Exec for interactive shell access to containers"
+  default     = false
+}
