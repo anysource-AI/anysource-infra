@@ -5,7 +5,7 @@ account = "123456789012" # Replace with your AWS Account ID
 # profile = "your-aws-profile"
 
 # Project Configuration
-project     = "myproject" # Replace with your project name
+project     = "anysource" # Replace with your project name
 environment = "development" # Options: development, staging, production
 
 # Network Configuration
@@ -98,15 +98,29 @@ auth_api_key = "CHANGE_ME_AUTH_API_KEY" # Replace with your auth API key
 # Monitoring Configuration
 enable_monitoring = false # Set to true to enable CloudWatch alarms
 
-# S3 Buckets (optional)
-buckets_conf = {
-  # Example bucket configuration
-  # uploads = { acl = "private" }
-  # backups = { acl = "private" }
-}
+
 
 # Optional: Additional tags
 additional_tags = {
   Owner      = "platform-team"
   CostCenter = "engineering"
 }
+
+# EKS Namespace Configuration
+eks_namespace = "myapp-production"
+
+# EKS Access Configuration
+# Configure API-based access control for the cluster
+access_entries = {
+  admin_user = {
+    principal_arn = "arn:aws:iam::123456789012:user/admin"
+    policy_associations = {
+      admin = {
+        policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+      }
+    }
+  }
+}
+
+# Enable automatic admin permissions for cluster creator (recommended for initial setup)
+enable_cluster_creator_admin_permissions = true

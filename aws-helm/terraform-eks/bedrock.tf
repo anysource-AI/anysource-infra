@@ -1,6 +1,6 @@
 resource "aws_bedrock_guardrail" "guardrail" {
   name                      = "${var.project}-guardrail-${var.environment}"
-  description               = "Anysource guardrail for prompt attack detection"
+  description               = "Bedrock guardrail for prompt attack detection"
   blocked_input_messaging   = "Input blocked due to prompt attack detection."
   blocked_outputs_messaging = "Output blocked due to prompt attack detection."
 

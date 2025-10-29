@@ -15,7 +15,7 @@ sources:
   - https://github.com/anysource-AI/Anysource
 maintainers:
   - name: Anysource Team
-    email: team@anysource.dev
+    email: engineering@anysource.com
 
 dependencies:
   - name: postgresql

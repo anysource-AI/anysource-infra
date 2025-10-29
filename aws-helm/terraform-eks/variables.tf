@@ -492,14 +492,8 @@ variable "enable_monitoring" {
 }
 
 ########################################################################################################################
-# S3 Configuration
+# EKS Namespace Configuration
 ########################################################################################################################
-
-variable "buckets_conf" {
-  type        = map(object({ acl = string }))
-  description = "S3 bucket configurations"
-  default     = {}
-}
 
 variable "eks_namespace" {
   type        = string

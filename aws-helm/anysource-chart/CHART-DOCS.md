@@ -10,7 +10,7 @@ Anysource application Helm chart for Kubernetes deployment
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Anysource Team | <team@anysource.dev> |  |
+| Anysource Team | <engineering@anysource.com> |  |
 
 ## Source Code
 

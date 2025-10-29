@@ -385,4 +385,4 @@ kubectl get events -n anysource --sort-by='.lastTimestamp'
 
 ## Support
 
-For issues and questions, contact the Anysource team at team@anysource.dev
+For issues and questions, contact engineering@anysource.com

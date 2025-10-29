@@ -85,7 +85,7 @@ This module supports three deployment modes to fit different infrastructure requ
    ```
 6. **Configure kubectl** (after cluster creation):
    ```bash
-   aws eks update-kubeconfig --region us-east-1 --name myproject-development-eks
+   aws eks update-kubeconfig --region us-east-1 --name anysource-development-eks
    ```
 7. **Deploy your application** using Helm charts with proper IRSA configuration
 
@@ -115,7 +115,7 @@ See [Using Existing EKS Cluster](#using-existing-eks-cluster) section below.
 | Variable             | Description        | Default                         |
 | -------------------- | ------------------ | ------------------------------- |
 | `cluster_name`       | EKS cluster name   | `"{project}-{environment}-eks"` |
-| `cluster_version`    | Kubernetes version | `"1.28"`                        |
+| `cluster_version`    | Kubernetes version | `"1.33"`                        |
 | `private_subnet_ids` | Private subnet IDs | Auto-discovered                 |
 | `public_subnet_ids`  | Public subnet IDs  | Auto-discovered                 |
 | `environment`        | Environment name   | `"development"`                 |
@@ -569,7 +569,7 @@ If your subnets aren't tagged, use this script:
 
 ```bash
 #!/bin/bash
-CLUSTER_NAME="myproject-production-eks"
+CLUSTER_NAME="anysource-production-eks"
 REGION="us-east-1"
 
 # Tag private subnets
@@ -704,7 +704,6 @@ When `create_eks = false`, the module creates:
 ✅ **Application IRSA Role**: IAM role for your application pods (Bedrock, S3, Secrets Manager access)
 ✅ **RDS Database**: Aurora PostgreSQL Serverless v2
 ✅ **Redis Cache**: ElastiCache Redis
-✅ **S3 Buckets**: Optional S3 buckets for application data
 ✅ **Secrets**: AWS Secrets Manager secrets for application configuration
 ✅ **Security Groups**: For RDS and Redis
 
@@ -913,22 +912,6 @@ enable_monitoring = true
 - Target response time
 - ASG CPU utilization
 
-## S3 Bucket Configuration
-
-Optional S3 buckets can be created:
-
-```hcl
-buckets_conf = {
-  uploads = { acl = "private" }
-  backups = { acl = "private" }
-}
-```
-
-**Features:**
-
-- Server-side encryption enabled
-- Versioning enabled
-- Bucket owner preferred object ownership
 
 ## Cost Optimization
 

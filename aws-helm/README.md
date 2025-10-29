@@ -293,16 +293,10 @@ For customer-facing deployment guides, see:
 - **User Deployment Docs**: `/docs/deployment/helm.mdx` - External Helm deployment guide
 - **EKS Terraform Docs**: `/docs/deployment/eks-terraform.mdx` - External EKS guide
 
-### Internal Operations
-
-For internal deployment procedures, see:
-
-- **Internal EKS Deployments**: `/infra-internal/eks/README.md` - Internal environment configurations
-
 ## Support
 
-- **Issues**: Report issues to the Anysource team
-- **Contact**: team@anysource.dev
+- **Email**: engineering@anysource.com
+- **Website**: https://anysource.com
 
 ## Contributing
 
