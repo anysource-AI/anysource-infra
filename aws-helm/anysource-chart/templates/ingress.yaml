@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "anysource.labels" . | nindent 4 }}
   annotations:
+    {{- if .Values.ingress.className }}
+    kubernetes.io/ingress.class: {{ .Values.ingress.className }}
+    {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -58,6 +61,27 @@ spec:
         paths:
           - path: /api/
             pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /redoc
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+          - path: /openapi.json
+            pathType: Exact
             backend:
               service:
                 name: {{ .Values.backend.name }}

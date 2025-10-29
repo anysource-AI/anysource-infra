@@ -153,6 +153,7 @@ resource "aws_ecs_service" "private_service" {
   launch_type                       = "FARGATE"
   desired_count                     = each.value.desired_count
   health_check_grace_period_seconds = each.key == "backend" ? var.health_check_grace_period_seconds : null
+  enable_execute_command            = each.key == "backend" ? var.enable_ecs_exec : false
 
   depends_on = [
     aws_ecs_cluster.ecs_cluster,

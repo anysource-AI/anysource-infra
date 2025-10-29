@@ -127,6 +127,7 @@ variable "database_config" {
     subnet_type                = optional(string, "private") # "public" or "private"
     force_ssl                  = optional(bool, false)
     auto_minor_version_upgrade = optional(bool, false)
+    skip_final_snapshot        = optional(bool, false)
     # Database connection pool settings
     pool_size     = optional(number, 50)   # Number of connections to maintain in the pool
     max_overflow  = optional(number, 50)   # Additional connections allowed beyond pool_size
@@ -201,7 +202,7 @@ variable "services_configurations" {
   default = {
     "backend" = {
       name              = "backend"
-      path_pattern      = ["/api/*"]
+      path_pattern      = ["/api/*", "/docs*", "/redoc*", "/openapi.json"]
       health_check_path = "/api/v1/utils/health-check/"
       container_port    = 8000
       host_port         = 8000
@@ -230,19 +231,6 @@ variable "sentry_dsn" {
   description = "Sentry DSN for error tracking and monitoring"
   default     = ""
   sensitive   = true
-}
-
-# S3 Configuration (Optional)
-variable "buckets_conf" {
-  type        = map(object({ acl = string }))
-  description = "S3 bucket configurations"
-  default     = {}
-}
-
-variable "buckets_conf_new" {
-  type        = map(object({ acl = string }))
-  description = "Additional S3 bucket configurations"
-  default     = {}
 }
 
 # Monitoring and Alerting Configuration
@@ -353,6 +341,13 @@ variable "version_url" {
   default     = "https://anysource-version.s3.amazonaws.com/version.json"
 }
 
+# OAuth Broker Configuration
+variable "oauth_broker_url" {
+  type        = string
+  description = "OAuth Broker URL for OAuth flow handling"
+  default     = ""
+}
+
 # SCIM / Directory Sync Configuration
 variable "directory_sync_enabled" {
   type        = bool
@@ -369,3 +364,10 @@ variable "directory_sync_interval_minutes" {
     error_message = "Directory sync interval must be between 1 and 1440 minutes (24 hours)"
   }
 }
+
+variable "enable_ecs_exec" {
+  type        = bool
+  description = "Enable ECS Exec for interactive shell access to backend containers. Use only for development and testing purposes."
+  default     = false
+}
+

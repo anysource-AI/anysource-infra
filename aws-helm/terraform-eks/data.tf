@@ -7,14 +7,15 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Get VPC information
+# Get VPC information (only when not creating VPC)
 data "aws_vpc" "selected" {
-  id = var.vpc_id
+  count = var.create_vpc ? 0 : 1
+  id    = var.vpc_id
 }
 
-# Get private subnets if not provided
+# Get private subnets if not provided (only when not creating VPC)
 data "aws_subnets" "private" {
-  count = length(var.private_subnet_ids) == 0 ? 1 : 0
+  count = var.create_vpc ? 0 : (length(var.private_subnet_ids) == 0 ? 1 : 0)
 
   filter {
     name   = "vpc-id"
@@ -27,9 +28,9 @@ data "aws_subnets" "private" {
   }
 }
 
-# Get public subnets if not provided
+# Get public subnets if not provided (only when not creating VPC)
 data "aws_subnets" "public" {
-  count = length(var.public_subnet_ids) == 0 ? 1 : 0
+  count = var.create_vpc ? 0 : (length(var.public_subnet_ids) == 0 ? 1 : 0)
 
   filter {
     name   = "vpc-id"
@@ -48,7 +49,13 @@ data "aws_caller_identity" "current" {}
 # Get current AWS region
 data "aws_region" "current" {}
 
+# Get existing EKS cluster information (only when not creating EKS)
+data "aws_eks_cluster" "existing" {
+  count = var.create_eks ? 0 : 1
+  name  = var.existing_cluster_name
+}
+
 # Get EKS cluster auth token
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_name
+  name = var.create_eks ? module.eks[0].cluster_name : var.existing_cluster_name
 }

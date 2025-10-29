@@ -34,6 +34,7 @@ module "ecs" {
   prestart_container_memory         = var.prestart_container_memory
   prestart_timeout_seconds          = var.prestart_timeout_seconds
   health_check_grace_period_seconds = var.health_check_grace_period_seconds
+  enable_ecs_exec                   = var.enable_ecs_exec
 
   # Backend-specific environment variables (non-sensitive)
   backend_env_vars = local.backend_env_vars
@@ -44,5 +45,5 @@ module "ecs" {
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = local.frontend_env_vars
 
-  depends_on = [module.iam, module.vpc, module.sg_alb, module.alb, aws_secretsmanager_secret_version.app_secrets]
+  depends_on = [module.iam, module.vpc, module.sg_alb, module.alb, aws_secretsmanager_secret_version.app_secrets, aws_bedrock_guardrail.guardrail]
 }

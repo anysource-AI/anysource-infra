@@ -5,15 +5,26 @@ account = "123456789012" # Replace with your AWS Account ID
 # profile = "your-aws-profile"
 
 # Project Configuration
-project     = "anysource"
+project     = "myproject" # Replace with your project name
 environment = "development" # Options: development, staging, production
 
 # Network Configuration
-vpc_id = "vpc-12345678" # Replace with your VPC ID
+# Option 1: Create new VPC (recommended for new deployments)
+create_vpc = true
+vpc_cidr   = "10.0.0.0/16"
 
-# Subnet IDs
-private_subnet_ids = ["subnet-12345", "subnet-67890", "subnet-abcde"] # Replace with your private subnet IDs
-public_subnet_ids  = ["subnet-fghij", "subnet-klmno", "subnet-pqrst"] # Replace with your public subnet IDs
+# Availability zones (auto-discovered if empty)
+region_az = [] # e.g., ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+# Subnet CIDR blocks (used when create_vpc = true)
+private_subnets = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+
+# Option 2: Use existing VPC (set create_vpc = false and provide these)
+# create_vpc = false
+# vpc_id = "vpc-12345678" # Replace with your VPC ID
+# private_subnet_ids = ["subnet-12345", "subnet-67890", "subnet-abcde"] # Replace with your private subnet IDs
+# public_subnet_ids  = ["subnet-fghij", "subnet-klmno", "subnet-pqrst"] # Replace with your public subnet IDs
 
 # EKS Configuration
 cluster_name    = "" # Will default to "{project}-{environment}-eks"
@@ -60,9 +71,42 @@ node_groups = {
 
 }
 
+# Database Configuration
+database_name     = "postgres"
+database_username = "postgres"
+database_password = "CHANGE_ME_STRONG_PASSWORD" # Replace with a strong password
+
+database_config = {
+  engine_version      = "16.8"
+  min_capacity        = 2
+  max_capacity        = 16
+  force_ssl           = false
+  deletion_protection = false # Set to true for staging and production
+}
+
+# Redis Configuration
+redis_node_type  = "cache.t3.medium"
+
+# Application Secrets
+secret_key  = "CHANGE_ME_SECRET_KEY"  # Replace with a strong secret key
+master_salt = "CHANGE_ME_MASTER_SALT" # Replace with a strong master salt
+sentry_dsn  = ""                      # Optional: Sentry DSN for error tracking
+
+# Auth Configuration
+auth_api_key = "CHANGE_ME_AUTH_API_KEY" # Replace with your auth API key
+
+# Monitoring Configuration
+enable_monitoring = false # Set to true to enable CloudWatch alarms
+
+# S3 Buckets (optional)
+buckets_conf = {
+  # Example bucket configuration
+  # uploads = { acl = "private" }
+  # backups = { acl = "private" }
+}
+
 # Optional: Additional tags
 additional_tags = {
   Owner      = "platform-team"
   CostCenter = "engineering"
-  Project    = "anysource"
 }

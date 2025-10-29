@@ -70,6 +70,10 @@ spec:
                 value: {{ .Values.global.environment | quote }}
               - name: AUTH_CLIENT_ID
                 value: {{ .Values.global.auth_client_id | quote }}
+              {{- if .Values.global.oauth_broker_url }}
+              - name: OAUTH_BROKER_URL
+                value: {{ .Values.global.oauth_broker_url | quote }}
+              {{- end }}
               # Directory sync specific configuration
               - name: DIRECTORY_SYNC_TIMEOUT_SECONDS
                 value: {{ .Values.directorySync.timeoutSeconds | default 1800 | quote }}
