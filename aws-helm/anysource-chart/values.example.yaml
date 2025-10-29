@@ -12,12 +12,6 @@ global:
   # Get these from your Auth0 or authentication provider
   auth_client_id: "your_auth_client_id_here"
 
-  # OAuth Broker URL (optional)
-  # Set to the URL of your OAuth broker service for OAuth flow handling
-  # For staging: "https://oauth.staging.runlayer.com"
-  # For production: "https://oauth.prod.runlayer.com"
-  # oauth_broker_url: ""
-
   # Version URL endpoint for version information (optional)
   # This URL is used by the frontend to check for version updates
   # Default: "https://anysource-version.s3.amazonaws.com/version.json"
