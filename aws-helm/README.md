@@ -1,6 +1,18 @@
 # Anysource Kubernetes Deployment
 
-This directory contains Kubernetes Helm charts for deploying Anysource on Kubernetes clusters, and a Terraform module for AWS EKS cluster provisioning. The Helm chart supports:
+This directory contains Kubernetes Helm charts for deploying Anysource on Kubernetes clusters, and a Terraform module for AWS EKS cluster provisioning.
+
+## Documentation Structure
+
+| Document                                                                               | Purpose                                                   | Audience                 |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------ |
+| **This README**                                                                        | Overview and quick start                                  | Everyone                 |
+| **[anysource-chart/README.md](./anysource-chart/README.md)**                           | Detailed Helm chart documentation, packaging instructions | Developers, DevOps       |
+| **[anysource-chart/CHART-DOCS.md](./anysource-chart/CHART-DOCS.md)**                   | Complete chart configuration reference                    | DevOps, System Admins    |
+| **[terraform-eks/README.md](./terraform-eks/README.md)**                               | EKS cluster provisioning and infrastructure               | Infrastructure Engineers |
+| **[aws-load-balancer-controller/README.md](./aws-load-balancer-controller/README.md)** | AWS Load Balancer Controller setup                        | DevOps                   |
+
+## Features
 
 - AWS EKS with ALB ingress and ACM certificates
 - External RDS and ElastiCache integration
@@ -68,15 +80,11 @@ helm upgrade --install anysource . \
 
 ## Optional: EKS Cluster Provisioning
 
-If you don't have an existing Kubernetes cluster, you can use the included Terraform module to provision an AWS EKS cluster. This module supports advanced networking, IRSA, KMS encryption, and flexible node group/add-on configuration. See `terraform-eks/README.md` for details.
+If you don't have an existing Kubernetes cluster, you can use the included Terraform module to provision an AWS EKS cluster.
 
-### EKS Prerequisites
+**For complete EKS provisioning documentation, see [terraform-eks/README.md](./terraform-eks/README.md).**
 
-- AWS CLI configured with appropriate credentials
-- Terraform >= 1.0
-- Existing VPC with private subnets (and optionally public subnets)
-
-### Create EKS Cluster
+### Quick Start
 
 ```bash
 # Navigate to the Terraform EKS module
@@ -84,28 +92,30 @@ cd terraform-eks
 
 # Copy and edit the configuration
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your AWS account details and VPC information
 
 # Initialize and apply Terraform
 terraform init
 terraform plan
 terraform apply
 
-# Configure kubectl to use the new cluster
+# Configure kubectl
 aws eks update-kubeconfig --region <your-region> --name <cluster-name>
 ```
 
-### EKS Features
+### Key Features
 
-- **Managed Node Groups**: Auto-scaling EKS managed nodes
-- **Security**: KMS encryption for Kubernetes secrets
-- **IRSA Support**: IAM Roles for Service Accounts enabled
-- **Essential Add-ons**: CoreDNS, kube-proxy, VPC CNI, EBS CSI driver
-- **Flexible Configuration**: Configurable instance types, scaling, and spot instances
-- **Advanced Networking**: Works with existing VPC and subnets, supports private/public subnet tagging
-- **Production Security**: Restrict API access, enable private endpoint, whitelist IPs, custom security group rules, encryption
+- **3 Deployment Modes**: Full Stack, Existing VPC, or Existing EKS
+- **Managed Infrastructure**: EKS, RDS, ElastiCache, VPC, IAM roles
+- **Security**: KMS encryption, IRSA, private endpoints
+- **Essential Add-ons**: Pre-configured with CoreDNS, VPC CNI, EBS CSI driver, CloudWatch
+- **Production Ready**: Auto-scaling, monitoring, multi-AZ support
 
-For detailed EKS configuration options, see [terraform-eks/README.md](./terraform-eks/README.md).
+See the [Terraform EKS README](./terraform-eks/README.md) for:
+
+- Detailed deployment modes and configuration options
+- Using existing VPC or EKS clusters
+- Security best practices and monitoring setup
+- Troubleshooting and cost optimization
 
 ### Production Deployment (AWS)
 
@@ -128,103 +138,91 @@ helm upgrade --install anysource . \
 
 ## Configuration Options
 
-### Environment Configurations
+For detailed configuration options, values files, and examples, see:
+
+- **Helm Chart Configuration**: [anysource-chart/README.md](./anysource-chart/README.md#configuration)
+- **Chart Documentation**: [anysource-chart/CHART-DOCS.md](./anysource-chart/CHART-DOCS.md)
+
+**Quick Overview:**
 
 | Environment | Values File            | Description                                   |
 | ----------- | ---------------------- | --------------------------------------------- |
 | Development | `values-dev.yaml`      | Local PostgreSQL and Redis, minimal resources |
 | Production  | `values-aws-prod.yaml` | AWS RDS and ElastiCache, production resources |
 
-### Infrastructure Options
+## Key Features
 
-| Component      | Development         | Production (AWS)                         |
-| -------------- | ------------------- | ---------------------------------------- |
-| **Database**   | Embedded PostgreSQL | AWS RDS (externalDatabase + secret)      |
-| **Cache**      | Embedded Redis      | AWS ElastiCache (externalRedis + secret) |
-| **Ingress**    | nginx-ingress       | AWS ALB (with ACM)                       |
-| **TLS**        | cert-manager        | AWS ACM                                  |
-| **Monitoring** | Optional            | Enabled (Prometheus, ServiceMonitor)     |
-| **HPA**        | Disabled            | Enabled                                  |
+For detailed information on each feature, see [anysource-chart/README.md](./anysource-chart/README.md).
 
-## Security Features
+### Security
 
-✅ **Container Security**
+- Container security (non-root, read-only filesystem, dropped capabilities)
+- Network policies and service isolation
+- Kubernetes secrets with AWS Secrets Manager integration
+- RBAC and AWS IAM integration (IRSA)
 
-- Non-root containers (UID 1000)
-- Read-only root filesystem
-- Dropped capabilities
-- Security contexts
-  ✅ **Network Security**
-- Network policies
-- Service isolation
-- Ingress restrictions
-  ✅ **Secrets Management**
-- Kubernetes secrets (use `existingSecret` and `existingSecretPasswordKey` for AWS)
-- External secret integration (AWS Secrets Manager)
-- Encrypted storage
-  ✅ **RBAC**
-- Minimal service accounts
-- Principle of least privilege
-- AWS IAM integration (IRSA)
+### Monitoring & Observability
 
-## Monitoring & Observability
+- Health checks (liveness, readiness, startup probes)
+- Prometheus integration with ServiceMonitor
+- Structured logging with JSON output
 
-- **Health Checks**: Liveness, readiness, and startup probes
-- **Metrics**: Prometheus integration with ServiceMonitor
-- **Logging**: Structured logging with JSON output
-- **Tracing**: Ready for distributed tracing integration
+### High Availability
 
-## High Availability
-
-- **Pod Distribution**: Anti-affinity rules
-- **Disruption Budgets**: Prevent all pods from being evicted
-- **Auto Scaling**: HPA based on CPU and memory
-- **Rolling Updates**: Zero-downtime deployments
-
-## Resource Requirements
-
-### Development
-
-- **Backend**: 250m CPU, 512Mi RAM (requests)
-- **Frontend**: 100m CPU, 256Mi RAM (requests)
-- **PostgreSQL**: 250m CPU, 512Mi RAM
-- **Redis**: 100m CPU, 256Mi RAM
-
-### Production
-
-- **Backend**: 500m CPU, 1Gi RAM (requests), 1000m CPU, 2Gi RAM (limits)
-- **Frontend**: 250m CPU, 512Mi RAM (requests), 500m CPU, 1Gi RAM (limits)
-- **HPA**: 2-20 backend pods, 2-10 frontend pods
+- Pod anti-affinity rules and disruption budgets
+- Horizontal Pod Autoscaling (HPA)
+- Zero-downtime rolling updates
 
 ## Deployment Environments
 
-### Development
+The Helm chart supports multiple deployment patterns. See [anysource-chart/README.md](./anysource-chart/README.md) for detailed configuration examples.
 
-- **Purpose**: Local development and testing
-- **Infrastructure**: Embedded databases
-- **Domain**: `mcp.dev.example.com`
-- **TLS**: Self-signed or disabled
-- **Scaling**: Fixed replicas
+| Environment     | Infrastructure            | Scaling            | Best For             |
+| --------------- | ------------------------- | ------------------ | -------------------- |
+| **Development** | Embedded PostgreSQL/Redis | Fixed replicas     | Local testing        |
+| **Production**  | AWS RDS/ElastiCache       | Auto-scaling (HPA) | Production workloads |
 
-### Production
+## Helm Chart Packaging (Internal)
 
-- **Purpose**: Production workloads
-- **Infrastructure**: AWS managed services
-- **Domain**: `mcp.example.com`
-- **TLS**: AWS ACM certificate
-- **Scaling**: Auto-scaling enabled
+For detailed instructions on packaging the Helm chart for distribution, see [anysource-chart/README.md](./anysource-chart/README.md#helm-chart-packaging-internal-use).
+
+**Quick Reference:**
+
+```bash
+cd anysource-chart
+
+# 1. Update Chart.yaml version
+# 2. Update dependencies
+helm dependency update
+
+# 3. Package
+helm package .
+
+# 4. Verify
+helm template anysource ./anysource-0.7.0.tgz -f values-aws-prod.yaml --validate
+```
+
+**Important:**
+
+- Always bump chart version in `Chart.yaml` before packaging
+- Always run `helm dependency update` to ensure dependencies are current
+- See the chart README for complete version guidelines and best practices
 
 ## Common Commands
 
 ### Deployment
 
 ```bash
-# Install development
+# Install development (from directory)
 cd anysource-chart
 helm upgrade --install anysource . -f values-dev.yaml --namespace anysource --create-namespace
 
-# Install production
+# Install production (from directory)
 helm upgrade --install anysource . -f values-aws-prod.yaml --namespace anysource --create-namespace
+
+# Install from packaged chart (recommended for production)
+helm upgrade --install anysource ./anysource-0.7.0.tgz \
+  -f values-aws-prod.yaml --namespace anysource --create-namespace
 
 # Upgrade existing deployment
 helm upgrade anysource . -f values-dev.yaml --namespace anysource
@@ -266,39 +264,47 @@ helm template anysource . -f values-dev.yaml --debug
 kubectl port-forward svc/anysource-frontend 8080:80 -n anysource
 ```
 
-## Migration from Terraform
+## Architecture Overview
 
-This Helm chart provides equivalent functionality to the Terraform deployment with these key differences:
-
-| Aspect            | Terraform           | Kubernetes                   |
-| ----------------- | ------------------- | ---------------------------- |
-| **Orchestration** | ECS/Fargate         | Kubernetes pods              |
-| **Networking**    | ALB + VPC           | Ingress + Services           |
-| **Scaling**       | ECS Auto Scaling    | HPA                          |
-| **Secrets**       | AWS Secrets Manager | Kubernetes Secrets           |
-| **Monitoring**    | CloudWatch          | Prometheus                   |
-| **Databases**     | RDS/ElastiCache     | Can use external or embedded |
+This deployment uses Kubernetes orchestration with AWS managed services for production.
 
 ### Deployment Order
 
 When starting from scratch on AWS:
 
-1. **Create VPC and networking** (use existing Terraform or AWS console)
-2. **Provision EKS cluster** (optional: use `terraform-eks/` module)
-3. **Deploy Anysource** (use `anysource-chart/` Helm chart)
+1. **Infrastructure** - Provision EKS, RDS, ElastiCache (see [terraform-eks/README.md](./terraform-eks/README.md))
+2. **Application** - Deploy with Helm chart (see [anysource-chart/README.md](./anysource-chart/README.md))
 
-The EKS Terraform module is designed to work with existing VPC infrastructure and can be used independently of the main application deployment.
+The Terraform EKS module handles infrastructure provisioning, while the Helm chart manages application deployment.
+
+## Related Documentation
+
+### Internal Documentation
+
+- **[Helm Chart README](./anysource-chart/README.md)** - Detailed chart documentation and packaging guide
+- **[Chart Configuration](./anysource-chart/CHART-DOCS.md)** - Complete values reference
+- **[Terraform EKS Module](./terraform-eks/README.md)** - Infrastructure provisioning guide
+- **[AWS Load Balancer Controller](./aws-load-balancer-controller/README.md)** - ALB controller setup
+
+### User-Facing Documentation
+
+For customer-facing deployment guides, see:
+
+- **User Deployment Docs**: `/docs/deployment/helm.mdx` - External Helm deployment guide
+- **EKS Terraform Docs**: `/docs/deployment/eks-terraform.mdx` - External EKS guide
 
 ## Support
 
-- **Documentation**: See [anysource-chart/README.md](./anysource-chart/README.md) for detailed chart documentation
-- **EKS Setup**: See [terraform-eks/README.md](./terraform-eks/README.md) for EKS cluster provisioning
-- **Issues**: Report issues to the Anysource team
-- **Contact**: team@anysource.dev
+- **Email**: engineering@anysource.com
+- **Website**: https://anysource.com
 
 ## Contributing
 
-1. Test changes locally with development values
-2. Validate with `helm template` and `helm lint`
-3. Test on staging environment before production
-4. Follow semantic versioning for chart versions
+1. Update the appropriate README when making changes:
+   - Chart changes → Update `anysource-chart/README.md`
+   - Terraform changes → Update `terraform-eks/README.md`
+   - Overview changes → Update this README
+2. Test changes locally with development values
+3. Validate with `helm template` and `helm lint`
+4. Test on staging environment before production
+5. Follow semantic versioning for chart versions

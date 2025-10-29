@@ -38,6 +38,9 @@ module "rds" {
 
   # SSL enforcement - defaults to 0 (optional) for backward compatibility
   force_ssl = var.database_config.force_ssl
+
+  # Snapshot configuration
+  skip_final_snapshot = var.database_config.skip_final_snapshot
 }
 
 # Auto-populate availability zones if not provided
