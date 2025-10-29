@@ -97,3 +97,9 @@ variable "force_ssl" {
   type        = bool
   default     = false
 }
+
+variable "skip_final_snapshot" {
+  description = "Skip final snapshot when destroying the RDS cluster"
+  type        = bool
+  default     = false
+}

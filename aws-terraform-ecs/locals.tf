@@ -18,6 +18,8 @@ locals {
     WORKERS              = var.workers
     # AWS region for Bedrock and other AWS services
     AWS_REGION = var.region
+    # Bedrock Guardrail for prompt attack detection
+    BEDROCK_GUARDRAIL_ARN = aws_bedrock_guardrail.guardrail.guardrail_arn
     # Database connection pool settings
     DB_POOL_SIZE     = var.database_config.pool_size
     DB_MAX_OVERFLOW  = var.database_config.max_overflow
@@ -26,6 +28,8 @@ locals {
     DB_POOL_PRE_PING = var.database_config.pool_pre_ping
     # Tokenizers configuration for LlamaFirewall parallel processing
     TOKENIZERS_PARALLELISM = "true"
+    # OAuth Broker URL
+    OAUTH_BROKER_URL = var.oauth_broker_url
   }
 
   # Backend-specific secrets from AWS Secrets Manager
@@ -39,11 +43,12 @@ locals {
 
   # Frontend-specific environment variables (non-sensitive)
   frontend_env_vars = {
-    PUBLIC_AUTH_CLIENT_ID  = var.auth_client_id
-    PUBLIC_APP_URL         = local.app_url
-    PUBLIC_BACKEND_URL     = local.app_url
-    PUBLIC_BACKEND_VERSION = local.backend_image_tag
-    PUBLIC_WEBAPP_VERSION  = local.frontend_image_tag
-    PUBLIC_VERSION_URL     = var.version_url
+    PUBLIC_AUTH_CLIENT_ID   = var.auth_client_id
+    PUBLIC_APP_URL          = local.app_url
+    PUBLIC_BACKEND_URL      = local.app_url
+    PUBLIC_BACKEND_VERSION  = local.backend_image_tag
+    PUBLIC_WEBAPP_VERSION   = local.frontend_image_tag
+    PUBLIC_VERSION_URL      = var.version_url
+    PUBLIC_OAUTH_BROKER_URL = var.oauth_broker_url
   }
 }

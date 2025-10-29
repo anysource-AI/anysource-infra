@@ -1,6 +1,6 @@
 # anysource
 
-![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1.3](https://img.shields.io/badge/AppVersion-1.1.3-informational?style=flat-square)
+![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.4.0](https://img.shields.io/badge/AppVersion-1.4.0-informational?style=flat-square)
 
 Anysource application Helm chart for Kubernetes deployment
 
@@ -10,7 +10,7 @@ Anysource application Helm chart for Kubernetes deployment
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Anysource Team | <team@anysource.dev> |  |
+| Anysource Team | <engineering@anysource.com> |  |
 
 ## Source Code
 
@@ -32,7 +32,9 @@ Anysource application Helm chart for Kubernetes deployment
 | awsCertificate.arn | string | `""` |  |
 | awsCertificate.enabled | bool | `false` |  |
 | backend.config | object | `{}` |  |
+| backend.env.AWS_DEFAULT_REGION | string | `"us-east-1"` |  |
 | backend.env.AWS_REGION | string | `"us-east-1"` |  |
+| backend.env.BEDROCK_GUARDRAIL_ARN | string | `""` |  |
 | backend.env.DB_MAX_OVERFLOW | string | `"50"` |  |
 | backend.env.DB_POOL_PRE_PING | string | `"true"` |  |
 | backend.env.DB_POOL_RECYCLE | string | `"3600"` |  |
@@ -110,7 +112,9 @@ Anysource application Helm chart for Kubernetes deployment
 | global.auth_client_id | string | `"your-auth-client-id"` |  |
 | global.domain | string | `"mcp.example.com"` |  |
 | global.environment | string | `"production"` |  |
+| global.oauth_broker_url | string | `""` |  |
 | global.security.allowInsecureImages | bool | `true` |  |
+| global.version_url | string | `"https://anysource-version.s3.amazonaws.com/version.json"` |  |
 | hpa.backend.enabled | bool | `true` |  |
 | hpa.backend.maxReplicas | int | `20` |  |
 | hpa.backend.minReplicas | int | `3` |  |

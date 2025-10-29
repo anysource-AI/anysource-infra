@@ -63,7 +63,7 @@ resource "aws_rds_cluster" "rds_cluster" {
     max_capacity = var.max_capacity
   }
 
-  skip_final_snapshot      = true
+  skip_final_snapshot      = var.skip_final_snapshot
   deletion_protection      = var.deletion_protection
   delete_automated_backups = false
   backup_retention_period  = 10

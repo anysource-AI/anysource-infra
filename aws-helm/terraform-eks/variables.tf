@@ -91,20 +91,51 @@ variable "account" {
 # Network Configuration
 ########################################################################################################################
 
+variable "create_vpc" {
+  type        = bool
+  description = "Whether to create a new VPC or use an existing one"
+  default     = true
+}
+
 variable "vpc_id" {
   type        = string
-  description = "ID of the VPC where EKS cluster will be created"
+  description = "ID of the VPC where EKS cluster will be created (required when create_vpc = false)"
+  default     = ""
+}
+
+variable "vpc_cidr" {
+  type        = string
+  description = "CIDR block for the VPC (used when create_vpc = true)"
+  default     = "10.0.0.0/16"
+}
+
+variable "region_az" {
+  type        = list(string)
+  description = "Availability zones to use (auto-discovered if empty)"
+  default     = []
+}
+
+variable "private_subnets" {
+  type        = list(string)
+  description = "Private subnet CIDR blocks (used when create_vpc = true)"
+  default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+}
+
+variable "public_subnets" {
+  type        = list(string)
+  description = "Public subnet CIDR blocks (used when create_vpc = true)"
+  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 }
 
 variable "private_subnet_ids" {
   type        = list(string)
-  description = "List of private subnet IDs for EKS cluster"
+  description = "List of private subnet IDs for EKS cluster (used when create_vpc = false)"
   default     = []
 }
 
 variable "public_subnet_ids" {
   type        = list(string)
-  description = "List of public subnet IDs for EKS cluster (optional)"
+  description = "List of public subnet IDs for EKS cluster (used when create_vpc = false)"
   default     = []
 }
 
@@ -112,15 +143,43 @@ variable "public_subnet_ids" {
 # EKS Configuration
 ########################################################################################################################
 
+variable "create_eks" {
+  type        = bool
+  description = "Whether to create the EKS cluster"
+  default     = true
+}
+
 variable "cluster_name" {
   type        = string
-  description = "Name of the EKS cluster"
+  description = "Name of the EKS cluster (used when create_eks = true)"
   default     = ""
+}
+
+variable "existing_cluster_name" {
+  type        = string
+  description = "Name of existing EKS cluster (required when create_eks = false)"
+  default     = ""
+
+  validation {
+    condition     = var.create_eks || (var.existing_cluster_name != "")
+    error_message = "existing_cluster_name is required when create_eks = false"
+  }
+}
+
+variable "existing_oidc_provider_arn" {
+  type        = string
+  description = "OIDC provider ARN of existing EKS cluster (required when create_eks = false)"
+  default     = ""
+
+  validation {
+    condition     = var.create_eks || (var.existing_oidc_provider_arn != "")
+    error_message = "existing_oidc_provider_arn is required when create_eks = false"
+  }
 }
 
 variable "cluster_version" {
   type        = string
-  description = "Kubernetes version to use for the EKS cluster"
+  description = "Kubernetes version to use for the EKS cluster (used when create_eks = true)"
   default     = "1.33"
 }
 
@@ -252,13 +311,13 @@ variable "node_groups" {
     update_config = optional(object({
       max_unavailable_percentage = optional(number, 25)
     }), {})
-    disk_size = optional(number, 20)
+    disk_size = optional(number, 50)
     labels    = optional(map(string), {})
-    taints = optional(list(object({
+    taints = optional(map(object({
       key    = string
       value  = optional(string)
       effect = string
-    })), [])
+    })), {})
   }))
   default = {
     default = {
@@ -268,7 +327,8 @@ variable "node_groups" {
         max_size     = 20
         min_size     = 4
       }
-      disk_size = 20
+      disk_size = 50
+      taints    = {}
     }
   }
   validation {
@@ -311,46 +371,27 @@ variable "cluster_addons" {
     configuration_values        = optional(string)
     preserve                    = optional(bool, true)
     resolve_conflicts_on_create = optional(string, "OVERWRITE")
-    resolve_conflicts_on_update = optional(string, "OVERWRITE")
+    resolve_conflicts_on_update = optional(string, "PRESERVE")
     service_account_role_arn    = optional(string)
+    before_compute              = optional(bool, false)
     tags                        = optional(map(string), {})
   }))
   default = {
-    coredns = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
+    # Critical add-ons that MUST be installed AND active before nodes join
+    # before_compute = true ensures add-on is fully ready before node groups start
+    vpc-cni = {
+      before_compute = true # CNI must be active for nodes to get network interfaces
     }
     kube-proxy = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
+      before_compute = true # Network proxy needed for service communication
     }
-    vpc-cni = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
-    }
-    aws-ebs-csi-driver = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
-    }
-    eks-pod-identity-agent = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
-    }
-    metrics-server = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
-    }
-    cert-manager = {
-      preserve                    = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "PRESERVE"
-    }
+    # Additional add-ons (can be installed alongside node group creation)
+    aws-ebs-csi-driver              = {}
+    eks-pod-identity-agent          = {}
+    coredns                         = {}
+    metrics-server                  = {}
+    amazon-cloudwatch-observability = {}
+    cert-manager                    = {}
   }
 }
 
@@ -362,4 +403,126 @@ variable "additional_tags" {
   type        = map(string)
   description = "Additional tags to apply to all resources"
   default     = {}
+}
+
+########################################################################################################################
+# Database Configuration
+########################################################################################################################
+
+variable "database_name" {
+  type        = string
+  description = "Name of the database to create"
+  default     = "postgres"
+}
+
+variable "database_username" {
+  type        = string
+  description = "Master username for the database"
+  default     = "postgres"
+  sensitive   = true
+}
+
+variable "database_password" {
+  type        = string
+  description = "Master password for the database"
+  sensitive   = true
+}
+
+variable "database_config" {
+  type = object({
+    engine_version      = optional(string, "16.8")
+    min_capacity        = optional(number, 2)
+    max_capacity        = optional(number, 16)
+    force_ssl           = optional(bool, false)
+    deletion_protection = optional(bool, false)
+    skip_final_snapshot = optional(bool, false)
+  })
+  description = "Database configuration"
+  default     = {}
+}
+
+########################################################################################################################
+# Redis Configuration
+########################################################################################################################
+
+variable "redis_node_type" {
+  type        = string
+  description = "ElastiCache Redis node type"
+  default     = "cache.t3.medium"
+}
+
+
+########################################################################################################################
+# Application Secrets
+########################################################################################################################
+
+variable "secret_key" {
+  type        = string
+  description = "Secret key for application encryption"
+  sensitive   = true
+}
+
+variable "master_salt" {
+  type        = string
+  description = "Master salt for application hashing"
+  sensitive   = true
+}
+
+variable "sentry_dsn" {
+  type        = string
+  description = "Sentry DSN for error tracking"
+  sensitive   = true
+  default     = ""
+}
+
+variable "auth_api_key" {
+  type        = string
+  description = "Authentication API key"
+  sensitive   = true
+}
+
+########################################################################################################################
+# Monitoring Configuration
+########################################################################################################################
+
+variable "enable_monitoring" {
+  type        = bool
+  description = "Enable CloudWatch monitoring and alarms"
+  default     = false
+}
+
+########################################################################################################################
+# EKS Namespace Configuration
+########################################################################################################################
+
+variable "eks_namespace" {
+  type        = string
+  description = "Kubernetes namespace for the application"
+}
+
+########################################################################################################################
+# EKS Access Configuration
+########################################################################################################################
+
+variable "access_entries" {
+  description = "Map of access entries to add to the cluster for API-based access control"
+  type = map(object({
+    principal_arn = string
+    policy_associations = optional(map(object({
+      policy_arn = string
+      access_scope = optional(object({
+        type       = optional(string, "cluster")
+        namespaces = optional(list(string))
+      }))
+    })), {})
+    kubernetes_groups = optional(list(string), [])
+    type              = optional(string, "STANDARD")
+  }))
+  default = {}
+}
+
+variable "enable_cluster_creator_admin_permissions" {
+  description = "Enable automatic admin permissions for the IAM identity that creates the cluster (recommended for initial setup, disable when managing access entries explicitly)"
+  type        = bool
+  default     = true
 }
