@@ -1,7 +1,7 @@
 # ElastiCache Subnet Group
 resource "aws_elasticache_subnet_group" "redis_subnet_group" {
   name       = "${var.project}-${var.environment}-redis-subnet-group"
-  subnet_ids = module.vpc.private_subnets
+  subnet_ids = local.private_subnet_ids
 
   tags = {
     Name = "${var.project}-${var.environment}-redis-subnet-group"
@@ -11,7 +11,7 @@ resource "aws_elasticache_subnet_group" "redis_subnet_group" {
 # Security Group for Redis
 resource "aws_security_group" "redis_sg" {
   name_prefix = "${var.project}-${var.environment}-redis-"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port   = 6379

@@ -11,7 +11,7 @@ locals {
   }
 
   # Determine subnet selection based on database_config.subnet_type
-  db_subnet_ids = var.database_config.subnet_type == "public" ? module.vpc.public_subnets : module.vpc.private_subnets
+  db_subnet_ids = var.database_config.subnet_type == "public" ? local.public_subnet_ids : local.private_subnet_ids
 }
 
 module "rds" {
@@ -26,7 +26,7 @@ module "rds" {
   availability_zones      = length(var.region_az) >= 2 ? var.region_az : slice(data.aws_availability_zones.available.names, 0, 2)
   subnet_ids              = local.db_subnet_ids
   publicly_accessible     = var.database_config.publicly_accessible
-  vpc_id                  = module.vpc.vpc_id
+  vpc_id                  = local.vpc_id
   count_replicas          = each.value.count_replicas
   vpc_cidr                = var.vpc_cidr
   deletion_protection     = var.deletion_protection
@@ -40,7 +40,11 @@ module "rds" {
   force_ssl = var.database_config.force_ssl
 
   # Snapshot configuration
-  skip_final_snapshot = var.database_config.skip_final_snapshot
+  skip_final_snapshot      = var.database_config.skip_final_snapshot
+  delete_automated_backups = var.database_config.delete_automated_backups
+
+  # Backup retention - environment-specific defaults
+  backup_retention_period = var.environment == "staging" ? 7 : var.environment == "development" ? 1 : 14
 }
 
 # Auto-populate availability zones if not provided

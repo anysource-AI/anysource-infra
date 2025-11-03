@@ -103,3 +103,19 @@ variable "skip_final_snapshot" {
   type        = bool
   default     = false
 }
+
+variable "delete_automated_backups" {
+  description = "Delete automated backups when cluster is destroyed (true for dev/sandbox, false for production)"
+  type        = bool
+  default     = false
+}
+
+variable "backup_retention_period" {
+  description = "Number of days to retain automated backups (1-35 days)"
+  type        = number
+  default     = 14
+  validation {
+    condition     = var.backup_retention_period >= 1 && var.backup_retention_period <= 35
+    error_message = "Backup retention period must be between 1 and 35 days"
+  }
+}

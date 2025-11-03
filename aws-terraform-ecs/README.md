@@ -48,8 +48,9 @@ region          = "us-east-1"
 domain_name     = "mcp.yourcompany.com"  # Your domain
 
 ecr_repositories = {
-  backend  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/backend:latest"
-  frontend = "123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend:latest"
+  backend  = "public.ecr.aws/anysource/anysource-api:latest"
+  frontend = "public.ecr.aws/anysource/anysource-web:latest"
+  worker   = "public.ecr.aws/anysource/anysource-worker:latest"
 }
 ```
 
@@ -123,6 +124,24 @@ All deployments need these values:
 | `ecr_repositories` | Container image URIs                                   | See examples            |
 
 ## Optional Configuration
+
+### Using an Existing VPC
+
+By default, a new VPC with public and private subnets will be created. If you want to use an existing VPC instead:
+
+```hcl
+# All three variables must be provided together
+existing_vpc_id             = "vpc-xxxxx"
+existing_private_subnet_ids = ["subnet-xxxxx", "subnet-yyyyy", "subnet-zzzzz"]
+existing_public_subnet_ids  = ["subnet-aaaaa", "subnet-bbbbb", "subnet-ccccc"]
+```
+
+**Requirements:**
+- At least 3 subnets in different availability zones (for high availability)
+- Private subnets must have internet access via NAT Gateway (for container image pulls)
+- Public subnets must have internet gateway attached (for ALB)
+
+**Note:** If not using an existing VPC, leave these variables unset or set to `null` and a new VPC will be created automatically.
 
 ### Security Restrictions
 

@@ -5,13 +5,13 @@ module "alb" {
   load_balancer_type = "application"
   project            = var.project
   environment        = var.environment
-  subnets            = var.alb_access_type == "private" ? module.vpc.private_subnets : module.vpc.public_subnets
-  vpc_id             = module.vpc.vpc_id
+  subnets            = var.alb_access_type == "private" ? local.private_subnet_ids : local.public_subnet_ids
+  vpc_id             = local.vpc_id
   target_groups      = var.services_configurations
   internal           = var.alb_access_type == "private"
   security_groups    = [module.sg_alb.security_group_id]
   certificate_arn    = var.ssl_certificate_arn != "" ? var.ssl_certificate_arn : module.certificate_alb[0].certificate_arn
-  depends_on         = [module.vpc, module.sg_alb]
+  depends_on         = [module.sg_alb]
 }
 
 # Certificate creation (only if not using existing certificate)

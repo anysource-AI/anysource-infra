@@ -164,7 +164,7 @@ resource "aws_cloudwatch_event_target" "ecs_directory_sync_task" {
     # Network configuration (same as backend)
     network_configuration {
       assign_public_ip = false
-      subnets          = module.vpc.private_subnets
+      subnets          = local.private_subnet_ids
       security_groups  = [module.ecs.backend_security_group_id]
     }
 
