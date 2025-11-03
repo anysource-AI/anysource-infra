@@ -63,13 +63,14 @@ resource "aws_rds_cluster" "rds_cluster" {
     max_capacity = var.max_capacity
   }
 
-  skip_final_snapshot      = var.skip_final_snapshot
-  deletion_protection      = var.deletion_protection
-  delete_automated_backups = false
-  backup_retention_period  = 10
-  vpc_security_group_ids   = [aws_security_group.rds_security_group.id]
-  db_subnet_group_name     = aws_db_subnet_group.subnet_group.name
-  enable_http_endpoint     = local.environment == "prod" ? false : true
+  skip_final_snapshot       = var.skip_final_snapshot
+  final_snapshot_identifier = var.skip_final_snapshot ? null : "${local.db_engine}-${var.project}-${local.environment}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+  deletion_protection       = var.deletion_protection
+  delete_automated_backups  = var.delete_automated_backups
+  backup_retention_period   = var.backup_retention_period
+  vpc_security_group_ids    = [aws_security_group.rds_security_group.id]
+  db_subnet_group_name      = aws_db_subnet_group.subnet_group.name
+  enable_http_endpoint      = local.environment == "prod" ? false : true
 
 
   # Performance Insights configuration
@@ -81,7 +82,7 @@ resource "aws_rds_cluster" "rds_cluster" {
   enabled_cloudwatch_logs_exports = ["postgresql"]
 
   lifecycle {
-    ignore_changes = [availability_zones, master_password]
+    ignore_changes = [availability_zones, master_password, final_snapshot_identifier]
   }
 }
 

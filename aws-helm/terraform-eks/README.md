@@ -27,17 +27,17 @@ This module supports three deployment modes to fit different infrastructure requ
 1. **Full Stack** (Default): Create new VPC + new EKS cluster
 
    - Best for: New deployments, greenfield projects
-   - Creates: VPC, EKS cluster, RDS, Redis, S3, all IAM roles
+   - Creates: VPC, EKS cluster, RDS, Redis, S3 IAM permissions, all IAM roles
 
 2. **Existing VPC**: Use existing VPC + create new EKS cluster
 
    - Best for: Integrating with existing network infrastructure
-   - Creates: EKS cluster, RDS, Redis, S3, all IAM roles
+   - Creates: EKS cluster, RDS, Redis, S3 IAM permissions, all IAM roles
    - Requires: Existing VPC with properly tagged subnets
 
 3. **Existing EKS**: Use existing VPC + existing EKS cluster
    - Best for: Adding application infrastructure to existing cluster
-   - Creates: Application IRSA role, RDS, Redis, S3
+   - Creates: Application IRSA role, RDS, Redis, S3 IAM permissions
    - Requires: Existing EKS cluster with OIDC provider
 
 ## Quick Start
@@ -701,7 +701,7 @@ eks_namespace = "myapp-production"
 
 When `create_eks = false`, the module creates:
 
-✅ **Application IRSA Role**: IAM role for your application pods (Bedrock, S3, Secrets Manager access)
+✅ **Application IRSA Role**: IAM role for your application pods with permissions for Bedrock, Secrets Manager
 ✅ **RDS Database**: Aurora PostgreSQL Serverless v2
 ✅ **Redis Cache**: ElastiCache Redis
 ✅ **Secrets**: AWS Secrets Manager secrets for application configuration

@@ -9,7 +9,7 @@ resource "aws_bedrock_guardrail" "guardrail" {
   blocked_outputs_messaging = "Output blocked due to prompt attack detection."
 
   cross_region_config {
-    guardrail_profile_identifier = "arn:aws:bedrock:us-east-1:${data.aws_caller_identity.current.account_id}:guardrail-profile/us.guardrail.v1:0"
+    guardrail_profile_identifier = "arn:aws:bedrock:${var.region}:${data.aws_caller_identity.current.account_id}:guardrail-profile/us.guardrail.v1:0"
   }
 
   content_policy_config {

@@ -38,10 +38,9 @@ variable "auth_api_key" {
   }
 }
 
-# ECR Configuration
 variable "ecr_repositories" {
   type        = map(string)
-  description = "Map of service names to their ECR repository URIs"
+  description = "Map of service names to their ECR repository URIs (backend, worker, frontend required)"
   default     = {}
 
   validation {
@@ -92,14 +91,33 @@ variable "region_az" {
 
 variable "private_subnets" {
   type        = list(string)
-  description = "Private subnets"
+  description = "Private subnets (CIDR blocks for VPC creation)"
   default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 }
 
 variable "public_subnets" {
   type        = list(string)
-  description = "Public subnets"
+  description = "Public subnets (CIDR blocks for VPC creation)"
   default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+}
+
+# Optional External VPC Configuration
+variable "existing_vpc_id" {
+  type        = string
+  description = "ID of an existing VPC to use instead of creating a new one. If provided, existing_private_subnet_ids and existing_public_subnet_ids must also be provided."
+  default     = null
+}
+
+variable "existing_private_subnet_ids" {
+  type        = list(string)
+  description = "List of existing private subnet IDs to use. Required if existing_vpc_id is provided."
+  default     = null
+}
+
+variable "existing_public_subnet_ids" {
+  type        = list(string)
+  description = "List of existing public subnet IDs to use. Required if existing_vpc_id is provided."
+  default     = null
 }
 
 # Database Configuration
@@ -128,6 +146,8 @@ variable "database_config" {
     force_ssl                  = optional(bool, false)
     auto_minor_version_upgrade = optional(bool, false)
     skip_final_snapshot        = optional(bool, false)
+    delete_automated_backups   = optional(bool, false) # Set to true for dev/sandbox to save costs
+
     # Database connection pool settings
     pool_size     = optional(number, 50)   # Number of connections to maintain in the pool
     max_overflow  = optional(number, 50)   # Additional connections allowed beyond pool_size
@@ -202,7 +222,7 @@ variable "services_configurations" {
   default = {
     "backend" = {
       name              = "backend"
-      path_pattern      = ["/api/*", "/docs*", "/redoc*", "/openapi.json"]
+      path_pattern      = ["/api/*", "/docs*", "/redoc*", "/openapi.json", "/.well-known*"]
       health_check_path = "/api/v1/utils/health-check/"
       container_port    = 8000
       host_port         = 8000
@@ -364,7 +384,17 @@ variable "directory_sync_interval_minutes" {
     error_message = "Directory sync interval must be between 1 and 1440 minutes (24 hours)"
   }
 }
-
+variable "worker_config" {
+  description = "Worker configuration for background job processing"
+  type = object({
+    cpu           = optional(number, 1024)
+    memory        = optional(number, 2048)
+    desired_count = optional(number, 1)
+    max_capacity  = optional(number, 5)
+    min_capacity  = optional(number, 1)
+  })
+  default = {}
+}
 variable "enable_ecs_exec" {
   type        = bool
   description = "Enable ECS Exec for interactive shell access to backend containers. Use only for development and testing purposes."

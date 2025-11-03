@@ -3,7 +3,7 @@ module "sg_alb" {
   source      = "./modules/security-group"
   name        = "${var.project}-${var.alb_access_type}-alb"
   description = "${var.project} ${var.alb_access_type} ALB security group"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = local.vpc_id
 
   ingress_rules = [
     {

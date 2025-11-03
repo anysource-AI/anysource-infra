@@ -20,6 +20,7 @@ ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certi
 ecr_repositories = {
   backend  = "public.ecr.aws/anysource/anysource-api:latest"
   frontend = "public.ecr.aws/anysource/anysource-web:latest"
+  worker   = "public.ecr.aws/anysource/anysource-worker:latest"
 }
 
 # ========================================

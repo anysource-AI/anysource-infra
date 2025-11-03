@@ -1,5 +1,10 @@
 # Shared locals for consistent logic across modules
 locals {
+  # VPC and subnet references - use existing VPC if provided, otherwise use created VPC
+  vpc_id             = var.existing_vpc_id != null ? var.existing_vpc_id : module.vpc[0].vpc_id
+  private_subnet_ids = var.existing_vpc_id != null ? var.existing_private_subnet_ids : module.vpc[0].private_subnets
+  public_subnet_ids  = var.existing_vpc_id != null ? var.existing_public_subnet_ids : module.vpc[0].public_subnets
+
   app_url = "https://${var.domain_name}"
 
   # Backend-specific environment variables (non-sensitive)
@@ -48,6 +53,7 @@ locals {
     PUBLIC_BACKEND_URL      = local.app_url
     PUBLIC_BACKEND_VERSION  = local.backend_image_tag
     PUBLIC_WEBAPP_VERSION   = local.frontend_image_tag
+    PUBLIC_WORKER_VERSION   = local.worker_image_tag
     PUBLIC_VERSION_URL      = var.version_url
     PUBLIC_OAUTH_BROKER_URL = var.oauth_broker_url
   }
