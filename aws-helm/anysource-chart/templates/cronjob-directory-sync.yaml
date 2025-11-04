@@ -25,6 +25,9 @@ spec:
           labels:
             {{- include "anysource.selectorLabels" . | nindent 12 }}
             app.kubernetes.io/component: directory-sync
+            {{- with .Values.podLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- with .Values.podAnnotations }}
           annotations:
             {{- toYaml . | nindent 12 }}

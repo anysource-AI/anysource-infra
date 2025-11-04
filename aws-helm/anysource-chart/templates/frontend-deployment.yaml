@@ -19,6 +19,9 @@ spec:
         {{- end }}
       labels:
         {{- include "anysource.frontend.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- if .Values.image.frontend.pullSecrets }}
       imagePullSecrets:

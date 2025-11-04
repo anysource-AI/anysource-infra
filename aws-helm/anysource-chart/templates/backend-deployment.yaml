@@ -20,6 +20,9 @@ spec:
         {{- end }}
       labels:
         {{- include "anysource.backend.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- if .Values.image.backend.pullSecrets }}
       imagePullSecrets:

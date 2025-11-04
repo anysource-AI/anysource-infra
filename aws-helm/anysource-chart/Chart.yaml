@@ -2,7 +2,7 @@ apiVersion: v2
 name: anysource
 description: Anysource application Helm chart for Kubernetes deployment
 type: application
-version: 0.7.0
+version: 0.7.1
 appVersion: "1.4.0"
 keywords:
   - anysource
