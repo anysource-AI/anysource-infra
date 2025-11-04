@@ -1,0 +1,122 @@
+# Example Production Values for Anysource Helm Chart
+# Download chart from: https://github.com/anysource-AI/anysource-infra/releases
+#
+# PREREQUISITES:
+# Before using this values file, you must:
+# 1. Provision AWS infrastructure using the Terraform module
+#    See: https://github.com/anysource-AI/anysource-infra/tree/main/aws-helm/terraform-eks/example
+# 2. Obtain Terraform outputs (run: terraform output)
+# 3. Use those outputs to populate the values below
+
+# ========================================
+# Global Configuration
+# ========================================
+global:
+  # Your public domain for the Anysource deployment
+  # Configure DNS to point to the ALB created by the Helm chart
+  domain: "anysource.example.com"
+
+  # Environment name (development, staging, production)
+  environment: "production"
+
+  # Auth client ID (provided by Anysource support)
+  auth_client_id: "client_YOUR_CLIENT_ID_HERE"
+
+  # OAuth Broker URL (optional, leave empty to disable)
+  oauth_broker_url: ""
+
+# ========================================
+# External Database (Production)
+# ========================================
+
+externalDatabase:
+  enabled: true
+  type: postgresql
+  # FROM TERRAFORM OUTPUT: database_endpoint
+  # RDS endpoint (without port)
+  # Example: anysource-production-db-cluster.cluster-xxxxx.us-east-1.rds.amazonaws.com
+  host: "your-rds-endpoint.region.rds.amazonaws.com"
+  
+  # Password set via --set flag
+  # IMPORTANT: Use the SAME password you provided in terraform.tfvars (database_password)
+  password: "" # Set via: --set externalDatabase.password="..."
+
+# ========================================
+# External Redis (Production)
+# ========================================
+
+externalRedis:
+  enabled: true
+  # FROM TERRAFORM OUTPUT: redis_endpoint
+  # ElastiCache endpoint (without port)
+  # Example: anysource-production-redis.xxxxx.cache.amazonaws.com
+  host: "your-redis-endpoint.cache.amazonaws.com"
+  
+  # Password (optional for ElastiCache without auth)
+  password: ""
+
+# ========================================
+# Backend Configuration
+# ========================================
+backend:
+  # Environment variables
+  env:
+    # AWS region for Bedrock and other services
+    AWS_REGION: "us-east-1"
+    AWS_DEFAULT_REGION: "us-east-1"
+
+    # FROM TERRAFORM OUTPUT: bedrock_guardrail_arn
+    # Bedrock guardrail ARN for prompt security
+    # Example: arn:aws:bedrock:us-east-1:123456789012:guardrail/abcd1234efgh
+    BEDROCK_GUARDRAIL_ARN: "arn:aws:bedrock:us-east-1:123456789012:guardrail/your-guardrail-id"
+
+  # Secrets - provide via --set flags
+  # IMPORTANT: Use the SAME values you provided in terraform.tfvars
+  secrets:
+    # JWT secret key (minimum 32 characters)
+    # From terraform.tfvars: secret_key
+    SECRET_KEY: "" # Set via: --set backend.secrets.SECRET_KEY="..."
+
+    # Master salt for encryption (minimum 32 characters)
+    # From terraform.tfvars: master_salt
+    MASTER_SALT: "" # Set via: --set backend.secrets.MASTER_SALT="..."
+
+    # Auth API key from your auth provider
+    # From terraform.tfvars: auth_api_key
+    AUTH_API_KEY: "" # Set via: --set backend.secrets.AUTH_API_KEY="..."
+
+    # Sentry DSN for error tracking (optional)
+    SENTRY_DSN: "" # Set via: --set backend.secrets.SENTRY_DSN="..."
+
+# ========================================
+# AWS ACM Certificate
+# ========================================
+# Use existing AWS Certificate Manager certificate
+# NOTE: ACM certificate must be created manually or via separate Terraform
+# The certificate must cover your domain (e.g., *.example.com or mcp.example.com)
+awsCertificate:
+  enabled: true
+  # Your ACM certificate ARN from AWS Certificate Manager
+  # Get from: AWS Console → Certificate Manager, or aws acm list-certificates
+  arn: "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+
+# ========================================
+# IAM Role for Service Account (IRSA)
+# ========================================
+# FROM TERRAFORM OUTPUT: application_service_account_role_arn
+# This role provides AWS Bedrock permissions to application pods
+serviceAccount:
+  annotations:
+    # IAM role ARN with Bedrock permissions
+    # Example: arn:aws:iam::123456789012:role/anysource-production-app-role
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/anysource-app-role"
+
+# ========================================
+# Network Policies
+# ========================================
+networkPolicy:
+  enabled: true
+  # VPC CIDR for backend egress to RDS and ElastiCache
+  # Use the VPC CIDR from your Terraform configuration or AWS VPC console
+  # From terraform.tfvars: vpc_cidr (if you created new VPC)
+  vpcCidr: "10.0.0.0/16"

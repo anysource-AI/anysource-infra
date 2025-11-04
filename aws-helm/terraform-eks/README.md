@@ -13,6 +13,51 @@ This Terraform module provisions an Amazon EKS (Elastic Kubernetes Service) clus
 - **Security**: API access restrictions, private endpoints, IP whitelisting, encryption at rest
 - **Integration**: Designed for application Helm charts with proper IRSA and load balancer support
 
+## Auto-Construction Features (Opt-In)
+
+The module supports optional auto-construction features for simplified internal deployments:
+
+### SSO Admin Access (Opt-In)
+
+- Set `sso_admin_role_arn` to automatically create a cluster admin access entry
+- Automatically includes the SSO role in KMS key administrators
+- Perfect for internal deployments with AWS SSO
+- Override `kms_key_administrators` to add additional roles (e.g., GitHub Actions for CI/CD)
+
+**Example:**
+
+```hcl
+sso_admin_role_arn = "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdminAccess_xxxxx"
+
+# Override to include both SSO and GitHub Actions (internal deployments)
+kms_key_administrators = [
+  "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdminAccess_xxxxx",
+  "arn:aws:iam::123456789012:role/github-actions-oidc-trust-role"
+]
+```
+
+### Environment-Aware Log Retention (Automatic)
+
+CloudWatch log retention is automatically set based on environment when using the default value:
+
+- **Production**: 400 days
+- **Staging**: 30 days  
+- **Development**: 14 days
+
+Override by explicitly setting `cloudwatch_log_group_retention_in_days` if different retention is needed.
+
+### Auto-Generated Tags (Automatic)
+
+Standard tags (Project, Environment, ManagedBy, ClusterName) are automatically generated from module variables. Add custom tags via `additional_tags`.
+
+### Internal vs Customer Deployments
+
+This module is designed to be shared with customers (`/infra` directory):
+
+- **Customer deployments**: Use `enable_cluster_creator_admin_permissions = true` (default) for initial setup
+- **Internal deployments**: Use `sso_admin_role_arn` + `enable_cluster_creator_admin_permissions = false` for SSO-based access
+- GitHub Actions access is NOT included by default (add explicitly for internal CI/CD)
+
 ## Prerequisites
 
 1. **AWS CLI** configured with appropriate credentials
@@ -372,10 +417,7 @@ You can use this module from another Terraform project instead of running it dir
 
 ```hcl
 module "eks_infrastructure" {
-  source = "git::https://github.com/anysource-AI/anysource.git//infra/aws-helm/terraform-eks?ref=v1.0.0"
-
-  # Or use local path if you have the repository cloned
-  # source = "../../anysource/infra/aws-helm/terraform-eks"
+  source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=v1.0.0"
 
   # Core Configuration
   environment = "production"

@@ -76,6 +76,7 @@ variable "project" {
 variable "environment" {
   description = "Environment (production, staging, development)"
   type        = string
+  default     = "production"
   validation {
     condition     = contains(["production", "staging", "development"], var.environment)
     error_message = "Environment must be one of: production, staging, development"
@@ -261,7 +262,7 @@ variable "enable_cluster_encryption" {
 
 variable "kms_key_administrators" {
   type        = list(string)
-  description = "List of IAM ARNs for users/roles that can administer the KMS key"
+  description = "List of IAM ARNs for users/roles that can administer the KMS key. When empty and sso_admin_role_arn is provided, defaults to the SSO admin role."
   default     = []
 }
 
@@ -434,7 +435,7 @@ variable "database_config" {
     min_capacity        = optional(number, 2)
     max_capacity        = optional(number, 16)
     force_ssl           = optional(bool, false)
-    deletion_protection = optional(bool, false)
+    deletion_protection = optional(bool, true)
     skip_final_snapshot = optional(bool, false)
   })
   description = "Database configuration"
@@ -488,7 +489,7 @@ variable "auth_api_key" {
 variable "enable_monitoring" {
   type        = bool
   description = "Enable CloudWatch monitoring and alarms"
-  default     = false
+  default     = true
 }
 
 ########################################################################################################################
@@ -525,4 +526,10 @@ variable "enable_cluster_creator_admin_permissions" {
   description = "Enable automatic admin permissions for the IAM identity that creates the cluster (recommended for initial setup, disable when managing access entries explicitly)"
   type        = bool
   default     = true
+}
+
+variable "sso_admin_role_arn" {
+  type        = string
+  description = "Full IAM role ARN for SSO admin access (e.g., 'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdminAccess_xxxxx'). When provided, automatically grants cluster admin access and KMS key administrator permissions. Typically used for internal deployments."
+  default     = ""
 }

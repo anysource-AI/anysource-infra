@@ -1,0 +1,98 @@
+# ========================================
+# Example Configuration for EKS Terraform Module
+# ========================================
+# Copy this file to terraform.tfvars and update with your actual values
+# Choose ONE of the deployment modes below based on your needs
+
+# ========================================
+# Module Version
+# ========================================
+# Specify which version of the anysource-infra module to use
+# Examples: "v1.0.0", "v1.1.0"
+release_version = "v1.0.0"
+
+# ========================================
+# MODE 1: NEW VPC + NEW EKS CLUSTER (Full Stack)
+# ========================================
+# Use this mode to create a new EKS cluster with new VPC, RDS, Redis, and all infrastructure
+
+# Network Configuration - Create new VPC
+create_vpc = true
+vpc_cidr   = "10.0.0.0/16"
+
+# Subnet CIDR blocks (used when create_vpc = true)
+private_subnets = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+
+# Cluster endpoint access (optional - has defaults)
+# Restrict access to specific IPs for security
+cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"] # Replace with your office/VPN IPs in production
+
+# ========================================
+# MODE 2: EXISTING VPC + NEW EKS CLUSTER
+# ========================================
+# Use this mode to create a new EKS cluster in an existing VPC
+# Uncomment the lines below and comment out MODE 1 settings above
+
+# Network Configuration - Use existing VPC
+# create_vpc         = false
+# vpc_id             = "vpc-0a1b2c3d4e5f67890"
+# private_subnet_ids = ["subnet-0a1b2c3d", "subnet-1e2f3g4h", "subnet-2i3j4k5l"]
+# public_subnet_ids  = ["subnet-6m7n8o9p", "subnet-7q8r9s0t", "subnet-8u9v0w1x"]
+
+# Cluster endpoint access (optional - has defaults)
+# cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"] # Replace with your office/VPN IPs in production
+
+# ========================================
+# MODE 3: EXISTING VPC + EXISTING EKS CLUSTER
+# ========================================
+# Use this mode to add application infrastructure (RDS, Redis, IAM) to an existing EKS cluster
+# Uncomment the lines below and comment out MODE 1 settings above
+
+# Network Configuration - Use existing VPC (required when using existing EKS)
+# create_vpc         = false
+# vpc_id             = "vpc-0a1b2c3d4e5f67890"
+# private_subnet_ids = ["subnet-0a1b2c3d", "subnet-1e2f3g4h", "subnet-2i3j4k5l"]
+# public_subnet_ids  = ["subnet-6m7n8o9p", "subnet-7q8r9s0t", "subnet-8u9v0w1x"]
+
+# Existing EKS Cluster Configuration
+# create_eks                 = false
+# existing_cluster_name      = "my-existing-cluster"
+# existing_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
+
+# How to get the OIDC provider ARN:
+# aws eks describe-cluster --name my-existing-cluster --region us-east-1 --query "cluster.identity.oidc.issuer" --output text
+# Output: https://oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE
+# Convert to ARN: arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE
+
+# ========================================
+# COMMON CONFIGURATION (All Modes)
+# ========================================
+
+# Database Configuration
+# Note: database_name and database_username default to "postgres"
+database_password = "CHANGE_ME_STRONG_PASSWORD" # Replace with a strong password
+
+database_config = {
+  engine_version = "16.8"
+  min_capacity   = 2
+  max_capacity   = 16
+  force_ssl      = false
+}
+
+# Redis Configuration
+# Note: redis_node_type defaults to "cache.t3.medium"
+# redis_node_type = "cache.t3.medium"
+
+# Application Secrets
+secret_key  = "CHANGE_ME_SECRET_KEY"  # Replace with a strong secret key
+master_salt = "CHANGE_ME_MASTER_SALT" # Replace with a strong master salt
+
+# Auth Configuration
+auth_api_key = "CHANGE_ME_AUTH_API_KEY" # Replace with your auth API key
+
+# EKS Namespace
+eks_namespace = "my-application-production" # Replace with your application namespace
+
+# Monitoring Configuration
+enable_monitoring = true # Enable monitoring for production

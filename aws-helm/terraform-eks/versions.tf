@@ -5,10 +5,6 @@
 terraform {
   required_version = ">= 1.5.7"
 
-  ### S3 Backend Configuration ###
-  # Comment this when using local state
-  backend "s3" {}
-
   required_providers {
     aws = {
       source  = "hashicorp/aws"

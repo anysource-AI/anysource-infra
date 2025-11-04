@@ -13,6 +13,11 @@ output "application_url" {
   value       = "https://${var.domain_name}"
 }
 
+output "customer_id" {
+  description = "Customer identifier used for telemetry tagging (defaults to domain name)"
+  value       = local.customer_id
+}
+
 output "task_role_arn" {
   description = "ARN of the ECS task role"
   value       = module.roles_micro_services.ecs_task_role_arn

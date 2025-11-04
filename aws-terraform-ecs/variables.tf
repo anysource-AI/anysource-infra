@@ -246,11 +246,55 @@ variable "services_configurations" {
 }
 
 # Sentry Configuration
+# By default, SENTRY_DSN is fetched from WorkOS Vault via vault-integration.tf
+# Can be optionally overridden (useful for sandbox/dev environments with different Sentry projects)
 variable "sentry_dsn" {
   type        = string
-  description = "Sentry DSN for error tracking and monitoring"
+  description = "Sentry DSN override for this environment. If empty, uses value from WorkOS Vault."
   default     = ""
   sensitive   = true
+}
+
+# Sentry Relay Configuration
+variable "sentry_relay_enabled" {
+  type        = bool
+  description = "Enable Sentry Relay deployment. If false, disables relay even if credentials are available. Useful for debugging or cost optimization."
+  default     = true
+}
+
+variable "sentry_relay_upstream" {
+  type        = string
+  description = "Upstream Sentry endpoint for Relay"
+  default     = "https://o4509836808028160.ingest.us.sentry.io"
+}
+
+variable "sentry_relay_config" {
+  type = object({
+    cpu            = optional(number, 1024) # 1 vCPU (multi-core recommended per Sentry guidelines)
+    memory         = optional(number, 2048) # 2GB RAM (minimum per Sentry Operating Guidelines)
+    desired_count  = optional(number, 2)    # Run 2 for HA
+    container_port = optional(number, 3000)
+  })
+  description = "Sentry Relay ECS task configuration. See: https://docs.sentry.io/product/relay/operating-guidelines/"
+  default     = {}
+}
+
+# Deployment identification for telemetry
+# customer_id defaults to domain_name if not specified
+variable "customer_id" {
+  type        = string
+  description = "Customer identifier for this deployment (defaults to domain name for telemetry tagging)"
+  default     = ""
+}
+
+# Infrastructure version for release tracking in Sentry
+# NOTE: Changing this variable requires ECS task restart for the new value to appear in Sentry tags.
+# The infra_version is set as an environment variable at container startup.
+# If not provided, it defaults to the app version (image tag) used for deployment.
+variable "infra_version" {
+  type        = string
+  description = "Infrastructure version for tracking deployment changes in Sentry (defaults to app image tag when not provided)"
+  default     = ""
 }
 
 # Monitoring and Alerting Configuration

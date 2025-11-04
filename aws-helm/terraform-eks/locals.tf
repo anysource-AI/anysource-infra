@@ -38,6 +38,40 @@ locals {
     ClusterName = local.cluster_name
   }, var.additional_tags)
 
+  # Environment-aware CloudWatch log retention (only applies if using default 400)
+  log_retention_days = var.cloudwatch_log_group_retention_in_days != 400 ? var.cloudwatch_log_group_retention_in_days : (
+    var.environment == "production" ? 400 : (
+      var.environment == "staging" ? 30 : 14
+    )
+  )
+
+  # SSO admin access entry - opt-in for internal deployments
+  # Automatically grant cluster admin access when SSO role ARN is provided
+  sso_access_entry = var.sso_admin_role_arn != "" ? {
+    sso_admin = {
+      principal_arn = var.sso_admin_role_arn
+      policy_associations = {
+        cluster_admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+      kubernetes_groups = []
+      type              = "STANDARD"
+    }
+  } : {}
+
+  # Merge SSO access entry with user-provided access entries
+  merged_access_entries = merge(local.sso_access_entry, var.access_entries)
+
+  # KMS key administrators - include SSO admin if provided (opt-in for internal deployments)
+  default_kms_administrators = var.sso_admin_role_arn != "" ? [var.sso_admin_role_arn] : []
+
+  # Use user-provided administrators if specified, otherwise use defaults
+  merged_kms_administrators = length(var.kms_key_administrators) > 0 ? var.kms_key_administrators : local.default_kms_administrators
+
   # Default security group rules when whitelist IPs are provided
   default_cluster_security_group_rules = length(var.whitelist_ips) > 0 ? {
     whitelist_ip_access = {
