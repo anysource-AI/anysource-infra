@@ -15,11 +15,6 @@ terraform {
     }
   }
 
-
-  ### S3 Backend Configuration ###
-  # Comment this when using local state
-  backend "s3" {}
-
   # Backend configuration is handled via external files to avoid CI prompts:
   # 
   # For S3 remote state (production):

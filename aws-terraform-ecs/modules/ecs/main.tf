@@ -173,10 +173,14 @@ resource "aws_ecs_service" "private_service" {
     container_port   = each.value.container_port
   }
 
+  # Service Connect configuration
+  # - Backend: Enabled as both server (publishable) and client (can discover relay)
+  # - Frontend: Disabled (doesn't need service discovery)
   dynamic "service_connect_configuration" {
     for_each = each.key == "backend" ? [1] : []
     content {
-      enabled = true
+      enabled   = true
+      namespace = aws_service_discovery_http_namespace.service_connect.arn
       service {
         port_name      = "http"
         discovery_name = var.services_configurations["backend"].name

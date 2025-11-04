@@ -1,0 +1,65 @@
+# ========================================
+# Example Configuration for ECS Terraform Module
+# ========================================
+# Copy this file to terraform.tfvars and update with your actual values
+# Choose ONE of the deployment modes below based on your needs
+
+# ========================================
+# Module Version
+# ========================================
+# Specify which version of the anysource-infra module to use
+# Examples: "v1.0.0", "v1.1.0"
+release_version = "v1.0.0"
+
+# ========================================
+# MODE 1: NEW VPC + NEW ECS CLUSTER (Full Stack)
+# ========================================
+# Use this mode to create a new ECS cluster with new VPC, RDS, Redis, and all infrastructure
+# This is the default mode - values below are for MODE 1
+
+# No additional configuration needed for new VPC - it will be created automatically
+
+# ========================================
+# MODE 2: EXISTING VPC + NEW ECS CLUSTER
+# ========================================
+# Use this mode to create a new ECS cluster in an existing VPC
+# Uncomment the lines below and comment out MODE 1 settings above
+
+# Network Configuration - Use existing VPC
+# vpc_id             = "vpc-0a1b2c3d4e5f67890"
+# private_subnet_ids = ["subnet-0a1b2c3d", "subnet-1e2f3g4h", "subnet-2i3j4k5l"]
+# public_subnet_ids  = ["subnet-6m7n8o9p", "subnet-7q8r9s0t", "subnet-8u9v0w1x"]
+
+# Requirements for existing VPC:
+# - At least 3 private subnets in different availability zones
+# - At least 3 public subnets in different availability zones
+# - Private subnets must have internet access via NAT Gateway
+# - Public subnets must have internet gateway attached
+
+# ========================================
+# COMMON CONFIGURATION (All Modes)
+# ========================================
+
+# Auth Configuration (provided by Anysource support)
+auth_client_id = "CHANGE_ME_AUTH_CLIENT_ID" # Replace with your auth client ID
+auth_api_key   = "CHANGE_ME_AUTH_API_KEY"   # Replace with your auth API key
+
+# Container Images (required)
+# Use the public images provided by Anysource or your own private ECR images
+ecr_repositories = {
+  backend  = "public.ecr.aws/anysource/anysource-api:v1.0.0"
+  frontend = "public.ecr.aws/anysource/anysource-web:v1.0.0"
+  worker   = "public.ecr.aws/anysource/anysource-worker:v1.0.0"
+}
+
+# ACM Certificate ARN for your domain (required for HTTPS)
+# ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+
+# ========================================
+# OPTIONAL CONFIGURATION
+# ========================================
+# Uncomment and customize as needed - module has sensible defaults
+
+# Monitoring Configuration
+# enable_monitoring = true
+# sentry_dsn       = "https://your-sentry-dsn@sentry.io/project-id"

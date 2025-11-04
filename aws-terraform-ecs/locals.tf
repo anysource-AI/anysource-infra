@@ -7,6 +7,9 @@ locals {
 
   app_url = "https://${var.domain_name}"
 
+  # Deployment identification - customer_id defaults to domain name
+  customer_id = var.customer_id != "" ? var.customer_id : var.domain_name
+
   # Backend-specific environment variables (non-sensitive)
   backend_env_vars = {
     ENVIRONMENT          = var.environment
@@ -35,6 +38,15 @@ locals {
     TOKENIZERS_PARALLELISM = "true"
     # OAuth Broker URL
     OAUTH_BROKER_URL = var.oauth_broker_url
+    # Deployment identification for telemetry (deployment_type: ecs or eks)
+    CUSTOMER_ID     = local.customer_id
+    DEPLOYMENT_TYPE = "ecs"
+    # Allow infra version to be omitted; backend will default to APP_VERSION at runtime
+    INFRA_VERSION   = var.infra_version
+    # Sentry Relay Host - Backend will replace host:port in SENTRY_DSN
+    # Derived from relay service configuration (Service Connect DNS name + port)
+    # Only set if relay is deployed, otherwise empty to use direct Sentry DSN
+    SENTRY_RELAY_HOST = local.deploy_relay ? "relay:${var.sentry_relay_config.container_port}" : ""
   }
 
   # Backend-specific secrets from AWS Secrets Manager

@@ -28,7 +28,6 @@ public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 
 # EKS Configuration
 cluster_name    = "" # Will default to "{project}-{environment}-eks"
-cluster_version = "1.33"
 
 # Cluster endpoint access
 cluster_endpoint_public_access       = true
@@ -48,8 +47,10 @@ whitelist_ips = []
 enable_cluster_encryption = true
 
 # Logging Configuration
-cluster_enabled_log_types              = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-cloudwatch_log_group_retention_in_days = 400
+# Note: Log retention is automatically set based on environment:
+# - Production: 400 days (default), Staging: 30 days, Development: 14 days
+# - Override by explicitly setting cloudwatch_log_group_retention_in_days
+cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
 
 # Node Groups Configuration
@@ -66,14 +67,12 @@ node_groups = {
       Environment = "development"
       NodeGroup   = "default"
     }
-    taints = []
   }
 
 }
 
 # Database Configuration
-database_name     = "postgres"
-database_username = "postgres"
+# Note: database_name and database_username default to "postgres"
 database_password = "CHANGE_ME_STRONG_PASSWORD" # Replace with a strong password
 
 database_config = {
@@ -85,7 +84,8 @@ database_config = {
 }
 
 # Redis Configuration
-redis_node_type  = "cache.t3.medium"
+# Note: redis_node_type defaults to "cache.t3.medium"
+# redis_node_type = "cache.t3.medium"
 
 # Application Secrets
 secret_key  = "CHANGE_ME_SECRET_KEY"  # Replace with a strong secret key
@@ -111,6 +111,12 @@ eks_namespace = "myapp-production"
 
 # EKS Access Configuration
 # Configure API-based access control for the cluster
+
+# Optional: SSO Admin Access (for internal deployments)
+# Automatically grants cluster admin access and KMS key administrator permissions
+# sso_admin_role_arn = "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdminAccess_xxxxx"
+
+# Additional access entries can be defined below
 access_entries = {
   admin_user = {
     principal_arn = "arn:aws:iam::123456789012:user/admin"
@@ -122,5 +128,6 @@ access_entries = {
   }
 }
 
-# Enable automatic admin permissions for cluster creator (recommended for initial setup)
-enable_cluster_creator_admin_permissions = true
+# Enable automatic admin permissions for cluster creator (recommended for customer deployments)
+# Set to false for internal deployments when using sso_admin_role_arn
+# enable_cluster_creator_admin_permissions = true
