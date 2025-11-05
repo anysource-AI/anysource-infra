@@ -4,17 +4,11 @@ Deploy Anysource on AWS ECS using Terraform. This infrastructure supports develo
 
 ## Quick Start
 
-1. **Choose your deployment type:**
-
-   - [**Standard Deployment**](examples/standard_deployment.tfvars) - Standard production deployment with recommended defaults
-   - [**Custom Deployment**](examples/custom_deployment.tfvars) - Full enterprise customization
-
-2. **Copy and configure:**
+1. **Copy and configure:**
 
    ```bash
-   # Choose one based on your needs
-   cp examples/standard_deployment.tfvars terraform.tfvars
-   cp examples/custom_deployment.tfvars terraform.tfvars
+   # Copy the example configuration
+   cp examples/terraform.tfvars.example terraform.tfvars
 
    # Edit the required values
    nano terraform.tfvars
@@ -48,15 +42,15 @@ region          = "us-east-1"
 domain_name     = "mcp.yourcompany.com"  # Your domain
 
 ecr_repositories = {
-  backend  = "public.ecr.aws/anysource/anysource-api:latest"
-  frontend = "public.ecr.aws/anysource/anysource-web:latest"
-  worker   = "public.ecr.aws/anysource/anysource-worker:latest"
+  backend  = "public.ecr.aws/anysource/anysource-api:v1.0.0"
+  frontend = "public.ecr.aws/anysource/anysource-web:v1.0.0"
+  worker   = "public.ecr.aws/anysource/anysource-worker:v1.0.0"
 }
 ```
 
 **Access:** https://mcp.yourcompany.com
 
-Provide an ACM certificate ARN via `ssl_certificate_arn` (in the same AWS region as the ALB). The certificate must cover your domain (e.g., mcp.yourcompany.com). See `examples/standard_deployment.tfvars` for details.
+Provide an ACM certificate ARN via `ssl_certificate_arn` (in the same AWS region as the ALB). The certificate must cover your domain (e.g., mcp.yourcompany.com). See `examples/terraform.tfvars.example` for details.
 
 ## Backend Configuration
 
@@ -109,6 +103,65 @@ terraform apply
   - **Prestart Container:** Handles database migrations and initial data setup
   - **Main Backend Container:** FastAPI application (starts after prestart completes)
 - **Frontend Service:** Single container serving the React application
+- **Sentry Relay Service:** Local telemetry processing for privacy compliance (**optional** - deployed when credentials are available)
+
+## Sentry Relay Configuration (Optional)
+
+Sentry Relay processes telemetry data within your infrastructure before forwarding to Sentry SaaS. This ensures customer data stays within your VPC for better privacy and compliance.
+
+```
+┌─────────┐     telemetry     ┌────────────┐     filtered     ┌─────────────┐
+│ Backend │ ─────────────────>│   Relay    │ ───────────────>│ Sentry SaaS │
+└─────────┘   (in your VPC)   └────────────┘   (internet)     └─────────────┘
+```
+
+**Benefits:** Privacy compliance, data residency, PII filtering, local buffering.
+
+### Graceful Degradation
+
+**Relay is optional.** Deployments work without Sentry credentials:
+
+- **With credentials:** Relay is deployed, telemetry routed through your VPC
+- **Without credentials:** Relay is skipped, backend logs "Sentry initialization skipped", deployment succeeds
+
+Credentials are automatically fetched from WorkOS Vault during `terraform plan/apply`. If not found, deployment proceeds without Sentry.
+
+### Setup (Optional)
+
+To enable Sentry telemetry, contact Anysource support to provision credentials in your WorkOS Vault:
+
+**Secret Name:** `anysource-sentry-relay-credentials`  
+**Secret Value (JSON):**
+```json
+{
+  "public_key": "...",
+  "secret_key": "...",
+  "id": "...",
+  "sentry_dsn": "https://..."
+}
+```
+
+Terraform automatically:
+1. Fetches credentials from WorkOS Vault (via `vault-fetch-relay.sh`)
+2. Deploys Relay resources if credentials are valid
+3. Stores credentials in AWS Secrets Manager
+4. Configures backend to route telemetry through Relay
+
+### Explicit Disable (Optional)
+
+To disable Sentry Relay even when credentials are available:
+
+```hcl
+# In terraform.tfvars
+sentry_relay_enabled = false  # Default: true
+```
+
+**Use cases:**
+- Debugging: Temporarily disable telemetry
+- Cost optimization: Reduce costs in non-production environments
+- Testing: Deploy without telemetry
+
+For detailed setup and monitoring, see `runbooks/testing-sentry-relay-locally.md`.
 
 ## Required Configuration
 

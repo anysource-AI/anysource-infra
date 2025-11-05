@@ -22,15 +22,15 @@ fullnameOverride: ""
 image:
   backend:
     repository: public.ecr.aws/anysource/anysource-api
-    tag: latest
-    pullPolicy: Always
+    tag: ""
+    pullPolicy: IfNotPresent
     pullSecrets: []
     # Example: pullSecrets:
     #   - name: regcred
   frontend:
     repository: public.ecr.aws/anysource/anysource-web
-    tag: latest
-    pullPolicy: Always
+    tag: ""
+    pullPolicy: IfNotPresent
     pullSecrets: []
     # Example: pullSecrets:
     #   - name: regcred
@@ -136,7 +136,8 @@ prestart:
   enabled: true
   image:
     repository: public.ecr.aws/anysource/anysource-api
-    tag: latest
+    tag: ""
+    pullPolicy: IfNotPresent
   command: ["bash"]
   args: ["scripts/prestart.sh"]
   resources:
@@ -189,14 +190,14 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+    alb.ingress.kubernetes.io/load-balancer-name: "anysource-production"
   tls:
     enabled: false
     secretName: anysource-tls
 
-
 # PostgreSQL configuration with Bitnami Legacy Images
 postgresql:
-  enabled: true
+  enabled: false
   fullnameOverride: "postgresql"
 
   # Use Bitnami Legacy Images (for compatibility)
@@ -256,7 +257,7 @@ postgresql:
 
 # Redis configuration with Bitnami Legacy Images
 redis:
-  enabled: true
+  enabled: false
   fullnameOverride: "redis"
 
   # Use Bitnami Legacy Images (for compatibility)
@@ -308,7 +309,7 @@ redis:
 
 # External database configuration (for production)
 externalDatabase:
-  enabled: false
+  enabled: true
   type: postgresql
   host: ""
   port: 5432
@@ -321,7 +322,7 @@ externalDatabase:
 
 # External Redis configuration (for production)
 externalRedis:
-  enabled: false
+  enabled: true
   host: ""
   port: 6379
   password: ""

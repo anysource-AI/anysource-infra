@@ -34,7 +34,7 @@ module "eks" {
   kms_key_description             = "EKS Secret Encryption Key for ${local.cluster_name}"
   kms_key_deletion_window_in_days = 7
   enable_kms_key_rotation         = true
-  kms_key_administrators          = var.kms_key_administrators
+  kms_key_administrators          = local.merged_kms_administrators
 
   encryption_config = var.enable_cluster_encryption ? {
     resources = ["secrets"]
@@ -44,7 +44,7 @@ module "eks" {
 
   # Enable cluster logging
   enabled_log_types                      = var.cluster_enabled_log_types
-  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
+  cloudwatch_log_group_retention_in_days = local.log_retention_days
   cloudwatch_log_group_kms_key_id        = null
 
   # EKS Managed Node Groups
@@ -101,7 +101,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = var.enable_cluster_creator_admin_permissions
 
   # Access entries for API-based access control
-  access_entries = var.access_entries
+  access_entries = local.merged_access_entries
 
   tags = local.common_tags
 }
