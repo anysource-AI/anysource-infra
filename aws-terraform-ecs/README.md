@@ -1,6 +1,6 @@
-# Anysource ECS Infrastructure
+# Runlayer ECS Infrastructure
 
-Deploy Anysource on AWS ECS using Terraform. This infrastructure supports development to enterprise-grade production deployments with automated scaling, managed databases, and SSL certificates.
+Deploy Runlayer on AWS ECS using Terraform. This infrastructure supports development to enterprise-grade production deployments with automated scaling, managed databases, and SSL certificates.
 
 ## Quick Start
 
@@ -14,7 +14,7 @@ Deploy Anysource on AWS ECS using Terraform. This infrastructure supports develo
    nano terraform.tfvars
    ```
 
-3. **Deploy:**
+2. **Deploy:**
 
    ```bash
    # For development (local state)
@@ -128,10 +128,11 @@ Credentials are automatically fetched from WorkOS Vault during `terraform plan/a
 
 ### Setup (Optional)
 
-To enable Sentry telemetry, contact Anysource support to provision credentials in your WorkOS Vault:
+To enable Sentry telemetry, contact Runlayer support to provision credentials in your WorkOS Vault:
 
-**Secret Name:** `anysource-sentry-relay-credentials`  
+**Secret Name:** `runlayer-sentry-credentials`  
 **Secret Value (JSON):**
+
 ```json
 {
   "public_key": "...",
@@ -142,6 +143,7 @@ To enable Sentry telemetry, contact Anysource support to provision credentials i
 ```
 
 Terraform automatically:
+
 1. Fetches credentials from WorkOS Vault (via `vault-fetch-relay.sh`)
 2. Deploys Relay resources if credentials are valid
 3. Stores credentials in AWS Secrets Manager
@@ -157,6 +159,7 @@ sentry_relay_enabled = false  # Default: true
 ```
 
 **Use cases:**
+
 - Debugging: Temporarily disable telemetry
 - Cost optimization: Reduce costs in non-production environments
 - Testing: Deploy without telemetry
@@ -167,14 +170,14 @@ For detailed setup and monitoring, see `runbooks/testing-sentry-relay-locally.md
 
 All deployments need these values:
 
-| Variable           | Description                                            | Example                 |
-| ------------------ | ------------------------------------------------------ | ----------------------- |
-| `account`          | AWS account ID                                         | `"123456789012"`        |
-| `region`           | AWS region                                             | `"us-east-1"`           |
-| `domain_name`      | Custom domain for HTTPS access                         | `"mcp.yourcompany.com"` |
-| `auth_client_id`   | Auth client ID (will be provided by Anysource support) | `"your-auth-client-id"` |
-| `auth_api_key`     | Auth API key (will be provided by Anysource support)   | `"your-auth-api-key"`   |
-| `ecr_repositories` | Container image URIs                                   | See examples            |
+| Variable           | Description                                           | Example                 |
+| ------------------ | ----------------------------------------------------- | ----------------------- |
+| `account`          | AWS account ID                                        | `"123456789012"`        |
+| `region`           | AWS region                                            | `"us-east-1"`           |
+| `domain_name`      | Custom domain for HTTPS access                        | `"mcp.yourcompany.com"` |
+| `auth_client_id`   | Auth client ID (will be provided by Runlayer support) | `"your-auth-client-id"` |
+| `auth_api_key`     | Auth API key (will be provided by Runlayer support)   | `"your-auth-api-key"`   |
+| `ecr_repositories` | Container image URIs                                  | See examples            |
 
 ## Optional Configuration
 
@@ -190,6 +193,7 @@ existing_public_subnet_ids  = ["subnet-aaaaa", "subnet-bbbbb", "subnet-ccccc"]
 ```
 
 **Requirements:**
+
 - At least 3 subnets in different availability zones (for high availability)
 - Private subnets must have internet access via NAT Gateway (for container image pulls)
 - Public subnets must have internet gateway attached (for ALB)
@@ -358,7 +362,7 @@ services_configurations = {
 
 ## Monitoring & Observability
 
-Anysource ECS deployments include comprehensive monitoring:
+Runlayer ECS deployments include comprehensive monitoring:
 
 ### CloudWatch Integration
 

@@ -42,7 +42,7 @@ locals {
     CUSTOMER_ID     = local.customer_id
     DEPLOYMENT_TYPE = "ecs"
     # Allow infra version to be omitted; backend will default to APP_VERSION at runtime
-    INFRA_VERSION   = var.infra_version
+    INFRA_VERSION = var.infra_version
     # Sentry Relay Host - Backend will replace host:port in SENTRY_DSN
     # Derived from relay service configuration (Service Connect DNS name + port)
     # Only set if relay is deployed, otherwise empty to use direct Sentry DSN

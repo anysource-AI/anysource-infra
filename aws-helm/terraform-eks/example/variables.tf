@@ -4,7 +4,7 @@
 
 variable "release_version" {
   type        = string
-  description = "Version/ref of the anysource-infra module to use (e.g., v1.0.0, v1.1.0)"
+  description = "Version/ref of the runlayer-infra module to use (e.g., v1.0.0, v1.1.0)"
   default     = "v1.0.0"
 }
 

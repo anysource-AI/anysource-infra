@@ -129,17 +129,6 @@ resource "aws_ecs_task_definition" "relay" {
           awslogs-stream-prefix = var.project
         }
       }
-
-      healthCheck = {
-        command = [
-          "CMD-SHELL",
-          "curl -fsS --max-time 3 http://localhost:${var.sentry_relay_config.container_port}/api/relay/healthcheck/live/ || exit 1"
-        ]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 10
-      }
     }
   ])
 

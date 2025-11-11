@@ -3,7 +3,7 @@
 global:
   domain: "mcp.example.com"
   environment: "production"
-  # Anysource support will provide this
+  # Runlayer support will provide this
   auth_client_id: "your-auth-client-id"
   # OAuth Broker URL (optional, set to empty string to disable)
   oauth_broker_url: ""
@@ -375,6 +375,13 @@ podAnnotations:
   prometheus.io/scrape: "true"
   prometheus.io/port: "8000"
   prometheus.io/path: "/metrics"
+
+# Pod labels
+# Custom labels to add to all pods
+podLabels: {}
+  # Example:
+  # environment: production
+  # team: platform
 
 # Node selector, tolerations and affinity
 nodeSelector: {}

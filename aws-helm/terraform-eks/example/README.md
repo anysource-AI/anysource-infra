@@ -32,6 +32,7 @@ All configuration files are designed to support all three modes. To switch betwe
 3. **In `outputs.tf`**: Comment out MODE 1/2 specific outputs when using MODE 3
 
 **Quick Reference:**
+
 - **MODE 1 Active** (New VPC + New EKS): Default configuration, uses new VPC
 - **MODE 2 Active** (Existing VPC + New EKS): Set `create_vpc = false`, creates new EKS cluster
 - **MODE 3 Active** (Existing VPC + Existing EKS): Set `create_vpc = false` and `create_eks = false`, comment out cluster-specific outputs
@@ -62,6 +63,7 @@ cp /path/to/terraform-eks/example/.gitignore .
 #### 2. Update Configuration
 
 Edit `terraform.tfvars`:
+
 - Set `release_version` to the desired module version (e.g., "v1.0.0", "v1.1.0")
 - Keep **MODE 1** section active (already uncommented)
 - Ensure **MODE 2** and **MODE 3** sections are commented out
@@ -73,6 +75,7 @@ Edit `terraform.tfvars`:
   - EKS namespace
 
 Edit `main.tf` to customize:
+
 - `locals` block with your project name, environment, region, and AWS account ID
 - Module source (use git URL or local path)
 - Ensure **MODE 1** section is active (uncommented)
@@ -116,6 +119,7 @@ cp /path/to/terraform-eks/example/.gitignore .
 #### 2. Update Configuration
 
 Edit `terraform.tfvars`:
+
 - Set `release_version` to the desired module version (e.g., "v1.0.0", "v1.1.0")
 - Comment out **MODE 1** section
 - Uncomment **MODE 2** section and update with your values:
@@ -128,6 +132,7 @@ Edit `terraform.tfvars`:
   - EKS namespace
 
 Edit `main.tf`:
+
 - `locals` block with your project name, environment, region, and AWS account ID
 - Module source (use git URL or local path)
 - Comment out **MODE 1** module section
@@ -203,6 +208,7 @@ cp /path/to/terraform-eks/example/.gitignore .
 #### 3. Update Configuration
 
 Edit `terraform.tfvars`:
+
 - Set `release_version` to the desired module version (e.g., "v1.0.0", "v1.1.0")
 - Comment out **MODE 1** and **MODE 2** sections
 - Uncomment **MODE 3** section and update with your values:
@@ -216,12 +222,14 @@ Edit `terraform.tfvars`:
   - EKS namespace
 
 Edit `main.tf`:
+
 - `locals` block with your project name, environment, region, and AWS account ID
 - Module source (use git URL or local path)
 - Comment out **MODE 1** and **MODE 2** module sections
 - Uncomment **MODE 3** module section
 
 Edit `outputs.tf`:
+
 - Comment out MODE 1 and MODE 2 specific outputs (cluster_name, cluster_endpoint, etc.)
 - Keep common outputs active
 
@@ -246,7 +254,7 @@ When using an existing EKS cluster, the module creates:
 ✅ **RDS Database**: Aurora PostgreSQL Serverless v2  
 ✅ **Redis Cache**: ElastiCache Redis  
 ✅ **Bedrock Guardrail**: AWS Bedrock guardrail for AI safety  
-✅ **Secrets Manager**: Application secrets storage  
+✅ **Secrets Manager**: Application secrets storage
 
 ❌ **Does NOT create**: EKS cluster, node groups, VPC, subnets, EKS add-ons
 
@@ -337,7 +345,7 @@ This variable is used in `main.tf` to construct the module source:
 
 ```hcl
 module "eks_cluster" {
-  source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
+  source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
   # ...
 }
 ```
@@ -354,7 +362,7 @@ module "eks_cluster" {
 If you prefer SSH authentication, you can modify the module source in `main.tf`:
 
 ```hcl
-source = "git::git@github.com:anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
+source = "git::git@github.com:anysource-AI/runlayer-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
 ```
 
 ## Outputs
@@ -375,11 +383,13 @@ After applying, you'll get important outputs:
 After the infrastructure is deployed:
 
 1. **Configure kubectl**:
+
    ```bash
    aws eks update-kubeconfig --name $(terraform output -raw cluster_name) --region us-east-1
    ```
 
 2. **Verify cluster access**:
+
    ```bash
    kubectl get nodes
    ```
@@ -388,24 +398,24 @@ After the infrastructure is deployed:
 
 ## Comparison: All Deployment Modes
 
-| Feature | MODE 1<br/>New VPC + New EKS | MODE 2<br/>Existing VPC + New EKS | MODE 3<br/>Existing VPC + Existing EKS |
-|---------|----------------|---------------------|---------------------|
-| **Use Case** | New deployment, full control | Integrate with existing network | Add app to existing cluster |
-| **Creates VPC** | ✅ Yes | ❌ Uses existing | ❌ Uses existing |
-| **Creates EKS Cluster** | ✅ Yes | ✅ Yes | ❌ No |
-| **Creates Node Groups** | ✅ Yes | ✅ Yes | ❌ No |
-| **Creates RDS** | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Creates Redis** | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Creates IRSA Roles** | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Installs EKS Add-ons** | ✅ Yes | ✅ Yes | ❌ Already installed |
-| **Best For** | Greenfield deployments | Existing network integration | Multi-tenant clusters, platform teams |
+| Feature                  | MODE 1<br/>New VPC + New EKS | MODE 2<br/>Existing VPC + New EKS | MODE 3<br/>Existing VPC + Existing EKS |
+| ------------------------ | ---------------------------- | --------------------------------- | -------------------------------------- |
+| **Use Case**             | New deployment, full control | Integrate with existing network   | Add app to existing cluster            |
+| **Creates VPC**          | ✅ Yes                       | ❌ Uses existing                  | ❌ Uses existing                       |
+| **Creates EKS Cluster**  | ✅ Yes                       | ✅ Yes                            | ❌ No                                  |
+| **Creates Node Groups**  | ✅ Yes                       | ✅ Yes                            | ❌ No                                  |
+| **Creates RDS**          | ✅ Yes                       | ✅ Yes                            | ✅ Yes                                 |
+| **Creates Redis**        | ✅ Yes                       | ✅ Yes                            | ✅ Yes                                 |
+| **Creates IRSA Roles**   | ✅ Yes                       | ✅ Yes                            | ✅ Yes                                 |
+| **Installs EKS Add-ons** | ✅ Yes                       | ✅ Yes                            | ❌ Already installed                   |
+| **Best For**             | Greenfield deployments       | Existing network integration      | Multi-tenant clusters, platform teams  |
 
 ## Deployment Modes
 
 The module supports three deployment modes:
 
 1. **MODE 1** - New VPC + New EKS Cluster (Full Stack)
-2. **MODE 2** - Existing VPC + New EKS Cluster  
+2. **MODE 2** - Existing VPC + New EKS Cluster
 3. **MODE 3** - Existing VPC + Existing EKS Cluster
 
 See the sections above for detailed instructions on each mode.
@@ -413,6 +423,7 @@ See the sections above for detailed instructions on each mode.
 ## Support
 
 For more information, see:
+
 - Main module README: `/aws-helm/terraform-eks/README.md`
 - Module variables documentation in the main README
 - Terraform module documentation: https://www.terraform.io/docs/language/modules/index.html

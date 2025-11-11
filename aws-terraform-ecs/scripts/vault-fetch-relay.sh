@@ -33,7 +33,7 @@ if [[ -z "$API_KEY" || "$API_KEY" == "null" ]]; then
 fi
 
 # Secret name in WorkOS Vault
-SECRET_NAME="anysource-sentry-relay-credentials"
+SECRET_NAME="runlayer-sentry-credentials"
 
 # Step 1: List all secrets to find the ID by name
 LIST_RESPONSE=$(curl -sf "https://api.workos.com/vault/v1/kv" \
@@ -56,7 +56,7 @@ SECRET_ID=$(echo "$LIST_RESPONSE" | jq -r --arg name "$SECRET_NAME" \
 
 if [[ -z "$SECRET_ID" || "$SECRET_ID" == "null" ]]; then
   echo "WARNING: Secret '${SECRET_NAME}' not found in WorkOS Vault - deploying without Sentry Relay" >&2
-  echo "NOTE: Contact Anysource support to provision relay credentials if you want Sentry telemetry" >&2
+  echo "NOTE: Contact Runlayer support to provision relay credentials if you want Sentry telemetry" >&2
   # Return empty values to allow deployment without Sentry
   jq -n '{
     "public_key": "",

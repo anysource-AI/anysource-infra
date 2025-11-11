@@ -30,6 +30,7 @@ All configuration files are designed to support both modes. To switch between th
 2. **In `main.tf`**: Comment/uncomment the module blocks (only one module block should be active)
 
 **Quick Reference:**
+
 - **MODE 1 Active** (New VPC + New ECS): Default configuration, creates new VPC automatically
 - **MODE 2 Active** (Existing VPC + New ECS): Uncomment existing VPC variables in tfvars, uncomment MODE 2 module in main.tf
 
@@ -59,11 +60,12 @@ cp /path/to/aws-terraform-ecs/examples/.gitignore .
 #### 2. Update Configuration
 
 Edit `terraform.tfvars`:
+
 - Set `release_version` to the desired module version (e.g., "v1.0.0", "v1.1.0")
 - Update **required configuration**:
   - `region` - AWS region for deployment
   - `domain_name` - Your domain name for the application
-  - `auth_client_id` and `auth_api_key` - Auth credentials (from Anysource support)
+  - `auth_client_id` and `auth_api_key` - Auth credentials (from Runlayer support)
 - Optionally customize:
   - `ecr_repositories` - Use defaults or provide your own container images
   - `ssl_certificate_arn` - Provide existing ACM certificate or leave commented for auto-creation
@@ -71,6 +73,7 @@ Edit `terraform.tfvars`:
 - Optionally enable monitoring in the OPTIONAL CONFIGURATION section
 
 Edit `main.tf` to customize:
+
 - `locals` block with your project name, environment, and AWS account ID
 - Module source (use git URL with version tag)
 - Ensure **MODE 1** module section is active (uncommented)
@@ -123,11 +126,12 @@ cp /path/to/aws-terraform-ecs/examples/.gitignore .
 #### 2. Update Configuration
 
 Edit `terraform.tfvars`:
+
 - Set `release_version` to the desired module version (e.g., "v1.0.0", "v1.1.0")
 - Update **required configuration**:
   - `region` - AWS region for deployment
   - `domain_name` - Your domain name for the application
-  - `auth_client_id` and `auth_api_key` - Auth credentials (from Anysource support)
+  - `auth_client_id` and `auth_api_key` - Auth credentials (from Runlayer support)
 - Uncomment **MODE 2** section and update with your values:
   - `vpc_id` - Your existing VPC ID
   - `private_subnet_ids` - List of private subnet IDs
@@ -138,6 +142,7 @@ Edit `terraform.tfvars`:
 - Optionally enable monitoring in the OPTIONAL CONFIGURATION section
 
 Edit `main.tf`:
+
 - `locals` block with your project name, environment, and AWS account ID
 - Module source (use git URL with version tag)
 - Comment out **MODE 1** module section
@@ -168,7 +173,7 @@ When using an existing VPC, the module creates:
 ✅ **Bedrock Guardrail**: AWS Bedrock guardrail for AI safety  
 ✅ **Secrets Manager**: Application secrets storage  
 ✅ **IAM Roles**: ECS task execution and task roles  
-✅ **Security Groups**: For ALB, ECS tasks, RDS, and Redis  
+✅ **Security Groups**: For ALB, ECS tasks, RDS, and Redis
 
 ❌ **Does NOT create**: VPC, subnets, NAT Gateway, Internet Gateway
 
@@ -182,13 +187,15 @@ All deployments require a domain name in `terraform.tfvars`:
 
 ```hcl
 region      = "us-east-1"
-domain_name = "anysource.yourcompany.com"
+domain_name = "runlayer.yourcompany.com"
 ```
 
 ### SSL Certificate
 
 You can either:
+
 1. **Use an existing ACM certificate** (recommended for production):
+
    ```hcl
    ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
    ```
@@ -205,7 +212,7 @@ Restrict ALB access to specific IP ranges in `main.tf`:
 ```hcl
 module "ecs_cluster" {
   # ... other configuration ...
-  
+
   alb_allowed_cidrs = [
     "203.0.113.0/24",    # Office IP range
     "198.51.100.0/24"    # VPN IP range
@@ -220,7 +227,7 @@ Customize Aurora Serverless v2 capacity in `main.tf`:
 ```hcl
 module "ecs_cluster" {
   # ... other configuration ...
-  
+
   database_config = {
     min_capacity     = 2   # Minimum ACU (1 ACU = ~2GB RAM)
     max_capacity     = 16  # Maximum ACU for scaling
@@ -236,7 +243,7 @@ Customize ECS service scaling in `main.tf`:
 ```hcl
 module "ecs_cluster" {
   # ... other configuration ...
-  
+
   services_configurations = {
     "backend" = {
       desired_count = 3     # Number of tasks to run
@@ -271,7 +278,7 @@ This variable is used in `main.tf` to construct the module source:
 
 ```hcl
 module "ecs_cluster" {
-  source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-terraform-ecs?ref=${var.release_version}"
+  source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-terraform-ecs?ref=${var.release_version}"
   # ...
 }
 ```
@@ -287,7 +294,7 @@ module "ecs_cluster" {
 If you prefer SSH authentication, you can modify the module source in `main.tf`:
 
 ```hcl
-source = "git::git@github.com:anysource-AI/anysource-infra.git//aws-terraform-ecs?ref=${var.release_version}"
+source = "git::git@github.com:anysource-AI/runlayer-infra.git//aws-terraform-ecs?ref=${var.release_version}"
 ```
 
 ## Outputs
@@ -304,21 +311,24 @@ After applying, you'll get important outputs:
 After the infrastructure is deployed:
 
 1. **Access your application**:
+
    ```bash
    # Get the application URL
    terraform output application_url
    ```
 
 2. **Verify services are running**:
+
    ```bash
    # Check ECS cluster
    aws ecs list-services --cluster anysource-production --region us-east-1
-   
+
    # Check task health
    aws ecs describe-services --cluster anysource-production --services backend frontend --region us-east-1
    ```
 
 3. **Check application logs**:
+
    - Backend logs: `/anysource-backend-logs-production` in CloudWatch
    - Frontend logs: `/anysource-frontend-logs-production` in CloudWatch
    - Prestart logs: `/anysource-prestart-logs-production` in CloudWatch (database migrations)
@@ -329,17 +339,17 @@ After the infrastructure is deployed:
 
 ## Comparison: Deployment Modes
 
-| Feature | MODE 1<br/>New VPC + New ECS | MODE 2<br/>Existing VPC + New ECS |
-|---------|------------------------------|-----------------------------------|
-| **Use Case** | New deployment, full control | Integrate with existing network |
-| **Creates VPC** | ✅ Yes | ❌ Uses existing |
-| **Creates ECS Cluster** | ✅ Yes | ✅ Yes |
-| **Creates ALB** | ✅ Yes | ✅ Yes |
-| **Creates RDS** | ✅ Yes | ✅ Yes |
-| **Creates Redis** | ✅ Yes | ✅ Yes |
-| **Creates IAM Roles** | ✅ Yes | ✅ Yes |
-| **Creates Security Groups** | ✅ Yes | ✅ Yes |
-| **Best For** | Greenfield deployments | Existing network integration |
+| Feature                     | MODE 1<br/>New VPC + New ECS | MODE 2<br/>Existing VPC + New ECS |
+| --------------------------- | ---------------------------- | --------------------------------- |
+| **Use Case**                | New deployment, full control | Integrate with existing network   |
+| **Creates VPC**             | ✅ Yes                       | ❌ Uses existing                  |
+| **Creates ECS Cluster**     | ✅ Yes                       | ✅ Yes                            |
+| **Creates ALB**             | ✅ Yes                       | ✅ Yes                            |
+| **Creates RDS**             | ✅ Yes                       | ✅ Yes                            |
+| **Creates Redis**           | ✅ Yes                       | ✅ Yes                            |
+| **Creates IAM Roles**       | ✅ Yes                       | ✅ Yes                            |
+| **Creates Security Groups** | ✅ Yes                       | ✅ Yes                            |
+| **Best For**                | Greenfield deployments       | Existing network integration      |
 
 ## Backend Configuration
 
@@ -359,6 +369,7 @@ terraform apply
 ```
 
 **Best Practices:**
+
 - Enable S3 bucket versioning for state history
 - Enable encryption at rest for the S3 bucket
 - Use DynamoDB for state locking to prevent concurrent modifications
@@ -378,11 +389,13 @@ terraform apply
 ### Common Issues
 
 **Certificate validation fails:**
+
 - Ensure domain DNS is configured correctly
 - Check ACM certificate status in AWS Console
 - Verify certificate is in the same region as your ALB
 
 **ECS tasks not starting:**
+
 - Check ECS service events in AWS Console
 - Review CloudWatch logs:
   - `/anysource-backend-logs-[env]`
@@ -392,11 +405,13 @@ terraform apply
 - Check security group rules allow necessary traffic
 
 **Database connection issues:**
+
 - Verify security groups allow ECS tasks to connect to RDS
 - Check database endpoint in RDS console
 - Review prestart container logs for migration errors
 
 **Networking issues:**
+
 - Ensure NAT Gateway is properly configured in private subnets
 - Verify Internet Gateway is attached to public subnets
 - Check route tables are correctly associated
@@ -426,6 +441,7 @@ terraform apply
 The deployment includes comprehensive monitoring:
 
 - **Log Groups**:
+
   - `anysource-backend-logs-[environment]` - Backend application logs
   - `anysource-frontend-logs-[environment]` - Frontend application logs
   - `anysource-prestart-logs-[environment]` - Database migration logs
@@ -457,6 +473,7 @@ sentry_dsn       = "https://your-sentry-dsn@sentry.io/project-id"
 ## Support
 
 For more information, see:
+
 - Main module README: `/aws-terraform-ecs/README.md`
 - Module variables documentation in the main README
 - Configuration example: `/aws-terraform-ecs/examples/terraform.tfvars.example`

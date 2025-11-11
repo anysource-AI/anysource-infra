@@ -1,4 +1,4 @@
-# Example values file for Anysource Helm Chart
+# Example values file for Runlayer Helm Chart
 # Copy this file to values-<customer>.yaml and customize for your deployment
 
 global:

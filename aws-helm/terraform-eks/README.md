@@ -41,7 +41,7 @@ kms_key_administrators = [
 CloudWatch log retention is automatically set based on environment when using the default value:
 
 - **Production**: 400 days
-- **Staging**: 30 days  
+- **Staging**: 30 days
 - **Development**: 14 days
 
 Override by explicitly setting `cloudwatch_log_group_retention_in_days` if different retention is needed.
@@ -417,7 +417,7 @@ You can use this module from another Terraform project instead of running it dir
 
 ```hcl
 module "eks_infrastructure" {
-  source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=v1.0.0"
+  source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-helm/terraform-eks?ref=v1.0.0"
 
   # Core Configuration
   environment = "production"
@@ -953,7 +953,6 @@ enable_monitoring = true
 - Unhealthy host count
 - Target response time
 - ASG CPU utilization
-
 
 ## Cost Optimization
 

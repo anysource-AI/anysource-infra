@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "title": "Anysource Helm Chart Values Schema",
+  "title": "Runlayer Helm Chart Values Schema",
   "description": "Schema for validating anysource Helm chart values. This schema ensures that all values.yaml files used with the anysource Helm chart conform to the expected structure and data types.",
   "properties": {
     "global": {
@@ -1014,6 +1014,13 @@
       },
       "description": "Pod annotations"
     },
+    "podLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Pod labels"
+    },
     "nodeSelector": {
       "type": "object",
       "additionalProperties": {
@@ -1181,12 +1188,5 @@
       }
     }
   },
-  "required": [
-    "global",
-    "image",
-    "backend",
-    "frontend",
-    "service",
-    "ingress"
-  ]
+  "required": ["global", "image", "backend", "frontend", "service", "ingress"]
 }

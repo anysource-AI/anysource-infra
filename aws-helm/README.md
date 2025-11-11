@@ -1,6 +1,6 @@
-# Anysource Kubernetes Deployment
+# Runlayer Kubernetes Deployment
 
-This directory contains Kubernetes Helm charts for deploying Anysource on Kubernetes clusters, and a Terraform module for AWS EKS cluster provisioning.
+This directory contains Kubernetes Helm charts for deploying Runlayer on Kubernetes clusters, and a Terraform module for AWS EKS cluster provisioning.
 
 ## Documentation Structure
 
@@ -295,7 +295,7 @@ For customer-facing deployment guides, see:
 
 ## Support
 
-- **Email**: engineering@anysource.com
+- **Email**: engineering@runlayer.com
 - **Website**: https://anysource.com
 
 ## Contributing

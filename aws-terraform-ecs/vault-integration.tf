@@ -9,14 +9,14 @@
 # even when Sentry is not yet provisioned for the customer.
 #
 # Prerequisites (optional):
-# 1. Anysource team has populated the customer's WorkOS Vault with:
-#    Name: anysource-sentry-relay-credentials
+# 1. Runlayer team has populated the customer's WorkOS Vault with:
+#    Name: runlayer-sentry-credentials
 #    Value: {"public_key": "...", "secret_key": "...", "id": "...", "sentry_dsn": "..."}
 # 2. Customer has set auth_api_key in terraform.tfvars (same WorkOS API key)
 #
 # The external data source calls scripts/vault-fetch-relay.sh which:
 # 1. Lists secrets in WorkOS Vault
-# 2. Finds 'anysource-sentry-relay-credentials' by name
+# 2. Finds 'runlayer-sentry-credentials' by name
 # 3. Retrieves and parses the JSON value
 # 4. Returns credentials to Terraform (or empty values if not found)
 

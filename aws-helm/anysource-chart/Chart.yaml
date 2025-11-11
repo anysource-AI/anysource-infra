@@ -1,21 +1,21 @@
 apiVersion: v2
 name: anysource
-description: Anysource application Helm chart for Kubernetes deployment
+description: Runlayer application Helm chart for Kubernetes deployment
 type: application
-version: 0.9.0
+version: 0.9.1
 appVersion: "1.6.0"
 keywords:
-  - anysource
+  - runlayer
   - api
   - web
   - fastapi
   - react
-home: https://github.com/anysource-AI/Anysource
+home: https://github.com/anysource-AI/Runlayer
 sources:
-  - https://github.com/anysource-AI/Anysource
+  - https://github.com/anysource-AI/Runlayer
 maintainers:
-  - name: Anysource Team
-    email: engineering@anysource.com
+  - name: Runlayer Team
+    email: engineering@runlayer.com
 
 dependencies:
   - name: postgresql

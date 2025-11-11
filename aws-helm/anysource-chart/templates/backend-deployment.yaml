@@ -20,6 +20,9 @@ spec:
         {{- end }}
       labels:
         {{- include "anysource.backend.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- if .Values.image.backend.pullSecrets }}
       imagePullSecrets:
@@ -33,7 +36,7 @@ spec:
         - name: prestart
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.prestart.image.repository }}:{{ .Values.prestart.image.tag | default .Values.image.backend.tag }}"
+          image: "{{ .Values.prestart.image.repository }}:{{ .Values.prestart.image.tag | default .Values.image.backend.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
           command: {{ .Values.prestart.command }}
           args: {{ .Values.prestart.args }}
@@ -82,7 +85,7 @@ spec:
         - name: backend
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
           ports:
             - name: http
