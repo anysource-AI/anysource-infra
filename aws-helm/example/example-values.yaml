@@ -1,10 +1,10 @@
-# Example Production Values for Anysource Helm Chart
-# Download chart from: https://github.com/anysource-AI/anysource-infra/releases
+# Example Production Values for Runlayer Helm Chart
+# Download chart from: https://github.com/anysource-AI/runlayer-infra/releases
 #
 # PREREQUISITES:
 # Before using this values file, you must:
 # 1. Provision AWS infrastructure using the Terraform module
-#    See: https://github.com/anysource-AI/anysource-infra/tree/main/aws-helm/terraform-eks/example
+#    See: https://github.com/anysource-AI/runlayer-infra/tree/main/aws-helm/terraform-eks/example
 # 2. Obtain Terraform outputs (run: terraform output)
 # 3. Use those outputs to populate the values below
 
@@ -12,14 +12,14 @@
 # Global Configuration
 # ========================================
 global:
-  # Your public domain for the Anysource deployment
+  # Your public domain for the Runlayer deployment
   # Configure DNS to point to the ALB created by the Helm chart
-  domain: "anysource.example.com"
+  domain: "runlayer.example.com"
 
   # Environment name (development, staging, production)
   environment: "production"
 
-  # Auth client ID (provided by Anysource support)
+  # Auth client ID (provided by Runlayer support)
   auth_client_id: "client_YOUR_CLIENT_ID_HERE"
 
   # OAuth Broker URL (optional, leave empty to disable)
@@ -36,7 +36,7 @@ externalDatabase:
   # RDS endpoint (without port)
   # Example: anysource-production-db-cluster.cluster-xxxxx.us-east-1.rds.amazonaws.com
   host: "your-rds-endpoint.region.rds.amazonaws.com"
-  
+
   # Password set via --set flag
   # IMPORTANT: Use the SAME password you provided in terraform.tfvars (database_password)
   password: "" # Set via: --set externalDatabase.password="..."
@@ -51,7 +51,7 @@ externalRedis:
   # ElastiCache endpoint (without port)
   # Example: anysource-production-redis.xxxxx.cache.amazonaws.com
   host: "your-redis-endpoint.cache.amazonaws.com"
-  
+
   # Password (optional for ElastiCache without auth)
   password: ""
 

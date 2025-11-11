@@ -7,7 +7,7 @@
 # ========================================
 # Module Version
 # ========================================
-# Specify which version of the anysource-infra module to use
+# Specify which version of the runlayer-infra module to use
 # Examples: "v1.0.0", "v1.1.0"
 release_version = "v1.0.0"
 

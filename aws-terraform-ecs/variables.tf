@@ -22,19 +22,19 @@ variable "account" {
 # Auth Configuration
 variable "auth_client_id" {
   type        = string
-  description = "Auth client ID for authentication. This will be provided by the Anysource team."
+  description = "Auth client ID for authentication. This will be provided by the Runlayer team."
   validation {
     condition     = length(var.auth_client_id) > 0
-    error_message = "auth_client_id must not be empty. Ask Anysource support for your auth_client_id."
+    error_message = "auth_client_id must not be empty. Ask Runlayer support for your auth_client_id."
   }
 }
 variable "auth_api_key" {
   type        = string
-  description = "Auth API key for authentication. This will be provided by the Anysource team."
+  description = "Auth API key for authentication. This will be provided by the Runlayer team."
   sensitive   = true
   validation {
     condition     = length(var.auth_api_key) > 0
-    error_message = "auth_api_key must not be empty. Ask Anysource support for your auth_api_key."
+    error_message = "auth_api_key must not be empty. Ask Runlayer support for your auth_api_key."
   }
 }
 

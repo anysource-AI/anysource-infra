@@ -19,6 +19,9 @@ spec:
         {{- end }}
       labels:
         {{- include "anysource.frontend.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- if .Values.image.frontend.pullSecrets }}
       imagePullSecrets:
@@ -31,7 +34,7 @@ spec:
         - name: frontend
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}"
+          image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.frontend.pullPolicy }}
           ports:
             - name: http
@@ -49,9 +52,9 @@ spec:
             - name: PUBLIC_BACKEND_URL
               value: "https://{{ .Values.global.domain }}"
             - name: PUBLIC_BACKEND_VERSION
-              value: {{ .Values.image.backend.tag | quote }}
+              value: {{ .Values.image.backend.tag | default .Chart.AppVersion | quote }}
             - name: PUBLIC_WEBAPP_VERSION
-              value: {{ .Values.image.frontend.tag | quote }}
+              value: {{ .Values.image.frontend.tag | default .Chart.AppVersion | quote }}
             - name: PUBLIC_VERSION_URL
               value: {{ .Values.global.version_url | default "https://anysource-version.s3.amazonaws.com/version.json" | quote }}
             {{- if .Values.global.oauth_broker_url }}

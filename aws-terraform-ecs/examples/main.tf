@@ -24,21 +24,21 @@ provider "aws" {
 }
 
 module "ecs_cluster" {
-  source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-terraform-ecs?ref=${var.release_version}"
+  source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-terraform-ecs?ref=${var.release_version}"
 
   # Core Configuration
   region  = local.region
   account = local.account
 
   # Network Configuration
-  domain_name = "anysource.yourcompany.com" # Replace with your domain
+  domain_name = "runlayer.yourcompany.com" # Replace with your domain
 
   # Use Existing VPC (optional - uncomment to use existing VPC)
   # existing_vpc_id             = var.vpc_id
   # existing_private_subnet_ids = var.private_subnet_ids
   # existing_public_subnet_ids  = var.public_subnet_ids
 
-  # Auth Configuration (provided by Anysource support)
+  # Auth Configuration (provided by Runlayer support)
   auth_client_id = var.auth_client_id
   auth_api_key   = var.auth_api_key
 

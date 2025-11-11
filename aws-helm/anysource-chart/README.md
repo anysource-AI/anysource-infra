@@ -1,6 +1,6 @@
-# Anysource Kubernetes Helm Chart
+# Runlayer Kubernetes Helm Chart
 
-Production-ready Helm chart for deploying Anysource on Kubernetes with support for AWS production environments.
+Production-ready Helm chart for deploying Runlayer on Kubernetes with support for AWS production environments.
 
 ## Bitnami Legacy Images Migration
 
@@ -57,7 +57,7 @@ cp values.example.yaml values-<environment>.yaml
 # Edit values-<environment>.yaml with your specific configuration
 ```
 
-### 3. Deploy Anysource
+### 3. Deploy Runlayer
 
 ```bash
 # With embedded databases
@@ -381,4 +381,4 @@ kubectl get events -n anysource --sort-by='.lastTimestamp'
 
 ## Support
 
-For issues and questions, contact engineering@anysource.com
+For issues and questions, contact engineering@runlayer.com

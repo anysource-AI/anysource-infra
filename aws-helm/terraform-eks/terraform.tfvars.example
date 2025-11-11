@@ -5,7 +5,7 @@ account = "123456789012" # Replace with your AWS Account ID
 # profile = "your-aws-profile"
 
 # Project Configuration
-project     = "anysource" # Replace with your project name
+project     = "runlayer" # Replace with your project name
 environment = "development" # Options: development, staging, production
 
 # Network Configuration
@@ -107,7 +107,7 @@ additional_tags = {
 }
 
 # EKS Namespace Configuration
-eks_namespace = "myapp-production"
+eks_namespace = "runlayer-production"
 
 # EKS Access Configuration
 # Configure API-based access control for the cluster

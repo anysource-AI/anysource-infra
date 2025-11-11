@@ -4,7 +4,7 @@ data "aws_partition" "current" {}
 
 resource "aws_bedrock_guardrail" "guardrail" {
   name                      = "${var.project}-guardrail-${var.environment}"
-  description               = "Anysource guardrail for prompt attack detection"
+  description               = "Runlayer guardrail for prompt attack detection"
   blocked_input_messaging   = "Input blocked due to prompt attack detection."
   blocked_outputs_messaging = "Output blocked due to prompt attack detection."
 

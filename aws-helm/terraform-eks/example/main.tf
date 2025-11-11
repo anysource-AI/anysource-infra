@@ -36,7 +36,7 @@ provider "aws" {
 # ========================================
 
 module "eks_cluster" {
-  source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
+  source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
 
   # Core Configuration
   region  = local.region
@@ -89,7 +89,7 @@ module "eks_cluster" {
 # Comment out MODE 1 above when using this mode
 
 # module "eks_cluster" {
-#   source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
+#   source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
 #
 #   # Core Configuration
 #   region      = local.region
@@ -148,7 +148,7 @@ module "eks_cluster" {
 # Comment out MODE 1 above when using this mode
 
 # module "eks_cluster" {
-#   source = "git::https://github.com/anysource-AI/anysource-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
+#   source = "git::https://github.com/anysource-AI/runlayer-infra.git//aws-helm/terraform-eks?ref=${var.release_version}"
 #
 #   # Core Configuration
 #   region      = local.region
