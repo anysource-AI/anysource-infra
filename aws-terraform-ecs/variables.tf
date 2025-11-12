@@ -188,16 +188,27 @@ variable "ssl_certificate_arn" {
   default     = ""
 }
 
-variable "create_route53_records" {
-  description = "Whether to create Route53 DNS records for the domain"
+variable "enable_acm_dns_validation" {
+  description = "Automatically create Route53 validation records and validate the generated ACM certificate"
   type        = bool
   default     = false
 }
 
-variable "hosted_zone_id" {
-  description = "Route53 hosted zone ID (required if create_route53_records is true)"
+variable "hosted_zone_name" {
+  description = "Route53 hosted zone name used only when enable_acm_dns_validation is true"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.enable_acm_dns_validation == false || length(var.hosted_zone_name) > 0
+    error_message = "When enable_acm_dns_validation is true, hosted_zone_name must be provided for Route53 zone lookup."
+  }
+}
+
+variable "create_route53_records" {
+  description = "Whether to create Route53 DNS records for the domain"
+  type        = bool
+  default     = false
 }
 
 # Application Services Configuration with Smart Defaults
@@ -444,4 +455,3 @@ variable "enable_ecs_exec" {
   description = "Enable ECS Exec for interactive shell access to backend containers. Use only for development and testing purposes."
   default     = false
 }
-
