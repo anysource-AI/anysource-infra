@@ -16,8 +16,10 @@ module "alb" {
 
 # Certificate creation (only if not using existing certificate)
 module "certificate_alb" {
-  count       = var.ssl_certificate_arn == "" ? 1 : 0
-  source      = "./modules/acm"
-  domain_name = var.domain_name
-  environment = var.environment
+  count                     = var.ssl_certificate_arn == "" ? 1 : 0
+  source                    = "./modules/acm"
+  domain_name               = var.domain_name
+  hosted_zone_name          = var.hosted_zone_name
+  environment               = var.environment
+  enable_acm_dns_validation = var.enable_acm_dns_validation
 }

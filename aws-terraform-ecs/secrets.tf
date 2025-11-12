@@ -56,4 +56,8 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     APP_URL              = "https://${var.domain_name}"
     BACKEND_CORS_ORIGINS = "https://${var.domain_name}"
   } : {}))
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

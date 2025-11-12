@@ -232,6 +232,16 @@ services_configurations = {
 }
 ```
 
+### ACM DNS Validation (Optional)
+
+Set `enable_acm_dns_validation = true` to have Terraform create the AWS ACM validation records automatically in Route53. When this is enabled:
+
+- `domain_name` must match the certificate’s fully qualified domain (e.g., `ecs.prod.example.com`).
+- Set `hosted_zone_name` to the Route53 hosted zone that exists in this AWS account (required whenever ACM DNS validation is enabled; often an apex like `prod.example.com` even if the certificate is for `ecs.prod.example.com`).
+
+Leave `enable_acm_dns_validation` as `false` if you prefer to validate ACM certificates manually or are using DNS outside of Route53.
+
+
 ## Secrets Management
 
 This deployment creates the following secrets in AWS Secrets Manager:
