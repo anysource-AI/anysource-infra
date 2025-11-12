@@ -12,9 +12,17 @@
 #   {"public_key": "...", "secret_key": "...", "relay_id": "...", "sentry_dsn": "..."}
 #   OR empty values if credentials are not available (to allow graceful deployment without Sentry)
 #
+# Environment variables (optional):
+#   WORKOS_API_BASE         - WorkOS API base URL (default: https://api.workos.com)
+#   WORKOS_VAULT_SECRET_NAME - Secret name in WorkOS Vault (default: runlayer-sentry-credentials)
+#
 # DO NOT run this script manually - it's called by Terraform automatically.
 
 set -euo pipefail
+
+# Default values
+: "${WORKOS_API_BASE:=https://api.workos.com}"
+: "${WORKOS_VAULT_SECRET_NAME:=runlayer-sentry-credentials}"
 
 # Parse input from Terraform (reads JSON from stdin)
 eval "$(jq -r '@sh "API_KEY=\(.api_key)"')"
@@ -32,12 +40,13 @@ if [[ -z "$API_KEY" || "$API_KEY" == "null" ]]; then
   exit 0
 fi
 
-# Secret name in WorkOS Vault
-SECRET_NAME="runlayer-sentry-credentials"
+# Curl options with retries and timeouts
+CURL_OPTS="--fail --show-error --silent --connect-timeout 5 --max-time 25 --retry 3 --retry-all-errors"
 
 # Step 1: List all secrets to find the ID by name
-LIST_RESPONSE=$(curl -sf "https://api.workos.com/vault/v1/kv" \
-  -H "Authorization: Bearer ${API_KEY}" 2>&1 || echo "{}")
+LIST_RESPONSE=$(curl ${CURL_OPTS} \
+  -H "Authorization: Bearer ${API_KEY}" \
+  "${WORKOS_API_BASE}/vault/v1/kv" 2>&1 || echo "{}")
 
 if [[ "$LIST_RESPONSE" == "{}" ]]; then
   echo "WARNING: Failed to connect to WorkOS Vault API - deploying without Sentry Relay" >&2
@@ -51,11 +60,11 @@ if [[ "$LIST_RESPONSE" == "{}" ]]; then
   exit 0
 fi
 
-SECRET_ID=$(echo "$LIST_RESPONSE" | jq -r --arg name "$SECRET_NAME" \
+SECRET_ID=$(echo "$LIST_RESPONSE" | jq -r --arg name "$WORKOS_VAULT_SECRET_NAME" \
   '.data[]? | select(.name == $name) | .id')
 
 if [[ -z "$SECRET_ID" || "$SECRET_ID" == "null" ]]; then
-  echo "WARNING: Secret '${SECRET_NAME}' not found in WorkOS Vault - deploying without Sentry Relay" >&2
+  echo "WARNING: Secret '${WORKOS_VAULT_SECRET_NAME}' not found in WorkOS Vault - deploying without Sentry Relay" >&2
   echo "NOTE: Contact Runlayer support to provision relay credentials if you want Sentry telemetry" >&2
   # Return empty values to allow deployment without Sentry
   jq -n '{
@@ -68,8 +77,9 @@ if [[ -z "$SECRET_ID" || "$SECRET_ID" == "null" ]]; then
 fi
 
 # Step 2: Retrieve the secret value
-GET_RESPONSE=$(curl -sf "https://api.workos.com/vault/v1/kv/${SECRET_ID}" \
-  -H "Authorization: Bearer ${API_KEY}" 2>&1 || echo "{}")
+GET_RESPONSE=$(curl ${CURL_OPTS} \
+  -H "Authorization: Bearer ${API_KEY}" \
+  "${WORKOS_API_BASE}/vault/v1/kv/${SECRET_ID}" 2>&1 || echo "{}")
 
 if [[ "$GET_RESPONSE" == "{}" ]]; then
   echo "WARNING: Failed to retrieve secret from WorkOS Vault - deploying without Sentry Relay" >&2

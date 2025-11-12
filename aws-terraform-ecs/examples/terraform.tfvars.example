@@ -63,3 +63,15 @@ ecr_repositories = {
 # Monitoring Configuration
 # enable_monitoring = true
 # sentry_dsn       = "https://your-sentry-dsn@sentry.io/project-id"
+
+# WAF IP Allowlisting Configuration
+# Enable to restrict ALB access to specific IPv4 CIDR blocks
+# waf_enable_ip_allowlisting = true
+# waf_allowlist_ipv4_cidrs   = [
+#   "203.0.113.0/24",    # Example: Office network
+#   "198.51.100.42/32",  # Example: Specific IP address
+# ]
+
+# Route53 + ACM DNS validation (also creates ALIAS record automatically)
+# enable_acm_dns_validation = true
+# hosted_zone_name          = "yourzone.example.com"

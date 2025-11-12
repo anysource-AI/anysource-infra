@@ -110,6 +110,8 @@ backend:
     SECRET_KEY: "change-me-secret-key-minimum-32-characters-long"
     MASTER_SALT: "change-me-master-salt-minimum-32-characters-long"
     AUTH_API_KEY: "your-auth-api-key-here"
+    # Sentry DSN - Get from https://anysource-er.sentry.io/settings/projects/<project>/keys/
+    SENTRY_DSN: "https://your-key@your-org.ingest.sentry.io/project-id"
 
 # Service Account Configuration
 serviceAccount:
