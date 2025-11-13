@@ -131,3 +131,7 @@ access_entries = {
 # Enable automatic admin permissions for cluster creator (recommended for customer deployments)
 # Set to false for internal deployments when using sso_admin_role_arn
 # enable_cluster_creator_admin_permissions = true
+
+# Bedrock Guardrail Configuration
+# Sensitivity level for prompt attack detection (LOW, MEDIUM, or HIGH)
+# bedrock_prompt_guard_sensitivity = "MEDIUM" # Default: MEDIUM

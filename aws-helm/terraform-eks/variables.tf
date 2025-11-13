@@ -533,3 +533,17 @@ variable "sso_admin_role_arn" {
   description = "Full IAM role ARN for SSO admin access (e.g., 'arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdminAccess_xxxxx'). When provided, automatically grants cluster admin access and KMS key administrator permissions. Typically used for internal deployments."
   default     = ""
 }
+
+########################################################################################################################
+# Bedrock Guardrail Configuration
+########################################################################################################################
+
+variable "bedrock_prompt_guard_sensitivity" {
+  type        = string
+  description = "Sensitivity level for Bedrock guardrail prompt attack detection. Valid values: LOW, MEDIUM, HIGH."
+  default     = "MEDIUM"
+  validation {
+    condition     = contains(["LOW", "MEDIUM", "HIGH"], var.bedrock_prompt_guard_sensitivity)
+    error_message = "bedrock_prompt_guard_sensitivity must be one of: LOW, MEDIUM, HIGH"
+  }
+}

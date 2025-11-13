@@ -337,6 +337,8 @@ After the infrastructure is deployed:
    - Get ALB DNS name: `terraform output alb_dns_name`
    - Create a CNAME record in your DNS provider pointing your domain to the ALB DNS name
 
+   If you manage DNS in Route53, set `enable_acm_dns_validation = true` and provide `hosted_zone_name` so the module can both complete ACM DNS validation and create the ALIAS record automatically.
+
 ## Comparison: Deployment Modes
 
 | Feature                     | MODE 1<br/>New VPC + New ECS | MODE 2<br/>Existing VPC + New ECS |

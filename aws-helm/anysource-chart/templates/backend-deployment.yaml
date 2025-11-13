@@ -130,6 +130,18 @@ spec:
             - name: OAUTH_BROKER_URL
               value: {{ .Values.global.oauth_broker_url | quote }}
             {{- end }}
+            # Deployment identification for telemetry (customer_id defaults to domain)
+            - name: CUSTOMER_ID
+              value: {{ .Values.global.deployment.customerId | default .Values.global.domain | quote }}
+            - name: DEPLOYMENT_TYPE
+              value: "helm"
+            - name: INFRA_VERSION
+              value: {{ .Values.global.deployment.infraVersion | default .Chart.Version | quote }}
+            # Sentry Relay Host - Backend will replace host:port in SENTRY_DSN
+            # Format: host:port (e.g., "sentry-relay:3000")
+            # Only set if relay is enabled, otherwise empty (backend falls back to direct DSN)
+            - name: SENTRY_RELAY_HOST
+              value: {{ if .Values.relay.enabled }}"sentry-relay:{{ .Values.relay.port }}"{{ else }}""{{ end }}
             {{- range $key, $value := .Values.backend.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}

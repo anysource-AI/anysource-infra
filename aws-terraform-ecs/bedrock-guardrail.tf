@@ -19,7 +19,7 @@ resource "aws_bedrock_guardrail" "guardrail" {
 
     filters_config {
       type            = "PROMPT_ATTACK"
-      input_strength  = "HIGH"
+      input_strength  = var.bedrock_prompt_guard_sensitivity
       output_strength = "NONE"
     }
 
