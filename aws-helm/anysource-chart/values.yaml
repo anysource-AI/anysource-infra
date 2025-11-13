@@ -11,6 +11,13 @@ global:
   version_url: "https://anysource-version.s3.amazonaws.com/version.json"
   security:
     allowInsecureImages: true
+  # Deployment identification for telemetry
+  deployment:
+    # Customer identifier (defaults to global.domain if empty)
+    customerId: ""
+    # Infrastructure version for tracking deployments (defaults to Chart.Version if empty)
+    # Useful for correlating errors with infrastructure changes
+    infraVersion: ""
 
 # Name overrides
 # Provide a name in place of the chart name
@@ -47,7 +54,6 @@ backend:
       cpu: 4000m
       memory: 8192Mi
     limits:
-      cpu: 4000m
       memory: 8192Mi
 
   # Health checks
@@ -89,10 +95,16 @@ backend:
     TOKENIZERS_PARALLELISM: "true"
 
   # Secrets (will be created from values)
+  # IMPORTANT: In production, use helm-fetch-vault-credentials.sh to fetch from WorkOS Vault
+  # See docs/deployment-guide.md for complete workflow
   secrets:
     SECRET_KEY: "your-secret-key-here-change-in-production"
     MASTER_SALT: "your-master-salt-here-change-in-production"
     AUTH_API_KEY: "sk_live_your_auth_api_key_here"
+    # Sentry DSN for error tracking
+    # In production: Automatically fetched from WorkOS Vault via helm-fetch-vault-credentials.sh
+    # For testing/development only (will be overridden by vault values in production):
+    SENTRY_DSN: "https://your-key@your-org.ingest.sentry.io/project-id"
 
   # Configuration (non-sensitive environment variables)
   config: {}
@@ -109,7 +121,6 @@ frontend:
       cpu: 1000m
       memory: 2048Mi
     limits:
-      cpu: 1000m
       memory: 2048Mi
 
   # Health checks
@@ -145,7 +156,6 @@ prestart:
       cpu: 1000m
       memory: 2048Mi
     limits:
-      cpu: 1000m
       memory: 2048Mi
 
 # HPA configuration
@@ -433,5 +443,107 @@ directorySync:
       cpu: 1000m
       memory: 2048Mi
     limits:
+      memory: 2048Mi
+
+# ========================================
+# Sentry Relay Configuration
+# ========================================
+# Sentry Relay processes telemetry within customer infrastructure before forwarding to Sentry SaaS
+# This ensures telemetry data stays within your VPC for privacy and compliance
+#
+# Graceful Degradation:
+# If relay credentials are not available in WorkOS Vault, set enabled: false to deploy without Sentry.
+# The helm-fetch-vault-credentials.sh script automatically sets this flag based on credential availability.
+#
+# How it works:
+# 1. Backend is configured with SENTRY_DSN (your Sentry project DSN) in secrets
+# 2. Backend automatically sets SENTRY_RELAY_HOST="sentry-relay:<port>" (from config below)
+# 3. Backend replaces the host in SENTRY_DSN with the relay endpoint
+# 4. All telemetry routes through local Relay before going to Sentry SaaS
+
+relay:
+  # Enable/disable Sentry Relay deployment
+  # Set to false if credentials are not available (graceful degradation)
+  # helm-fetch-vault-credentials.sh automatically manages this flag
+  enabled: true
+
+  # Image configuration
+  image:
+    repository: ghcr.io/getsentry/relay
+    tag: "25.10.0"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    # Example: pullSecrets:
+    #   - name: regcred
+
+  # Number of relay replicas (run 2+ for high availability)
+  replicas: 2
+
+  # Port relay listens on
+  port: 3000
+
+  # Resource configuration
+  # Note: Sentry Operating Guidelines recommend minimum 2GB RAM per container
+  # See: https://docs.sentry.io/product/relay/operating-guidelines/
+  resources:
+    requests:
       cpu: 1000m
       memory: 2048Mi
+    limits:
+      memory: 2048Mi
+
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /api/relay/healthcheck/live/
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/relay/healthcheck/ready/
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Relay configuration (managed mode)
+  config:
+    mode: managed
+    upstream: "https://o4509836808028160.ingest.us.sentry.io"
+    logLevel: info
+    logFormat: json
+
+  # Sentry Relay credentials
+  # IMPORTANT: Do not hardcode these values in production!
+  # Use the helm-fetch-vault-credentials.sh script to automatically fetch from WorkOS Vault:
+  #
+  #   export WORKOS_API_KEY="sk_live_..."
+  #   VALUES_FILE=$(./scripts/helm-fetch-vault-credentials.sh)
+  #   helm install anysource ./chart -f production-values.yaml -f "$VALUES_FILE"
+  #
+  # For testing/development only:
+  secrets:
+    public_key: "your-relay-public-key-here"
+    secret_key: "your-relay-secret-key-here"
+    id: "your-relay-id-here"
+
+  # Vault integration for automatic credential fetching via init container
+  # When enabled, an init container will fetch credentials from WorkOS Vault
+  # before the relay starts, writing them to a shared memory volume
+  # Uses AUTH_API_KEY from backend.secrets to authenticate with WorkOS Vault
+  vault:
+    # Enable automatic credential fetching via init container
+    enabled: true
+
+  # HPA configuration for relay
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80

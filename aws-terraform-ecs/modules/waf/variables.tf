@@ -45,3 +45,15 @@ variable "resources_arn" {
   type        = list(string)
   description = "resources_arn"
 }
+
+variable "enable_ip_allowlisting" {
+  type        = bool
+  description = "Enable IP allowlisting for the WAF"
+  default     = false
+}
+
+variable "allowlist_ipv4_cidrs" {
+  type        = list(string)
+  description = "List of IPv4 CIDR blocks to allowlist"
+  default     = []
+}

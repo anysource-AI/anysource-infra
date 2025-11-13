@@ -202,12 +202,35 @@ existing_public_subnet_ids  = ["subnet-aaaaa", "subnet-bbbbb", "subnet-ccccc"]
 
 ### Security Restrictions
 
+#### ALB Security Group IP Restrictions
+
+Restrict access at the security group level (allows traffic to reach ALB):
+
 ```hcl
 alb_allowed_cidrs = [
   "203.0.113.0/24",    # Office IP range
   "198.51.100.0/24"    # VPN IP range
 ]
 ```
+
+#### WAF IP Allowlisting
+
+For stricter security, use WAF to block requests from non-allowlisted IPs before they reach your application:
+
+```hcl
+waf_enable_ip_allowlisting = true
+waf_allowlist_ipv4_cidrs = [
+  "203.0.113.0/24",      # Office network
+  "198.51.100.42/32",    # Specific IP address
+]
+```
+
+**Key differences:**
+
+- **Security Group (`alb_allowed_cidrs`):** Network-level filtering, allows traffic to reach ALB
+- **WAF (`waf_allowlist_ipv4_cidrs`):** Application-level filtering with logging and metrics, blocks requests at ALB
+
+**Best practice:** Use WAF allowlisting for production environments requiring audit trails and detailed request blocking metrics. WAF provides CloudWatch metrics and sampled request logs for security monitoring.
 
 ### Database Scaling
 
@@ -240,6 +263,10 @@ Set `enable_acm_dns_validation = true` to have Terraform create the AWS ACM vali
 - Set `hosted_zone_name` to the Route53 hosted zone that exists in this AWS account (required whenever ACM DNS validation is enabled; often an apex like `prod.example.com` even if the certificate is for `ecs.prod.example.com`).
 
 Leave `enable_acm_dns_validation` as `false` if you prefer to validate ACM certificates manually or are using DNS outside of Route53.
+
+### Route53 Alias Records (Automatic with ACM Validation)
+
+When `enable_acm_dns_validation = true`, this module also creates an ALIAS `A` record in the specified Route53 hosted zone pointing your domain to the ALB. Provide `hosted_zone_name` so the module can look up the correct zone. Leave ACM DNS validation disabled to keep managing DNS externally.
 
 
 ## Secrets Management

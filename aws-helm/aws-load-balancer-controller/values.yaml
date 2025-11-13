@@ -11,7 +11,6 @@ serviceAccount:
     eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/AWSLoadBalancerControllerRole"
 resources:
   limits:
-    cpu: 200m
     memory: 500Mi
   requests:
     cpu: 100m

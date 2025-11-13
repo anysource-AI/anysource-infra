@@ -70,3 +70,19 @@ variable "public_subnet_ids" {
   description = "List of existing public subnet IDs (required when using existing VPC - MODE 2)"
   default     = []
 }
+
+# ========================================
+# WAF IP Allowlisting Configuration
+# ========================================
+
+variable "waf_enable_ip_allowlisting" {
+  type        = bool
+  description = "Enable WAF IP allowlisting to restrict ALB access to specific IPv4 CIDR blocks"
+  default     = false
+}
+
+variable "waf_allowlist_ipv4_cidrs" {
+  type        = list(string)
+  description = "List of IPv4 CIDR blocks to allowlist in the WAF (e.g., ['1.2.3.4/32', '10.0.0.0/8'])"
+  default     = []
+}
