@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "anysource.fullname" . }}-directory-sync
+  name: directory-sync
   labels:
     {{- include "anysource.labels" . | nindent 4 }}
     app.kubernetes.io/component: directory-sync

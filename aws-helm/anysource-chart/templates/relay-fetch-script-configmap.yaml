@@ -1,0 +1,12 @@
+{{- if and .Values.relay.enabled .Values.relay.vault.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: relay-fetch-script
+  labels:
+    {{- include "anysource.labels" . | nindent 4 }}
+    app.kubernetes.io/component: sentry-relay
+data:
+  fetch-relay-credentials.sh: |-
+{{ .Files.Get "files/fetch-relay-credentials.sh" | nindent 4 }}
+{{- end }}
