@@ -195,20 +195,14 @@ variable "enable_acm_dns_validation" {
 }
 
 variable "hosted_zone_name" {
-  description = "Route53 hosted zone name used only when enable_acm_dns_validation is true"
+  description = "Route53 hosted zone name used whenever enable_acm_dns_validation is true"
   type        = string
   default     = ""
 
   validation {
-    condition     = var.enable_acm_dns_validation == false || length(var.hosted_zone_name) > 0
+    condition     = var.enable_acm_dns_validation == false || length(trimspace(var.hosted_zone_name)) > 0
     error_message = "When enable_acm_dns_validation is true, hosted_zone_name must be provided for Route53 zone lookup."
   }
-}
-
-variable "create_route53_records" {
-  description = "Whether to create Route53 DNS records for the domain"
-  type        = bool
-  default     = false
 }
 
 # Application Services Configuration with Smart Defaults
@@ -454,4 +448,39 @@ variable "enable_ecs_exec" {
   type        = bool
   description = "Enable ECS Exec for interactive shell access to backend containers. Use only for development and testing purposes."
   default     = false
+}
+
+# Deployment Feature Flag
+variable "enable_runlayer_deploy" {
+  type        = bool
+  description = "Enable RunLayer deployment features (requires ECS infrastructure). Set to true to allow deploying custom MCP servers."
+  default     = false
+}
+
+# Bedrock Guardrail Configuration
+variable "bedrock_prompt_guard_sensitivity" {
+  type        = string
+  description = "Sensitivity level for Bedrock guardrail prompt attack detection. Valid values: LOW, MEDIUM, HIGH."
+  default     = "MEDIUM"
+  validation {
+    condition     = contains(["LOW", "MEDIUM", "HIGH"], var.bedrock_prompt_guard_sensitivity)
+    error_message = "bedrock_prompt_guard_sensitivity must be one of: LOW, MEDIUM, HIGH"
+  }
+}
+
+# WAF IP Allowlisting Configuration
+variable "waf_enable_ip_allowlisting" {
+  type        = bool
+  description = "Enable WAF IP allowlisting to restrict ALB access to specific IPv4 CIDR blocks"
+  default     = false
+}
+
+variable "waf_allowlist_ipv4_cidrs" {
+  type        = list(string)
+  description = "List of IPv4 CIDR blocks to allowlist in the WAF (e.g., ['1.2.3.4/32', '10.0.0.0/8'])"
+  default     = []
+  validation {
+    condition     = !var.waf_enable_ip_allowlisting || length(var.waf_allowlist_ipv4_cidrs) > 0
+    error_message = "waf_allowlist_ipv4_cidrs must not be empty when waf_enable_ip_allowlisting is true. Provide at least one IPv4 CIDR block to avoid locking yourself out."
+  }
 }

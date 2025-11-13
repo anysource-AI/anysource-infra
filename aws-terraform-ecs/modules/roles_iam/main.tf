@@ -63,10 +63,14 @@ resource "aws_iam_policy" "ecs_task_policy" {
       "Action": [
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
-        "logs:PutLogEvents"
+        "logs:PutLogEvents",
+        "logs:FilterLogEvents",
+        "logs:GetLogEvents",
+        "logs:DescribeLogStreams"
       ],
       "Resource": [
-        "arn:aws:logs:${var.region}:${var.account}:log-group:*-logs-${var.environment}:*"
+        "arn:aws:logs:${var.region}:${var.account}:log-group:*-logs-${var.environment}:*",
+        "arn:aws:logs:${var.region}:${var.account}:log-group:/ecs/runlayer-*:*"
       ]
     },
     {
@@ -82,6 +86,26 @@ resource "aws_iam_policy" "ecs_task_policy" {
         "bedrock:InvokeModelWithResponseStream"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:PutImage"
+      ],
+      "Resource": [
+        "arn:aws:ecr:${var.region}:${var.account}:repository/${var.project}-${var.environment}-custom-images"
+      ]
     }
   ]
 }
