@@ -450,6 +450,12 @@ variable "enable_ecs_exec" {
   default     = false
 }
 
+# Deployment Feature Flag
+variable "enable_runlayer_deploy" {
+  type        = bool
+  description = "Enable RunLayer deployment features (requires ECS infrastructure). Set to true to allow deploying custom MCP servers."
+  default     = false
+}
 
 # Bedrock Guardrail Configuration
 variable "bedrock_prompt_guard_sensitivity" {
