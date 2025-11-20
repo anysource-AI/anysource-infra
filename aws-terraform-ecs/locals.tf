@@ -10,8 +10,12 @@ locals {
   # Deployment identification - customer_id defaults to domain name
   customer_id = var.customer_id != "" ? var.customer_id : var.domain_name
 
+  # Runlayer ToolGuard internal endpoint URL (uses NLB DNS name)
+  # NLB provides automatic DNS name, no custom Route53 zone needed
+  runlayer_tool_guard_endpoint_url = var.enable_runlayer_tool_guard ? "http://${aws_lb.runlayer_tool_guard[0].dns_name}:8080" : null
+
   # Backend-specific environment variables (non-sensitive)
-  backend_env_vars = {
+  backend_env_vars = merge({
     ENVIRONMENT          = var.environment
     API_V1_STR           = "/api/v1"
     POSTGRES_SERVER      = module.rds[var.database_name].cluster_endpoint
@@ -38,7 +42,6 @@ locals {
     TOKENIZERS_PARALLELISM = "true"
     # OAuth Broker URL
     OAUTH_BROKER_URL = var.oauth_broker_url
-
     # Deployment identification for telemetry (deployment_type: ecs or eks)
     CUSTOMER_ID     = local.customer_id
     DEPLOYMENT_TYPE = "ecs"
@@ -50,7 +53,6 @@ locals {
     # Derived from relay service configuration (Service Connect DNS name + port)
     # Only set if relay is deployed, otherwise empty to use direct Sentry DSN
     SENTRY_RELAY_HOST = local.deploy_relay ? "relay:${var.sentry_relay_config.container_port}" : ""
-
     # RunLayer Deploy Infrastructure Configuration
     # Conditionally set RUNLAYER_DEPLOY based on enable_runlayer_deploy variable
     RUNLAYER_DEPLOY                                  = var.enable_runlayer_deploy ? "ECS" : ""
@@ -64,7 +66,13 @@ locals {
     RUNLAYER_DEPLOY_VPC_CIDR                         = var.vpc_cidr
     RUNLAYER_DEPLOY_REGION                           = var.region
     RUNLAYER_DEPLOY_CUSTOM_IMAGES_ECR_REPO_URL       = aws_ecr_repository.custom_images.repository_url
-  }
+    },
+    local.runlayer_tool_guard_endpoint_url != null ? {
+      # Runlayer ToolGuard endpoint configuration (only set when enabled)
+      RUNLAYER_TOOL_GUARD_ENDPOINT_URL = local.runlayer_tool_guard_endpoint_url
+      RUNLAYER_TOOL_GUARD_TIMEOUT      = tostring(var.runlayer_tool_guard_timeout)
+    } : {}
+  )
 
   # Backend-specific secrets from AWS Secrets Manager
   backend_secret_vars = {
