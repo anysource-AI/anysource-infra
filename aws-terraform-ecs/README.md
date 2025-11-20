@@ -181,6 +181,20 @@ All deployments need these values:
 
 ## Optional Configuration
 
+### Runlayer ToolGuard (GPU-based ML Security Scanning)
+
+Deploy the Runlayer ToolGuard Flask server on GPU instances for ML-based tool security scanning:
+
+```hcl
+enable_runlayer_tool_guard        = true
+runlayer_tool_guard_desired_count = 1     # Number of instances
+```
+
+**Key Features:**
+- **GPU-Powered**: High performance security scanners that target ~50ms latency
+- **Cost-Effective**: Fractional GPU reduces costs compared to full GPU instances
+- **Internal Service**: Uses ECS Service Connect for secure internal communication
+
 ### Using an Existing VPC
 
 By default, a new VPC with public and private subnets will be created. If you want to use an existing VPC instead:
@@ -286,12 +300,14 @@ This deployment creates the following secrets in AWS Secrets Manager:
 
 After deployment, you'll get:
 
-| Output              | Description                    |
-| ------------------- | ------------------------------ |
-| `application_url`   | Primary application URL        |
-| `alb_dns_name`      | Load balancer DNS name         |
-| `database_endpoint` | PostgreSQL endpoint (internal) |
-| `redis_endpoint`    | Redis endpoint (internal)      |
+| Output                             | Description                            |
+| ---------------------------------- | -------------------------------------- |
+| `application_url`                  | Primary application URL                |
+| `alb_dns_name`                     | Load balancer DNS name                 |
+| `database_endpoint`                | PostgreSQL endpoint (internal)         |
+| `redis_endpoint`                   | Redis endpoint (internal)              |
+| `runlayer_tool_guard_enabled`      | Runlayer ToolGuard deployment status   |
+| `runlayer_tool_guard_endpoint_url` | Runlayer ToolGuard URL (if enabled)    |
 
 ## Deployment Types
 

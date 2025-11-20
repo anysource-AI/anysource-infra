@@ -17,7 +17,7 @@ resource "aws_service_discovery_private_dns_namespace" "deployments" {
 
 # S3 Bucket for Terraform State Storage
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "${var.project}-${var.environment}-deploy-tf-state"
+  bucket = "${var.account}-${var.project}-${var.environment}-deploy-tf-state"
 
   tags = {
     Name        = "${var.project}-deploy-tf-state"
