@@ -135,6 +135,9 @@ spec:
               value: {{ .Values.global.deployment.customerId | default .Values.global.domain | quote }}
             - name: DEPLOYMENT_TYPE
               value: "helm"
+            # Application version from image tag for release tracking in Sentry
+            - name: APP_VERSION
+              value: {{ .Values.image.backend.tag | default .Chart.AppVersion | quote }}
             - name: INFRA_VERSION
               value: {{ .Values.global.deployment.infraVersion | default .Chart.Version | quote }}
             # Sentry Relay Host - Backend will replace host:port in SENTRY_DSN

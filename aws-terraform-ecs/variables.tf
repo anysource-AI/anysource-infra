@@ -450,6 +450,66 @@ variable "enable_ecs_exec" {
   default     = false
 }
 
+# ========================================
+# RUNLAYER TOOL GUARD CONFIGURATION - OPTIONAL
+# ========================================
+variable "enable_runlayer_tool_guard" {
+  type        = bool
+  description = "Enable Runlayer ToolGuard Flask server deployment"
+  default     = false
+}
+
+variable "runlayer_tool_guard_image_uri" {
+  type        = string
+  description = "Docker image URI for the Runlayer ToolGuard Flask server"
+  default     = "public.ecr.aws/anysource/anysource-models:prompt-guard-xgboost-v1.2"
+}
+
+variable "runlayer_tool_guard_desired_count" {
+  type        = number
+  description = "Desired number of Runlayer ToolGuard service instances"
+  default     = 1
+
+  validation {
+    condition     = var.runlayer_tool_guard_desired_count >= 1 && var.runlayer_tool_guard_desired_count <= 5
+    error_message = "Runlayer ToolGuard desired count must be between 1 and 5"
+  }
+}
+
+variable "runlayer_tool_guard_timeout" {
+  type        = number
+  description = "Timeout in seconds for Runlayer ToolGuard requests"
+  default     = 5
+
+  validation {
+    condition     = var.runlayer_tool_guard_timeout >= 5 && var.runlayer_tool_guard_timeout <= 300
+    error_message = "Runlayer ToolGuard timeout must be between 5 and 300 seconds"
+  }
+}
+
+variable "runlayer_tool_guard_log_retention_days" {
+  type        = number
+  description = "CloudWatch log retention in days for Runlayer ToolGuard. Longer retention recommended for security auditing and compliance."
+  default     = 30
+
+  validation {
+    condition     = contains([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653], var.runlayer_tool_guard_log_retention_days)
+    error_message = "Log retention must be a valid CloudWatch retention period (e.g., 7, 30, 60, 90, 180, 365 days)"
+  }
+}
+
+variable "enable_runlayer_tool_guard_alarms" {
+  type        = bool
+  description = "Enable CloudWatch alarms for Runlayer ToolGuard service health and performance monitoring"
+  default     = true
+}
+
+# Deployment Feature Flag
+variable "enable_runlayer_deploy" {
+  type        = bool
+  description = "Enable RunLayer deployment features (requires ECS infrastructure). Set to true to allow deploying custom MCP servers."
+  default     = false
+}
 
 # Bedrock Guardrail Configuration
 variable "bedrock_prompt_guard_sensitivity" {
@@ -461,7 +521,6 @@ variable "bedrock_prompt_guard_sensitivity" {
     error_message = "bedrock_prompt_guard_sensitivity must be one of: LOW, MEDIUM, HIGH"
   }
 }
-
 # WAF IP Allowlisting Configuration
 variable "waf_enable_ip_allowlisting" {
   type        = bool

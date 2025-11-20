@@ -381,10 +381,7 @@ serviceAccount:
     eks.amazonaws.com/role-arn: ""
 
 # Pod annotations
-podAnnotations:
-  prometheus.io/scrape: "true"
-  prometheus.io/port: "8000"
-  prometheus.io/path: "/metrics"
+podAnnotations: {}
 
 # Pod labels
 # Custom labels to add to all pods

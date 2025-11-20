@@ -19,7 +19,6 @@ This directory contains Kubernetes Helm charts for deploying Runlayer on Kuberne
 - Secure secret management via Kubernetes Secrets
 - Advanced network policies and pod security
 - Horizontal Pod Autoscaling (HPA)
-- Prometheus monitoring and ServiceMonitor
 
 ## Directory Structure
 
@@ -164,7 +163,6 @@ For detailed information on each feature, see [anysource-chart/README.md](./anys
 ### Monitoring & Observability
 
 - Health checks (liveness, readiness, startup probes)
-- Prometheus integration with ServiceMonitor
 - Structured logging with JSON output
 
 ### High Availability

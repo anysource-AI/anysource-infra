@@ -27,3 +27,8 @@ output "alb_arn_suffix" {
   description = "ARN suffix of the Application Load Balancer (for CloudWatch metrics)"
   value       = aws_lb.alb.arn_suffix
 }
+
+output "alb_listener_https_arn" {
+  description = "ARN of the HTTPS listener for adding dynamic listener rules"
+  value       = aws_lb_listener.alb_listener_https.arn
+}

@@ -1,7 +1,3 @@
-data "aws_caller_identity" "current" {}
-
-data "aws_partition" "current" {}
-
 resource "aws_bedrock_guardrail" "guardrail" {
   name                      = "${var.project}-guardrail-${var.environment}"
   description               = "Runlayer guardrail for prompt attack detection"
