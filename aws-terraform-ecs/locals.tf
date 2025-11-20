@@ -38,15 +38,32 @@ locals {
     TOKENIZERS_PARALLELISM = "true"
     # OAuth Broker URL
     OAUTH_BROKER_URL = var.oauth_broker_url
+
     # Deployment identification for telemetry (deployment_type: ecs or eks)
     CUSTOMER_ID     = local.customer_id
     DEPLOYMENT_TYPE = "ecs"
+    # Application version from image tag for release tracking in Sentry
+    APP_VERSION = local.backend_image_tag
     # Allow infra version to be omitted; backend will default to APP_VERSION at runtime
     INFRA_VERSION = var.infra_version
     # Sentry Relay Host - Backend will replace host:port in SENTRY_DSN
     # Derived from relay service configuration (Service Connect DNS name + port)
     # Only set if relay is deployed, otherwise empty to use direct Sentry DSN
     SENTRY_RELAY_HOST = local.deploy_relay ? "relay:${var.sentry_relay_config.container_port}" : ""
+
+    # RunLayer Deploy Infrastructure Configuration
+    # Conditionally set RUNLAYER_DEPLOY based on enable_runlayer_deploy variable
+    RUNLAYER_DEPLOY                                  = var.enable_runlayer_deploy ? "ECS" : ""
+    RUNLAYER_DEPLOY_STATE_BUCKET                     = aws_s3_bucket.terraform_state.id
+    RUNLAYER_DEPLOY_ECS_CLUSTER_ARN                  = module.ecs.ecs_cluster_arn
+    RUNLAYER_DEPLOY_VPC_ID                           = local.vpc_id
+    RUNLAYER_DEPLOY_PRIVATE_SUBNET_IDS               = jsonencode(local.private_subnet_ids)
+    RUNLAYER_DEPLOY_TASK_EXECUTION_ROLE_ARN          = module.iam.ecs_task_execution_role_arn
+    RUNLAYER_DEPLOY_SERVICE_DISCOVERY_NAMESPACE_ID   = aws_service_discovery_private_dns_namespace.deployments.id
+    RUNLAYER_DEPLOY_SERVICE_DISCOVERY_NAMESPACE_NAME = aws_service_discovery_private_dns_namespace.deployments.name
+    RUNLAYER_DEPLOY_VPC_CIDR                         = var.vpc_cidr
+    RUNLAYER_DEPLOY_REGION                           = var.region
+    RUNLAYER_DEPLOY_CUSTOM_IMAGES_ECR_REPO_URL       = aws_ecr_repository.custom_images.repository_url
   }
 
   # Backend-specific secrets from AWS Secrets Manager
@@ -68,5 +85,7 @@ locals {
     PUBLIC_WORKER_VERSION   = local.worker_image_tag
     PUBLIC_VERSION_URL      = var.version_url
     PUBLIC_OAUTH_BROKER_URL = var.oauth_broker_url
+    # Conditionally set PUBLIC_RUNLAYER_DEPLOY based on enable_runlayer_deploy variable
+    PUBLIC_RUNLAYER_DEPLOY = var.enable_runlayer_deploy ? "ECS" : ""
   }
 }
