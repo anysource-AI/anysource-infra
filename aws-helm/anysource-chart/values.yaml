@@ -385,8 +385,7 @@ podAnnotations: {}
 
 # Pod labels
 # Custom labels to add to all pods
-podLabels:
-  {}
+podLabels: {}
   # Example:
   # environment: production
   # team: platform
@@ -426,10 +425,10 @@ storageClass:
 # SCIM / Directory Sync Configuration
 # ========================================
 directorySync:
-  # Enable directory sync CronJob (event-based incremental sync)
+  # Enable directory sync CronJob
   enabled: true
 
-  # Cron schedule for event-based sync (defaults to "*/10 * * * *" - every 10 minutes)
+  # Cron schedule (defaults to "*/10 * * * *" - every 10 minutes)
   # Override with custom schedule if needed:
   # schedule: "*/15 * * * *"  # every 15 minutes
   # schedule: "0 */2 * * *"   # every 2 hours
@@ -442,25 +441,6 @@ directorySync:
       memory: 2048Mi
     limits:
       memory: 2048Mi
-
-  # Reconciliation job configuration (full state sync from WorkOS)
-  reconciliation:
-    # Enable reconciliation CronJob
-    enabled: false
-
-    # Cron schedule for reconciliation (defaults to "0 4 * * *" - daily at 4 AM)
-    # Override with custom schedule if needed:
-    # schedule: "0 3 * * *"     # daily at 3 AM
-    # schedule: "0 4 * * 0"     # weekly on Sunday at 4 AM
-    schedule: "0 4 * * *"
-
-    # Resource configuration for reconciliation jobs (may need more resources than event sync)
-    resources:
-      requests:
-        cpu: 1000m
-        memory: 2048Mi
-      limits:
-        memory: 2048Mi
 
 # ========================================
 # Sentry Relay Configuration
@@ -564,24 +544,3 @@ relay:
     maxReplicas: 6
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
-
-# ========================================
-# Deployment Telemetry Configuration
-# ========================================
-# Automatic deployment tracking via Helm hooks
-# Sends deployment completion events to Sentry for observability
-#
-# How it works:
-# 1. post-upgrade hook: Sends success event after successful deployment
-# 2. post-rollback hook: Sends failure event if deployment fails (requires --atomic flag)
-#
-# Telemetry data includes:
-# - Customer ID (from global.domain)
-# - Infrastructure version (from global.deployment.infraVersion)
-# - Deployment status (success/failure)
-# - Duration and timestamp
-#
-# Note: Telemetry gracefully degrades if SENTRY_DSN is not configured
-telemetry:
-  # Enable deployment telemetry hooks
-  enabled: true

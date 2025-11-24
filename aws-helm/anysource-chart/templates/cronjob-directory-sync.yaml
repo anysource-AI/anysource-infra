@@ -7,8 +7,10 @@ metadata:
     {{- include "anysource.labels" . | nindent 4 }}
     app.kubernetes.io/component: directory-sync
 spec:
-  schedule: {{ .Values.directorySync.schedule | default "*/10 * * * *" | quote }} # Every 10 minutes
+  schedule: {{ .Values.directorySync.schedule | default "*/10 * * * *" | quote }}
   concurrencyPolicy: Forbid  # Prevent concurrent runs
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
   startingDeadlineSeconds: 300
   jobTemplate:
     spec:
