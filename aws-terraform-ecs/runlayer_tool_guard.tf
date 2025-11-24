@@ -278,7 +278,9 @@ resource "aws_lb_listener" "runlayer_tool_guard" {
 resource "aws_ecs_capacity_provider" "runlayer_tool_guard" {
   count = var.enable_runlayer_tool_guard ? 1 : 0
 
-  name = "${var.project}-runlayer-tool-guard-${var.environment}"
+  # AWS doesn't allow capacity provider names starting with "ecs", "aws", or "fargate"
+  # Use a name that avoids these prefixes
+  name = "runlayer-tool-guard-${var.project}-${var.environment}"
 
   auto_scaling_group_provider {
     auto_scaling_group_arn         = aws_autoscaling_group.runlayer_tool_guard[0].arn
@@ -321,11 +323,11 @@ resource "aws_ecs_cluster_capacity_providers" "runlayer_tool_guard" {
 resource "aws_cloudwatch_log_group" "runlayer_tool_guard" {
   count = var.enable_runlayer_tool_guard ? 1 : 0
 
-  name              = "anysource-runlayer-tool-guard-logs-${var.environment}"
+  name              = "${var.project}-runlayer-tool-guard-logs-${var.environment}"
   retention_in_days = var.runlayer_tool_guard_log_retention_days # Configurable retention for security auditing
 
   tags = {
-    Name        = "anysource-runlayer-tool-guard-logs-${var.environment}"
+    Name        = "${var.project}-runlayer-tool-guard-logs-${var.environment}"
     Environment = var.environment
     ManagedBy   = "terraform"
     CostCenter  = "security"

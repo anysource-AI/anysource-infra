@@ -17,6 +17,29 @@ resource "aws_cloudwatch_log_group" "ecs_cw_log_group" {
   retention_in_days = 365
 }
 
+locals {
+  backend_env_list = [
+    for k in sort(keys(var.backend_env_vars)) : {
+      name  = k
+      value = tostring(var.backend_env_vars[k])
+    }
+  ]
+
+  frontend_env_list = [
+    for k in sort(keys(var.frontend_env_vars)) : {
+      name  = k
+      value = tostring(var.frontend_env_vars[k])
+    }
+  ]
+
+  backend_secret_list = [
+    for k in sort(keys(var.backend_secret_vars)) : {
+      name      = k
+      valueFrom = var.backend_secret_vars[k]
+    }
+  ]
+}
+
 # Trigger replacement when ECR image changes
 resource "terraform_data" "image_trigger" {
   for_each = var.services_configurations
@@ -43,9 +66,8 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
       condition     = var.ecr_repositories[each.key] != null && var.ecr_repositories[each.key] != ""
       error_message = "ECR repository URI for service '${each.key}' cannot be null or empty. This prevents fallback to Docker Hub (:latest) which can cause rate limiting and security issues."
     }
-    ignore_changes        = [family, container_definitions]
+    ignore_changes        = [family]
     create_before_destroy = true
-    replace_triggered_by  = [terraform_data.image_trigger[each.key]]
   }
 
   # Prevent Terraform from deregistering old task definition revisions
@@ -61,21 +83,11 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         essential = false
         command   = ["bash", "scripts/prestart.sh"]
         environment = concat(
-          [
-            for key, value in var.backend_env_vars : {
-              name  = key
-              value = value
-            }
-          ],
+          local.backend_env_list,
           lookup(each.value, "environment", [])
         ),
         secrets = concat(
-          [
-            for key, value in var.backend_secret_vars : {
-              name      = key
-              valueFrom = value
-            }
-          ],
+          local.backend_secret_list,
           lookup(each.value, "secrets", [])
         ),
         logConfiguration = {
@@ -110,21 +122,11 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
           }
         ],
         environment = concat(
-          [
-            for key, value in(each.key == "backend" ? var.backend_env_vars : var.frontend_env_vars) : {
-              name  = key
-              value = value
-            }
-          ],
+          each.key == "backend" ? local.backend_env_list : local.frontend_env_list,
           lookup(each.value, "environment", [])
         ),
         secrets = concat(
-          [
-            for key, value in(each.key == "backend" ? var.backend_secret_vars : {}) : {
-              name      = key
-              valueFrom = value
-            }
-          ],
+          each.key == "backend" ? local.backend_secret_list : [],
           lookup(each.value, "secrets", [])
         ),
         logConfiguration = {

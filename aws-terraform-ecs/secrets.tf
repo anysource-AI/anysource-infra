@@ -51,11 +51,7 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     SENTRY_RELAY_SECRET_KEY = local.relay_secret_key                                   # Empty if not in vault
     SENTRY_RELAY_ID         = local.relay_id                                           # Empty if not in vault
     AUTH_API_KEY            = var.auth_api_key
-    }, var.domain_name != "" ? {
-    # When domain is provided, use HTTPS with domain
-    APP_URL              = "https://${var.domain_name}"
-    BACKEND_CORS_ORIGINS = "https://${var.domain_name}"
-  } : {}))
+  }, {}))
 
   lifecycle {
     create_before_destroy = true
