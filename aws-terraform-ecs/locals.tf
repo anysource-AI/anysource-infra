@@ -5,8 +5,8 @@ locals {
   private_subnet_ids = var.existing_vpc_id != null ? var.existing_private_subnet_ids : module.vpc[0].private_subnets
   public_subnet_ids  = var.existing_vpc_id != null ? var.existing_public_subnet_ids : module.vpc[0].public_subnets
 
-  app_url = "https://${var.domain_name}"
-
+  app_url              = "https://${var.domain_name}"
+  backend_cors_origins = length(var.backend_cors_origins) > 0 ? join(",", var.backend_cors_origins) : ""
   # Deployment identification - customer_id defaults to domain name
   customer_id = var.customer_id != "" ? var.customer_id : var.domain_name
 
@@ -26,7 +26,7 @@ locals {
     REDIS_URL            = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0"
     APP_URL              = local.app_url
     AUTH_CLIENT_ID       = var.auth_client_id
-    BACKEND_CORS_ORIGINS = local.app_url
+    BACKEND_CORS_ORIGINS = local.backend_cors_origins
     WORKERS              = var.workers
     # AWS region for Bedrock and other AWS services
     AWS_REGION = var.region

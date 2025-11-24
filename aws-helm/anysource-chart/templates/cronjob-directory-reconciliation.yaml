@@ -1,24 +1,24 @@
-{{- if .Values.directorySync.enabled | default true }}
+{{- if and .Values.directorySync.enabled (.Values.directorySync.reconciliation.enabled | default false) }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: directory-sync
+  name: directory-reconciliation
   labels:
     {{- include "anysource.labels" . | nindent 4 }}
-    app.kubernetes.io/component: directory-sync
+    app.kubernetes.io/component: directory-reconciliation
 spec:
-  schedule: {{ .Values.directorySync.schedule | default "*/10 * * * *" | quote }} # Every 10 minutes
+  schedule: {{ .Values.directorySync.reconciliation.schedule | default "0 4 * * *" | quote }}
   concurrencyPolicy: Forbid  # Prevent concurrent runs
   startingDeadlineSeconds: 300
   jobTemplate:
     spec:
       backoffLimit: 3
-      activeDeadlineSeconds: 3600 # 1 hour timeout
+      activeDeadlineSeconds: 7200 # 2 hour timeout (reconciliation may take longer)
       template:
         metadata:
           labels:
             {{- include "anysource.selectorLabels" . | nindent 12 }}
-            app.kubernetes.io/component: directory-sync
+            app.kubernetes.io/component: directory-reconciliation
             {{- with .Values.podLabels }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -36,12 +36,12 @@ spec:
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
           containers:
-          - name: directory-sync
+          - name: directory-reconciliation
             securityContext:
               {{- toYaml .Values.securityContext | nindent 14 }}
             image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag | default .Chart.AppVersion }}"
             imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
-            command: ["uv", "run", "python", "-m", "app.directory_sync.worker"]
+            command: ["uv", "run", "python", "-m", "app.directory_sync.worker", "--task", "reconcile"]
             env:
               - name: POSTGRES_SERVER
                 value: {{ include "anysource.database.host" . | quote }}
@@ -73,7 +73,7 @@ spec:
               {{- end }}
               # Directory sync specific configuration
               - name: DIRECTORY_SYNC_TIMEOUT_SECONDS
-                value: {{ .Values.directorySync.timeoutSeconds | default 1800 | quote }}
+                value: {{ .Values.directorySync.timeoutSeconds | default 3600 | quote }}
               - name: DIRECTORY_SYNC_BATCH_SIZE
                 value: {{ .Values.directorySync.batchSize | default 100 | quote }}
               {{- range $key, $value := .Values.backend.env }}
@@ -87,7 +87,7 @@ spec:
                   name: backend-secret
             {{- end }}
             resources:
-              {{- toYaml .Values.directorySync.resources | nindent 14 }}
+              {{- toYaml (.Values.directorySync.reconciliation.resources | default .Values.directorySync.resources) | nindent 14 }}
           {{- with .Values.nodeSelector }}
           nodeSelector:
             {{- toYaml . | nindent 12 }}
@@ -101,3 +101,4 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
 {{- end }}
+
