@@ -50,7 +50,7 @@ echo "✅ AWS CLI installed successfully"
 # Download and install NVIDIA GRID drivers
 echo "==> Downloading NVIDIA GRID driver from AWS S3..."
 cd /tmp
-/usr/local/bin/aws s3 cp s3://ec2-linux-nvidia-drivers/latest/NVIDIA-Linux-x86_64-580.95.05-grid-aws.run . \
+/usr/local/bin/aws s3 cp s3://ec2-linux-nvidia-drivers/grid-19.2/NVIDIA-Linux-x86_64-580.95.05-grid-aws.run . \
   --region ${region} --no-sign-request || {
   echo "Failed to download GRID driver"
   exit 1
