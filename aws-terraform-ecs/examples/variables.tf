@@ -45,7 +45,6 @@ variable "sentry_dsn" {
   type        = string
   description = "Sentry DSN for error tracking and monitoring"
   default     = ""
-  sensitive   = true
 }
 
 # ========================================

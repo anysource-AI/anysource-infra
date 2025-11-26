@@ -257,7 +257,6 @@ variable "sentry_dsn" {
   type        = string
   description = "Sentry DSN override for this environment. If empty, uses value from WorkOS Vault."
   default     = ""
-  sensitive   = true
 }
 
 # Sentry Relay Configuration
@@ -420,18 +419,30 @@ variable "oauth_broker_url" {
 # SCIM / Directory Sync Configuration
 variable "directory_sync_enabled" {
   type        = bool
-  description = "Enable SCIM / Directory Sync scheduled task"
+  description = "Enable SCIM / Directory Sync scheduled task (event-based incremental sync)"
   default     = true
 }
 
 variable "directory_sync_interval_minutes" {
   type        = number
-  description = "Interval in minutes between directory sync runs"
+  description = "Interval in minutes between directory sync runs (event-based sync)"
   default     = 10
   validation {
     condition     = var.directory_sync_interval_minutes >= 1 && var.directory_sync_interval_minutes <= 1440
     error_message = "Directory sync interval must be between 1 and 1440 minutes (24 hours)"
   }
+}
+
+variable "directory_reconciliation_enabled" {
+  type        = bool
+  description = "Enable SCIM / Directory Reconciliation scheduled task (full state sync)"
+  default     = false
+}
+
+variable "directory_reconciliation_schedule" {
+  type        = string
+  description = "Cron expression for directory reconciliation schedule (e.g., 'cron(0 4 * * ? *)' for daily at 4 AM UTC)"
+  default     = "cron(0 4 * * ? *)"
 }
 variable "worker_config" {
   description = "Worker configuration for background job processing"
@@ -462,7 +473,7 @@ variable "enable_runlayer_tool_guard" {
 variable "runlayer_tool_guard_image_uri" {
   type        = string
   description = "Docker image URI for the Runlayer ToolGuard Flask server"
-  default     = "public.ecr.aws/anysource/anysource-models:prompt-guard-xgboost-v1.2"
+  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202511201855"
 }
 
 variable "runlayer_tool_guard_desired_count" {
@@ -535,5 +546,15 @@ variable "waf_allowlist_ipv4_cidrs" {
   validation {
     condition     = !var.waf_enable_ip_allowlisting || length(var.waf_allowlist_ipv4_cidrs) > 0
     error_message = "waf_allowlist_ipv4_cidrs must not be empty when waf_enable_ip_allowlisting is true. Provide at least one IPv4 CIDR block to avoid locking yourself out."
+  }
+}
+
+variable "backend_cors_origins" {
+  type        = list(string)
+  description = "Optional list of backend CORS origins; leave empty to let the backend default to APP_URL."
+  default     = []
+  validation {
+    condition     = length(var.backend_cors_origins) == 0 || alltrue([for origin in var.backend_cors_origins : can(regex("^https?://", origin))])
+    error_message = "backend_cors_origins entries must start with http:// or https://"
   }
 }

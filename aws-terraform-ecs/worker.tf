@@ -9,6 +9,22 @@ resource "aws_cloudwatch_log_group" "worker_log_group" {
   }
 }
 
+locals {
+  worker_env_list = [
+    for k in sort(keys(local.backend_env_vars)) : {
+      name  = k
+      value = tostring(local.backend_env_vars[k])
+    }
+  ]
+
+  worker_secret_list = [
+    for k in sort(keys(local.backend_secret_vars)) : {
+      name      = k
+      valueFrom = local.backend_secret_vars[k]
+    }
+  ]
+}
+
 resource "aws_ecs_task_definition" "worker_task" {
   family                   = "${var.project}-worker-${var.environment}"
   execution_role_arn       = module.iam.ecs_task_execution_role_arn
@@ -19,6 +35,7 @@ resource "aws_ecs_task_definition" "worker_task" {
   memory                   = var.worker_config.memory
 
   lifecycle {
+    ignore_changes        = [family]
     create_before_destroy = true
   }
 
@@ -30,19 +47,9 @@ resource "aws_ecs_task_definition" "worker_task" {
       memory    = var.worker_config.memory
       essential = true
 
-      environment = [
-        for key, value in local.backend_env_vars : {
-          name  = key
-          value = tostring(value)
-        }
-      ]
+      environment = local.worker_env_list
 
-      secrets = [
-        for key, value in local.backend_secret_vars : {
-          name      = key
-          valueFrom = value
-        }
-      ]
+      secrets = local.worker_secret_list
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -129,4 +136,3 @@ resource "aws_appautoscaling_policy" "worker_memory_scaling" {
     target_value = 80
   }
 }
-

@@ -16,7 +16,7 @@ data "aws_vpc" "selected" {
 #    - Eliminates hard-coded AMI IDs that are region-specific and become outdated
 #    - Ensures deployments work across regions and use latest security patches
 #
-# 2. Network Security: 
+# 2. Network Security:
 #    - Security group restricted to backend services only (not entire VPC CIDR)
 #    - Follows principle of least privilege for network access
 #    - TODO: Consider implementing mutual TLS or API key authentication between services
@@ -33,8 +33,8 @@ data "aws_vpc" "selected" {
 #    - Prevents resource exhaustion and ensures system stability
 #
 # 5. Controlled Scaling:
-#    - Auto-scaling limited to 1 instance at a time for expensive GPU instances
-#    - Prevents unexpected cost spikes while maintaining availability
+#    - Capacity provider can surge to double desired tasks for rolling deploys (ASG max_size = desired * 2)
+#    - Scaling step allows adding up to desired_count instances at once to keep deploys fast
 #
 # 6. GPU Initialization:
 #    - Health check grace periods increased to 600 seconds
@@ -156,7 +156,7 @@ resource "aws_autoscaling_group" "runlayer_tool_guard" {
   health_check_grace_period = 900 # Extended for runtime GRID driver installation (10-15 min)
 
   min_size         = 1
-  max_size         = var.runlayer_tool_guard_desired_count
+  max_size         = var.runlayer_tool_guard_desired_count * 2
   desired_capacity = var.runlayer_tool_guard_desired_count
 
   launch_template {
@@ -278,14 +278,16 @@ resource "aws_lb_listener" "runlayer_tool_guard" {
 resource "aws_ecs_capacity_provider" "runlayer_tool_guard" {
   count = var.enable_runlayer_tool_guard ? 1 : 0
 
-  name = "${var.project}-runlayer-tool-guard-${var.environment}"
+  # AWS doesn't allow capacity provider names starting with "ecs", "aws", or "fargate"
+  # Use a name that avoids these prefixes
+  name = "runlayer-tool-guard-${var.project}-${var.environment}"
 
   auto_scaling_group_provider {
     auto_scaling_group_arn         = aws_autoscaling_group.runlayer_tool_guard[0].arn
     managed_termination_protection = "DISABLED"
 
     managed_scaling {
-      maximum_scaling_step_size = 1 # Conservative scaling for expensive GPU instances
+      maximum_scaling_step_size = var.runlayer_tool_guard_desired_count
       minimum_scaling_step_size = 1
       status                    = "ENABLED"
       target_capacity           = 100
@@ -321,11 +323,11 @@ resource "aws_ecs_cluster_capacity_providers" "runlayer_tool_guard" {
 resource "aws_cloudwatch_log_group" "runlayer_tool_guard" {
   count = var.enable_runlayer_tool_guard ? 1 : 0
 
-  name              = "anysource-runlayer-tool-guard-logs-${var.environment}"
+  name              = "${var.project}-runlayer-tool-guard-logs-${var.environment}"
   retention_in_days = var.runlayer_tool_guard_log_retention_days # Configurable retention for security auditing
 
   tags = {
-    Name        = "anysource-runlayer-tool-guard-logs-${var.environment}"
+    Name        = "${var.project}-runlayer-tool-guard-logs-${var.environment}"
     Environment = var.environment
     ManagedBy   = "terraform"
     CostCenter  = "security"
@@ -420,12 +422,21 @@ resource "aws_ecs_service" "runlayer_tool_guard" {
   cluster         = aws_ecs_cluster.runlayer_tool_guard[0].id
   task_definition = aws_ecs_task_definition.runlayer_tool_guard[0].arn
   desired_count   = var.runlayer_tool_guard_desired_count
-  launch_type     = "EC2"
+
+  capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.runlayer_tool_guard[0].name
+    base              = 1
+    weight            = 100
+  }
 
   # Service Connect disabled - Ubuntu ECS agent doesn't include Service Connect agent
   service_connect_configuration {
     enabled = false
   }
+
+  # Rolling update: keep all tasks healthy and allow up to 100% surge (double capacity)
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
 
   # Register with NLB target group for stable internal access
   load_balancer {

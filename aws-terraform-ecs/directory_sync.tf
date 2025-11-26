@@ -88,9 +88,9 @@ resource "aws_ecs_task_definition" "directory_sync" {
   }])
 }
 
-# IAM Role for CloudWatch Events to execute ECS tasks
+# IAM Role for CloudWatch Events to execute ECS tasks (shared by sync and reconciliation)
 resource "aws_iam_role" "events_role" {
-  count = var.directory_sync_enabled ? 1 : 0
+  count = (var.directory_sync_enabled || var.directory_reconciliation_enabled) ? 1 : 0
 
   name = "${var.project}-events-role-${var.environment}"
 
@@ -114,9 +114,9 @@ resource "aws_iam_role" "events_role" {
   }
 }
 
-# IAM Policy for Events Role to run ECS tasks
+# IAM Policy for Events Role to run ECS tasks (allows both sync and reconciliation)
 resource "aws_iam_role_policy" "events_policy" {
-  count = var.directory_sync_enabled ? 1 : 0
+  count = (var.directory_sync_enabled || var.directory_reconciliation_enabled) ? 1 : 0
 
   name = "${var.project}-events-policy-${var.environment}"
   role = aws_iam_role.events_role[0].id
@@ -129,9 +129,14 @@ resource "aws_iam_role_policy" "events_policy" {
         Action = [
           "ecs:RunTask"
         ]
-        Resource = [
-          "arn:aws:ecs:${var.region}:*:task-definition/${var.project}-directory-sync-${var.environment}:*"
-        ]
+        Resource = concat(
+          var.directory_sync_enabled ? [
+            "arn:aws:ecs:${var.region}:*:task-definition/${var.project}-directory-sync-${var.environment}:*"
+          ] : [],
+          var.directory_reconciliation_enabled ? [
+            "arn:aws:ecs:${var.region}:*:task-definition/${var.project}-directory-reconciliation-${var.environment}:*"
+          ] : []
+        )
       },
       {
         Effect = "Allow"
