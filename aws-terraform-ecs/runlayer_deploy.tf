@@ -294,6 +294,94 @@ resource "aws_iam_policy" "runlayer_deploy_policy" {
           "ecr:CompleteLayerUpload"
         ]
         Resource = aws_ecr_repository.custom_images.arn
+      },
+      # DynamoDB - Create/delete tables with runlayer-* prefix
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:CreateTable",
+          "dynamodb:DeleteTable",
+          "dynamodb:UpdateTable",
+          "dynamodb:DescribeTable",
+          "dynamodb:DescribeTimeToLive",
+          "dynamodb:UpdateTimeToLive",
+          "dynamodb:TagResource",
+          "dynamodb:UntagResource",
+          "dynamodb:ListTagsOfResource",
+          "dynamodb:DescribeContinuousBackups",
+          "dynamodb:UpdateContinuousBackups"
+        ]
+        Resource = "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/runlayer-*"
+      },
+      # DynamoDB - Read-only operations (needed for Terraform planning)
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:ListTables",
+          "dynamodb:DescribeLimits"
+        ]
+        Resource = "*"
+      },
+      # IAM - Create/manage task roles with runlayer-* prefix
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:GetRole",
+          "iam:UpdateRole",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:ListRoleTags",
+          "iam:UpdateAssumeRolePolicy",
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy",
+          "iam:GetRolePolicy",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:ListAttachedRolePolicies",
+          "iam:ListRolePolicies"
+        ]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/runlayer-*"
+      },
+      # IAM - PassRole for runlayer-* roles to ECS
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/runlayer-*"
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "ecs-tasks.amazonaws.com"
+          }
+        }
+      },
+      # IAM - Create/manage policies with runlayer-* prefix
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:CreatePolicy",
+          "iam:DeletePolicy",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:ListPolicyVersions",
+          "iam:CreatePolicyVersion",
+          "iam:DeletePolicyVersion",
+          "iam:TagPolicy",
+          "iam:UntagPolicy",
+          "iam:ListPolicyTags"
+        ]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/runlayer-*"
+      },
+      # IAM - Read-only operations (needed for Terraform planning)
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:ListRoles",
+          "iam:ListPolicies"
+        ]
+        Resource = "*"
       }
     ]
   })
