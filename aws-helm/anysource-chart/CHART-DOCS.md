@@ -1,6 +1,6 @@
 # anysource
 
-![Version: 0.9.1](https://img.shields.io/badge/Version-0.9.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.6.0](https://img.shields.io/badge/AppVersion-1.6.0-informational?style=flat-square)
+![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.11.0](https://img.shields.io/badge/AppVersion-1.11.0-informational?style=flat-square)
 
 Runlayer application Helm chart for Kubernetes deployment
 
@@ -58,7 +58,6 @@ Runlayer application Helm chart for Kubernetes deployment
 | backend.readinessProbe.periodSeconds | int | `10` |  |
 | backend.readinessProbe.timeoutSeconds | int | `5` |  |
 | backend.replicas | int | `2` |  |
-| backend.resources.limits.cpu | string | `"4000m"` |  |
 | backend.resources.limits.memory | string | `"8192Mi"` |  |
 | backend.resources.requests.cpu | string | `"4000m"` |  |
 | backend.resources.requests.memory | string | `"8192Mi"` |  |
@@ -71,7 +70,11 @@ Runlayer application Helm chart for Kubernetes deployment
 | certManager.issuer.name | string | `"letsencrypt-prod"` |  |
 | certManager.issuer.server | string | `"https://acme-v02.api.letsencrypt.org/directory"` |  |
 | directorySync.enabled | bool | `true` |  |
-| directorySync.resources.limits.cpu | string | `"1000m"` |  |
+| directorySync.reconciliation.enabled | bool | `false` |  |
+| directorySync.reconciliation.resources.limits.memory | string | `"2048Mi"` |  |
+| directorySync.reconciliation.resources.requests.cpu | string | `"1000m"` |  |
+| directorySync.reconciliation.resources.requests.memory | string | `"2048Mi"` |  |
+| directorySync.reconciliation.schedule | string | `"0 4 * * *"` |  |
 | directorySync.resources.limits.memory | string | `"2048Mi"` |  |
 | directorySync.resources.requests.cpu | string | `"1000m"` |  |
 | directorySync.resources.requests.memory | string | `"2048Mi"` |  |
@@ -105,7 +108,6 @@ Runlayer application Helm chart for Kubernetes deployment
 | frontend.readinessProbe.periodSeconds | int | `10` |  |
 | frontend.readinessProbe.timeoutSeconds | int | `5` |  |
 | frontend.replicas | int | `2` |  |
-| frontend.resources.limits.cpu | string | `"1000m"` |  |
 | frontend.resources.limits.memory | string | `"2048Mi"` |  |
 | frontend.resources.requests.cpu | string | `"1000m"` |  |
 | frontend.resources.requests.memory | string | `"2048Mi"` |  |
@@ -151,9 +153,7 @@ Runlayer application Helm chart for Kubernetes deployment
 | networkPolicy.enabled | bool | `false` |  |
 | networkPolicy.vpcCidr | string | `""` |  |
 | nodeSelector | object | `{}` |  |
-| podAnnotations."prometheus.io/path" | string | `"/metrics"` |  |
-| podAnnotations."prometheus.io/port" | string | `"8000"` |  |
-| podAnnotations."prometheus.io/scrape" | string | `"true"` |  |
+| podAnnotations | object | `{}` |  |
 | podLabels | object | `{}` |  |
 | podSecurityContext.fsGroup | int | `1001` |  |
 | podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
@@ -195,7 +195,6 @@ Runlayer application Helm chart for Kubernetes deployment
 | prestart.image.pullPolicy | string | `"IfNotPresent"` |  |
 | prestart.image.repository | string | `"public.ecr.aws/anysource/anysource-api"` |  |
 | prestart.image.tag | string | `""` |  |
-| prestart.resources.limits.cpu | string | `"1000m"` |  |
 | prestart.resources.limits.memory | string | `"2048Mi"` |  |
 | prestart.resources.requests.cpu | string | `"1000m"` |  |
 | prestart.resources.requests.memory | string | `"2048Mi"` |  |
@@ -255,7 +254,6 @@ Runlayer application Helm chart for Kubernetes deployment
 | relay.readinessProbe.periodSeconds | int | `10` |  |
 | relay.readinessProbe.timeoutSeconds | int | `5` |  |
 | relay.replicas | int | `2` |  |
-| relay.resources.limits.cpu | string | `"1000m"` |  |
 | relay.resources.limits.memory | string | `"2048Mi"` |  |
 | relay.resources.requests.cpu | string | `"1000m"` |  |
 | relay.resources.requests.memory | string | `"2048Mi"` |  |
@@ -287,6 +285,7 @@ Runlayer application Helm chart for Kubernetes deployment
 | storageClass.provisioner | string | `"ebs.csi.aws.com"` |  |
 | storageClass.reclaimPolicy | string | `"Delete"` |  |
 | storageClass.volumeBindingMode | string | `"WaitForFirstConsumer"` |  |
+| telemetry.enabled | bool | `true` |  |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------

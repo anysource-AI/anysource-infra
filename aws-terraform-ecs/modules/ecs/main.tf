@@ -168,6 +168,16 @@ resource "aws_ecs_service" "private_service" {
     container_port   = each.value.container_port
   }
 
+  # Internal ALB load balancer (for dual ALB setup)
+  dynamic "load_balancer" {
+    for_each = var.internal_alb_target_groups != null ? [1] : []
+    content {
+      target_group_arn = var.internal_alb_target_groups[each.key].arn
+      container_name   = each.key
+      container_port   = each.value.container_port
+    }
+  }
+
   # Service Connect configuration
   # - Backend: Enabled as both server (publishable) and client (can discover relay)
   # - Frontend: Disabled (doesn't need service discovery)
@@ -236,6 +246,14 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
   }
 }
 
+# Local variables for backend security group
+# When VPC peering is configured, backend must accept traffic from peered VPCs
+# This works independently of the dual ALB feature
+locals {
+  peered_vpc_cidrs      = [for peer in var.vpc_peering_connections : peer.peer_vpc_cidr]
+  backend_allowed_cidrs = length(local.peered_vpc_cidrs) > 0 ? concat([var.vpc_cidr], local.peered_vpc_cidrs) : [var.vpc_cidr]
+}
+
 module "sg_backend" {
   source      = "../security-group"
   name        = "${var.project}-backend-security-group-sg"
@@ -246,7 +264,7 @@ module "sg_backend" {
       from_port       = var.services_configurations["backend"].container_port
       to_port         = var.services_configurations["backend"].container_port
       protocol        = "tcp"
-      cidr_blocks     = [var.vpc_cidr]
+      cidr_blocks     = local.backend_allowed_cidrs
       security_groups = []
     }
   ]

@@ -291,3 +291,63 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
   depends_on = [module.ecs]
 }
 
+# Internal ALB Monitoring (for dual ALB setup)
+resource "aws_cloudwatch_metric_alarm" "internal_alb_target_response_time" {
+  for_each            = var.enable_dual_alb ? local.monitored_services : {}
+  alarm_name          = "${var.project}-${var.environment}-internal-alb-${each.key}-response-time"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "TargetResponseTime"
+  namespace           = "AWS/ApplicationELB"
+  period              = "300"
+  statistic           = "Average"
+  threshold           = "5"
+  alarm_description   = "This metric monitors Internal ALB target response time"
+  actions_enabled     = false
+
+  dimensions = {
+    LoadBalancer = module.alb_internal[0].alb_arn_suffix
+    TargetGroup  = module.alb_internal[0].target_groups[each.key].arn_suffix
+  }
+
+  depends_on = [module.ecs]
+}
+
+resource "aws_cloudwatch_metric_alarm" "internal_alb_5xx_errors" {
+  count               = var.enable_dual_alb ? 1 : 0
+  alarm_name          = "${var.project}-internal-alb-5xx-errors-${var.environment}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HTTPCode_ELB_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = var.alb_5xx_alarm_period
+  statistic           = "Sum"
+  threshold           = var.alb_5xx_alarm_threshold
+  alarm_description   = "Alarm when the Internal ALB returns 5XX errors"
+  dimensions = {
+    LoadBalancer = module.alb_internal[0].alb_arn_suffix
+  }
+  treat_missing_data = "notBreaching"
+  actions_enabled    = false
+}
+
+resource "aws_cloudwatch_metric_alarm" "internal_alb_unhealthy_targets" {
+  for_each            = var.enable_dual_alb ? local.monitored_services : {}
+  alarm_name          = "${var.project}-${var.environment}-internal-alb-${each.key}-unhealthy-targets"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "UnHealthyHostCount"
+  namespace           = "AWS/ApplicationELB"
+  period              = "300"
+  statistic           = "Average"
+  threshold           = "0"
+  alarm_description   = "This metric monitors Internal ALB unhealthy targets"
+  actions_enabled     = false
+
+  dimensions = {
+    LoadBalancer = module.alb_internal[0].alb_arn_suffix
+    TargetGroup  = module.alb_internal[0].target_groups[each.key].arn_suffix
+  }
+
+  depends_on = [module.ecs]
+}

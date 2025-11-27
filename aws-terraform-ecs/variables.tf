@@ -181,6 +181,31 @@ variable "alb_allowed_cidrs" {
   default     = ["0.0.0.0/0"]
 }
 
+# Dual ALB Configuration for Split-Horizon DNS
+variable "enable_dual_alb" {
+  description = "Enable dual ALB setup (public + internal) for split-horizon DNS. When enabled, creates both a public ALB for internet traffic and an internal ALB for private network traffic."
+  type        = bool
+  default     = false
+}
+
+variable "private_hosted_zone_id" {
+  description = "Existing Route53 private hosted zone ID to use for internal DNS. If not provided and enable_dual_alb is true, a new private hosted zone will be created."
+  type        = string
+  default     = ""
+}
+
+variable "private_hosted_zone_vpc_id" {
+  description = "VPC ID to associate with the private hosted zone. If empty, uses the service VPC (local.vpc_id). Only applies when enable_dual_alb is true and private_hosted_zone_id is not provided."
+  type        = string
+  default     = ""
+}
+
+variable "private_hosted_zone_additional_vpc_ids" {
+  description = "Additional VPC IDs to associate with the private hosted zone (e.g., for VPC peering scenarios). Same-account associations only; cross-account requires AWS RAM."
+  type        = list(string)
+  default     = []
+}
+
 # SSL Certificate Configuration
 variable "ssl_certificate_arn" {
   description = "Existing SSL certificate ARN (optional - will create new ACM certificate if not provided)"
@@ -473,7 +498,7 @@ variable "enable_runlayer_tool_guard" {
 variable "runlayer_tool_guard_image_uri" {
   type        = string
   description = "Docker image URI for the Runlayer ToolGuard Flask server"
-  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202511201855"
+  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202511261110"
 }
 
 variable "runlayer_tool_guard_desired_count" {
@@ -556,5 +581,33 @@ variable "backend_cors_origins" {
   validation {
     condition     = length(var.backend_cors_origins) == 0 || alltrue([for origin in var.backend_cors_origins : can(regex("^https?://", origin))])
     error_message = "backend_cors_origins entries must start with http:// or https://"
+  }
+}
+
+# VPC Peering Configuration
+variable "vpc_peering_connections" {
+  description = "Map of VPC peering connections to accept and configure routes for. Only works when creating a new VPC (not with existing_vpc_id). Optional - defaults to no peering. SECURITY: peer_owner_id is now REQUIRED for all connections to prevent accepting connections from unknown sources."
+  type = map(object({
+    peering_connection_id = string               # VPC peering connection ID to accept
+    peer_vpc_cidr         = string               # CIDR of the peer VPC for routing
+    peer_owner_id         = string               # Peer account ID (REQUIRED for security validation)
+    peer_region           = optional(string, "") # Peer region (cross-region, optional)
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for key, peer in var.vpc_peering_connections :
+      peer.peer_owner_id != null && peer.peer_owner_id != ""
+    ])
+    error_message = "All VPC peering connections must have peer_owner_id specified. This is required for security validation to ensure you only accept connections from known and trusted AWS accounts."
+  }
+
+  validation {
+    condition = alltrue([
+      for key, peer in var.vpc_peering_connections :
+      !cidrcontains(var.vpc_cidr, peer.peer_vpc_cidr) && !cidrcontains(peer.peer_vpc_cidr, var.vpc_cidr)
+    ])
+    error_message = "VPC peering CIDR blocks must not overlap with the current VPC CIDR. Overlapping CIDR blocks cause routing conflicts and are not allowed. Please ensure peer_vpc_cidr does not overlap with vpc_cidr."
   }
 }
