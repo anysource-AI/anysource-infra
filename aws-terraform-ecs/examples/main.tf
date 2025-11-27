@@ -48,6 +48,12 @@ module "ecs_cluster" {
   # SSL Certificate (optional - will create ACM certificate if not provided)
   # ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
 
+  # Dual ALB Configuration (optional - for split-horizon DNS)
+  # enable_dual_alb                           = var.enable_dual_alb
+  # private_hosted_zone_id                    = var.private_hosted_zone_id
+  # private_hosted_zone_vpc_id                = var.private_hosted_zone_vpc_id
+  # private_hosted_zone_additional_vpc_ids    = var.private_hosted_zone_additional_vpc_ids
+
   # Monitoring (optional)
   # enable_monitoring = true
   # sentry_dsn        = var.sentry_dsn

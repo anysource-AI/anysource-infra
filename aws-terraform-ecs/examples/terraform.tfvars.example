@@ -79,3 +79,25 @@ ecr_repositories = {
 # Bedrock Guardrail Configuration
 # Sensitivity level for prompt attack detection (LOW, MEDIUM, or HIGH)
 # bedrock_prompt_guard_sensitivity = "MEDIUM" # Default: MEDIUM
+
+# Dual ALB Configuration for Split-Horizon DNS
+# Enable to create both a public ALB (for internet access) and an internal ALB (for private network access)
+# Useful when you need the same domain name to resolve differently based on network location
+# enable_dual_alb = true
+# private_hosted_zone_id = ""  # Optional: Use existing private hosted zone ID
+# private_hosted_zone_vpc_id = ""  # Optional: VPC ID for private hosted zone (defaults to service VPC)
+# private_hosted_zone_additional_vpc_ids = []  # Optional: Additional VPCs to associate with private zone
+
+# VPC Peering Configuration (Cross-Account/Cross-VPC Connectivity)
+# Enable VPC peering to allow traffic between the Runlayer VPC and other VPCs
+# IMPORTANT: Only works when module creates the VPC (not with existing_vpc_id)
+# SECURITY: peer_owner_id is REQUIRED to ensure connections from known sources
+# Connections are automatically accepted after validation
+# vpc_peering_connections = {
+#   "customer-vpc" = {
+#     peering_connection_id = "pcx-0abc123def456"  # VPC peering connection ID from the initiating side
+#     peer_vpc_cidr         = "172.16.0.0/16"      # CIDR block of the peer VPC
+#     peer_owner_id         = "123456789012"        # AWS account ID of the peer (REQUIRED)
+#     peer_region           = "us-east-1"           # AWS region of the peer (optional, for cross-region)
+#   }
+# }
