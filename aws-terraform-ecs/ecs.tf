@@ -22,6 +22,8 @@ module "ecs" {
   region                            = var.region
   vpc_id                            = local.vpc_id
   vpc_cidr                          = var.vpc_cidr
+  enable_dual_alb                   = var.enable_dual_alb
+  vpc_peering_connections           = var.vpc_peering_connections
   services_configurations           = var.services_configurations
   services_names                    = keys(var.services_configurations)
   ecr_repositories                  = var.ecr_repositories
@@ -31,6 +33,7 @@ module "ecs" {
   public_subnets                    = local.public_subnet_ids
   public_alb_security_group         = module.sg_alb
   public_alb_target_groups          = module.alb.target_groups
+  internal_alb_target_groups        = var.enable_dual_alb ? module.alb_internal[0].target_groups : null
   prestart_container_cpu            = var.prestart_container_cpu
   prestart_container_memory         = var.prestart_container_memory
   prestart_timeout_seconds          = var.prestart_timeout_seconds

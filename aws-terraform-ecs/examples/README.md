@@ -220,6 +220,95 @@ module "ecs_cluster" {
 }
 ```
 
+### Dual ALB Configuration (Split-Horizon DNS)
+
+Enable dual ALB setup to create both a public ALB (for internet access) and an internal ALB (for private network access). This is useful when you need the same domain name to resolve differently based on network location.
+
+```hcl
+module "ecs_cluster" {
+  # ... other configuration ...
+
+  # Enable dual ALB setup
+  enable_dual_alb = true
+  
+  # Optional: Use existing private hosted zone
+  # private_hosted_zone_id = "Z1234567890ABC"
+  
+  # Optional: Specify VPC for private hosted zone (defaults to service VPC)
+  # private_hosted_zone_vpc_id = "vpc-0a1b2c3d"
+  
+  # Optional: Associate additional VPCs with private hosted zone
+  # private_hosted_zone_additional_vpc_ids = ["vpc-1e2f3g4h", "vpc-2i3j4k5l"]
+}
+```
+
+**How it works:**
+- Creates a public ALB in public subnets for internet traffic
+- Creates an internal ALB in private subnets for internal network traffic
+- Sets up split-horizon DNS:
+  - Public DNS zone points to public ALB
+  - Private DNS zone points to internal ALB
+- Same domain name resolves differently based on network location
+
+### VPC Peering Configuration (Cross-Account/Cross-VPC Connectivity)
+
+Enable VPC peering to allow traffic between the Runlayer VPC and other VPCs (for example, a customer's existing VPC). This is useful when you need bidirectional connectivity for internal services.
+
+**Important**: This feature only works when the module creates the VPC (not when using `existing_vpc_id`).
+
+**🔒 Security Note**: VPC peering connections require `peer_owner_id` to be specified for all connections. This validation ensures you only accept connections from known and trusted AWS accounts. Connections are automatically accepted after validation.
+
+```hcl
+module "ecs_cluster" {
+  # ... other configuration ...
+
+  # Accept and configure VPC peering connections
+  vpc_peering_connections = {
+    "customer-vpc" = {
+      peering_connection_id = "pcx-0abc123def456"  # VPC peering connection ID from the initiating side
+      peer_vpc_cidr         = "172.16.0.0/16"      # CIDR block of the peer VPC
+      peer_owner_id         = "123456789012"        # AWS account ID of the peer (REQUIRED for security)
+      peer_region           = "us-east-1"           # AWS region of the peer (optional, for cross-region)
+    }
+  }
+  
+  # Optional: For dual ALB setup, associate private hosted zone with peered VPC
+  enable_dual_alb = true
+  private_hosted_zone_additional_vpc_ids = ["vpc-customer123"]
+}
+```
+
+**How it works:**
+
+- **Security validation**: The module validates that all peering connections have a `peer_owner_id` specified to prevent accepting connections from unknown sources
+- **Automatic acceptance**: Since we validate the peer account ID, connections are automatically accepted - the validation is the security control
+- **Configures routing**: Automatically adds routes to all private route tables pointing to the peered VPC CIDR
+- **Updates security groups**: Allows traffic from peered VPC CIDRs to the internal ALB (when `enable_dual_alb` is true)
+- **DNS resolution**: Use `private_hosted_zone_additional_vpc_ids` to enable DNS resolution from the peered VPC
+
+**Prerequisites:**
+
+1. The peer VPC must have already initiated the VPC peering connection
+2. You need the peering connection ID (`pcx-xxxxx`) from the initiating side
+3. You need the CIDR block of the peer VPC
+4. **You MUST provide the peer AWS account ID** (`peer_owner_id`) for security validation
+
+**Security Best Practices:**
+
+- ✅ **Always specify `peer_owner_id`** - This is required and validates the source account
+- ✅ **Document the business justification** for each VPC peering connection
+- ✅ **Review peering connections regularly** and remove unused connections
+- ❌ **Never peer with untrusted or unknown AWS accounts**
+- ✅ **Validation ensures security** - The `peer_owner_id` validation is the security control
+
+**Use cases:**
+
+- Connecting to a customer's existing VPC for internal API access
+- Multi-VPC architectures with centralized services
+- Hybrid cloud setups with on-premises connectivity via Transit Gateway
+
+**Note**: VPC peering is completely optional. If you don't need cross-VPC connectivity, simply omit the `vpc_peering_connections` variable.
+
 ### Database Scaling
 
 Customize Aurora Serverless v2 capacity in `main.tf`:
@@ -304,6 +393,10 @@ After applying, you'll get important outputs:
 - `application_url` - HTTPS URL to access your application
 - `alb_dns_name` - DNS name of the ALB (for creating DNS records)
 - `alb_zone_id` - Zone ID of the ALB (for Route53 alias records)
+- `public_alb_dns_name` - DNS name of the public ALB (same as alb_dns_name)
+- `public_alb_zone_id` - Zone ID of the public ALB (same as alb_zone_id)
+- `internal_alb_dns_name` - DNS name of the internal ALB (only when enable_dual_alb is true)
+- `internal_alb_zone_id` - Zone ID of the internal ALB (only when enable_dual_alb is true)
 - `task_role_arn` - IAM role ARN for ECS tasks
 
 ## Next Steps

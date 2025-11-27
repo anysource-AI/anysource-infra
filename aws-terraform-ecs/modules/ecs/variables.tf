@@ -75,6 +75,13 @@ variable "public_alb_target_groups" {
   }))
 }
 
+variable "internal_alb_target_groups" {
+  type = map(object({
+    arn = string
+  }))
+  default     = null
+  description = "Internal ALB target groups for dual ALB setup. When provided, ECS services will register with both public and internal ALBs."
+}
 
 variable "services_configurations" {
 }
@@ -105,4 +112,21 @@ variable "enable_ecs_exec" {
   type        = bool
   description = "Enable ECS Exec for interactive shell access to containers"
   default     = false
+}
+
+variable "enable_dual_alb" {
+  type        = bool
+  description = "Whether dual ALB setup is enabled"
+  default     = false
+}
+
+variable "vpc_peering_connections" {
+  description = "VPC peering connections for security group rules and routing"
+  type = map(object({
+    peering_connection_id = string               # VPC peering connection ID to accept
+    peer_vpc_cidr         = string               # CIDR of the peer VPC for routing
+    peer_owner_id         = string               # Peer account ID (REQUIRED for security validation)
+    peer_region           = optional(string, "") # Peer region (cross-region, optional)
+  }))
+  default = {}
 }

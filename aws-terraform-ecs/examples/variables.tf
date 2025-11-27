@@ -85,3 +85,31 @@ variable "waf_allowlist_ipv4_cidrs" {
   description = "List of IPv4 CIDR blocks to allowlist in the WAF (e.g., ['1.2.3.4/32', '10.0.0.0/8'])"
   default     = []
 }
+
+# ========================================
+# Dual ALB Configuration
+# ========================================
+
+variable "enable_dual_alb" {
+  type        = bool
+  description = "Enable dual ALB setup (public + internal) for split-horizon DNS"
+  default     = false
+}
+
+variable "private_hosted_zone_id" {
+  type        = string
+  description = "Existing Route53 private hosted zone ID to use for internal DNS"
+  default     = ""
+}
+
+variable "private_hosted_zone_vpc_id" {
+  type        = string
+  description = "VPC ID to associate with the private hosted zone. If empty, uses the service VPC."
+  default     = ""
+}
+
+variable "private_hosted_zone_additional_vpc_ids" {
+  type        = list(string)
+  description = "Additional VPC IDs to associate with the private hosted zone (e.g., for VPC peering scenarios)"
+  default     = []
+}
