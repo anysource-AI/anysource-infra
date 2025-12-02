@@ -110,8 +110,11 @@ backend:
     SECRET_KEY: "change-me-secret-key-minimum-32-characters-long"
     MASTER_SALT: "change-me-master-salt-minimum-32-characters-long"
     AUTH_API_KEY: "your-auth-api-key-here"
-    # Sentry DSN - Get from https://anysource-er.sentry.io/settings/projects/<project>/keys/
-    SENTRY_DSN: "https://your-key@your-org.ingest.sentry.io/project-id"
+    # Sentry DSN - Two options:
+    # 1. Use helm-fetch-vault-credentials.sh to fetch from WorkOS Vault
+    # 2. Set to empty string ("") for runtime fetch from Vault using AUTH_API_KEY
+    # 3. Or provide explicit DSN: "https://key@org.ingest.sentry.io/project-id"
+    SENTRY_DSN: "" # Recommended: empty for automatic WorkOS Vault fetch
 
 # Service Account Configuration
 serviceAccount:

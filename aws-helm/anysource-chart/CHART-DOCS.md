@@ -1,6 +1,6 @@
 # anysource
 
-![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.11.0](https://img.shields.io/badge/AppVersion-1.11.0-informational?style=flat-square)
+![Version: 0.16.1](https://img.shields.io/badge/Version-0.16.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.11.0](https://img.shields.io/badge/AppVersion-1.11.0-informational?style=flat-square)
 
 Runlayer application Helm chart for Kubernetes deployment
 
@@ -64,7 +64,7 @@ Runlayer application Helm chart for Kubernetes deployment
 | backend.secrets.AUTH_API_KEY | string | `"sk_live_your_auth_api_key_here"` |  |
 | backend.secrets.MASTER_SALT | string | `"your-master-salt-here-change-in-production"` |  |
 | backend.secrets.SECRET_KEY | string | `"your-secret-key-here-change-in-production"` |  |
-| backend.secrets.SENTRY_DSN | string | `"https://your-key@your-org.ingest.sentry.io/project-id"` |  |
+| backend.secrets.SENTRY_DSN | string | `""` |  |
 | certManager.enabled | bool | `false` |  |
 | certManager.issuer.email | string | `"your-email@example.com"` |  |
 | certManager.issuer.name | string | `"letsencrypt-prod"` |  |

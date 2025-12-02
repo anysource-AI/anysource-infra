@@ -268,7 +268,7 @@ echo "Starting CloudWatch agent..."
 
 # Install and start ECS agent (Ubuntu doesn't have it pre-installed)
 echo "==> Installing ECS agent..."
-curl -o /tmp/ecs-init.deb https://s3.amazonaws.com/amazon-ecs-agent-${region}/amazon-ecs-init-latest.amd64.deb || {
+curl -o /tmp/ecs-init.deb https://s3.${region}.amazonaws.com/amazon-ecs-agent-${region}/amazon-ecs-init-latest.amd64.deb || {
   echo "Failed to download ECS agent"
   exit 1
 }

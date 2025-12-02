@@ -46,6 +46,15 @@ log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}" >&2; }
 
+# Check required dependencies
+for cmd in yq helm; do
+    if ! command -v "$cmd" &> /dev/null; then
+        log_error "Required command '$cmd' not found"
+        echo "   Please install $cmd and try again"
+        exit 1
+    fi
+done
+
 # =============================================================================
 # Argument Validation
 # =============================================================================

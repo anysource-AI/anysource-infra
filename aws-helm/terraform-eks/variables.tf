@@ -141,6 +141,16 @@ variable "public_subnet_ids" {
 }
 
 ########################################################################################################################
+# VPC Endpoints Configuration
+########################################################################################################################
+
+variable "enable_vpc_endpoints" {
+  description = "Enable VPC endpoints for AWS services to reduce NAT Gateway costs. Creates endpoints for S3 (gateway, FREE), ECR API, ECR Docker, and CloudWatch Logs (3 interface endpoints, ~$21.60/month). Only applies when creating a new VPC (create_vpc = true)."
+  type        = bool
+  default     = true
+}
+
+########################################################################################################################
 # EKS Configuration
 ########################################################################################################################
 
