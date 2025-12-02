@@ -30,6 +30,8 @@ set -euo pipefail
 
 DEPLOYMENT_TYPE=${1:-}
 CUSTOMER_ID=${2:-}
+# Preserve environment variable INFRA_VERSION if set, before checking positional args
+INFRA_VERSION_FROM_ENV="${INFRA_VERSION:-}"
 INFRA_VERSION=${3:-}
 
 # Colors for output
@@ -44,6 +46,15 @@ log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}" >&2; }
 
+# Check required dependencies
+for cmd in jq curl uuidgen; do
+    if ! command -v "$cmd" &> /dev/null; then
+        log_error "Required command '$cmd' not found"
+        echo "   Please install $cmd and try again"
+        exit 1
+    fi
+done
+
 if [ -z "$DEPLOYMENT_TYPE" ] || [ -z "$CUSTOMER_ID" ]; then
     log_error "Missing required arguments"
     echo ""
@@ -53,16 +64,19 @@ if [ -z "$DEPLOYMENT_TYPE" ] || [ -z "$CUSTOMER_ID" ]; then
     echo "  deployment_type: ecs or eks"
     echo "  customer_id: Customer identifier (e.g., acme-corp)"
     echo "  infra_version: (optional) Infrastructure version (e.g., 2.1.0)"
+    echo "                 Can also be set via INFRA_VERSION environment variable"
     echo "                 If not provided, will be auto-detected from terraform.tfvars for ECS"
     echo ""
     echo "Examples:"
     echo "  $0 ecs acme-corp              # Auto-detect version from tfvars"
     echo "  $0 ecs acme-corp 2.1.0        # Explicit version"
     echo "  $0 eks customer-demo 1.5.0"
+    echo "  INFRA_VERSION=2.1.0 $0 eks customer-demo  # Using environment variable"
     echo ""
     echo "Environment variables:"
     echo "  SENTRY_DSN - For sending events to Sentry"
     echo "  SENTRY_ORG - Organization slug (default: anysource-er)"
+    echo "  INFRA_VERSION - Infrastructure version (alternative to positional arg)"
     exit 1
 fi
 
@@ -71,9 +85,16 @@ if [ "$DEPLOYMENT_TYPE" != "ecs" ] && [ "$DEPLOYMENT_TYPE" != "eks" ]; then
     exit 1
 fi
 
-# Auto-detect infra_version from terraform.tfvars if not provided
+# Auto-detect infra_version if not provided
+# Priority: 1) Positional arg, 2) INFRA_VERSION env var, 3) terraform.tfvars (ECS only)
+if [ -z "$INFRA_VERSION" ]; then
+    # Restore from environment variable if it was set
+    INFRA_VERSION="${INFRA_VERSION_FROM_ENV}"
+fi
+
 if [ -z "$INFRA_VERSION" ]; then
     if [ "$DEPLOYMENT_TYPE" = "ecs" ]; then
+        # Try terraform.tfvars as fallback (for manual deployments)
         TERRAFORM_DIR="${TERRAFORM_DIR:-.}"
         TFVARS_FILE="$TERRAFORM_DIR/terraform.tfvars"
 
@@ -82,27 +103,27 @@ if [ -z "$INFRA_VERSION" ]; then
             if [ -z "$INFRA_VERSION" ]; then
                 INFRA_VERSION="unknown"
                 log_info "infra_version not found in terraform.tfvars, using default: unknown"
-            elif [ "$INFRA_VERSION" != "unknown" ]; then
+            else
                 log_info "Auto-detected infra_version from terraform.tfvars: $INFRA_VERSION"
             fi
         else
-            log_error "terraform.tfvars not found at $TFVARS_FILE and no infra_version provided"
-            echo "   Either:"
-            echo "   1. Run from directory containing terraform.tfvars, or"
-            echo "   2. Set TERRAFORM_DIR environment variable, or"
-            echo "   3. Pass infra_version as third argument"
-            exit 1
+            # No tfvars file - common in CI/CD where vars are passed as -var flags
+            INFRA_VERSION="unknown"
+            log_info "terraform.tfvars not found, using default infra_version: unknown"
+            log_info "Tip: Set INFRA_VERSION environment variable or pass as argument for accurate tracking"
         fi
     else
         log_error "infra_version is required for eks deployments"
-        echo "   Pass infra_version as third argument"
+        echo "   Pass infra_version as argument or set INFRA_VERSION environment variable"
         exit 1
     fi
 fi
 
-# Validate version format (allow "unknown" as default)
-if [ "$INFRA_VERSION" != "unknown" ] && ! [[ "$INFRA_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    log_error "infra_version must follow format: MAJOR.MINOR.PATCH (e.g., 2.1.0) or 'unknown'"
+# Validate version format (allow "unknown" as default, SemVer, or 8-char git SHA)
+if [ "$INFRA_VERSION" != "unknown" ] && \
+   ! [[ "$INFRA_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+   ! [[ "$INFRA_VERSION" =~ ^[a-f0-9]{8}$ ]]; then
+    log_error "infra_version must follow format: MAJOR.MINOR.PATCH (e.g., 2.1.0), 8-char git SHA (e.g., d2678dea), or 'unknown'"
     exit 1
 fi
 
@@ -112,31 +133,79 @@ fi
 
 # Helper function to fetch SENTRY_DSN from WorkOS Vault
 fetch_sentry_dsn_from_vault() {
-    [ "$DEPLOYMENT_TYPE" != "ecs" ] && return 1
+    local auth_api_key=""
 
-    local tfvars_file="${TERRAFORM_DIR:-.}/terraform.tfvars"
-    [ ! -f "$tfvars_file" ] && return 1
+    # Try to get AUTH_API_KEY from environment variable first (for EKS/Helm and CI/CD)
+    if [ -n "${AUTH_API_KEY:-}" ]; then
+        auth_api_key="$AUTH_API_KEY"
+    # For ECS manual deployments, try to read from terraform.tfvars as fallback
+    elif [ "$DEPLOYMENT_TYPE" = "ecs" ]; then
+        local tfvars_file="${TERRAFORM_DIR:-.}/terraform.tfvars"
+        if [ -f "$tfvars_file" ]; then
+            auth_api_key=$(grep '^auth_api_key' "$tfvars_file" 2>/dev/null | cut -d'"' -f2 || echo "")
+        fi
+    fi
 
-    local auth_api_key
-    auth_api_key=$(grep '^auth_api_key' "$tfvars_file" 2>/dev/null | cut -d'"' -f2 || echo "")
     [ -z "$auth_api_key" ] || [ "$auth_api_key" = "null" ] && return 1
 
-    local vault_script
-    vault_script="$(dirname "$0")/../aws-terraform-ecs/scripts/vault-fetch-relay.sh"
-    [ ! -f "$vault_script" ] && return 1
+    # Try using vault-fetch-relay.sh script first (for ECS)
+    local vault_script="$(dirname "$0")/../aws-terraform-ecs/scripts/vault-fetch-relay.sh"
+    if [ -f "$vault_script" ]; then
+        log_info "Fetching SENTRY_DSN from WorkOS Vault (via vault-fetch-relay.sh)..."
+        local vault_result
+        vault_result=$(echo "{\"api_key\":\"$auth_api_key\"}" | bash "$vault_script" 2>/dev/null || echo "{}")
 
-    log_info "Fetching SENTRY_DSN from WorkOS Vault..."
-    local vault_result
-    vault_result=$(echo "{\"api_key\":\"$auth_api_key\"}" | bash "$vault_script" 2>/dev/null || echo "{}")
+        local dsn
+        dsn=$(echo "$vault_result" | jq -r '.sentry_dsn // empty' 2>/dev/null || echo "")
+
+        if [ -n "$dsn" ]; then
+            SENTRY_DSN="$dsn"
+            log_success "SENTRY_DSN fetched from WorkOS Vault"
+            return 0
+        fi
+    fi
+
+    # Fallback: Direct WorkOS Vault API call (for EKS or when script not available)
+    log_info "Fetching SENTRY_DSN from WorkOS Vault (direct API)..."
+    local api_base="${WORKOS_API_BASE:-https://api.workos.com}"
+    local secret_name="${WORKOS_VAULT_SECRET_NAME:-runlayer-sentry-credentials}"
+
+    # List secrets to find the ID
+    local list_response
+    list_response=$(curl --fail --silent --show-error --connect-timeout 5 --max-time 25 \
+        -H "Authorization: Bearer ${auth_api_key}" \
+        "${api_base}/vault/v1/kv" 2>/dev/null || echo "{}")
+
+    [ "$list_response" = "{}" ] && return 1
+
+    local secret_id
+    secret_id=$(echo "$list_response" | jq -r --arg name "$secret_name" \
+        '.data[]? | select(.name == $name) | .id' 2>/dev/null || echo "")
+
+    [ -z "$secret_id" ] || [ "$secret_id" = "null" ] && return 1
+
+    # Retrieve the secret value
+    local get_response
+    get_response=$(curl --fail --silent --show-error --connect-timeout 5 --max-time 25 \
+        -H "Authorization: Bearer ${auth_api_key}" \
+        "${api_base}/vault/v1/kv/${secret_id}" 2>/dev/null || echo "{}")
+
+    [ "$get_response" = "{}" ] && return 1
+
+    local credentials
+    credentials=$(echo "$get_response" | jq -r '.value // empty' 2>/dev/null || echo "")
+
+    [ -z "$credentials" ] && return 1
 
     local dsn
-    dsn=$(echo "$vault_result" | jq -r '.sentry_dsn // empty' 2>/dev/null || echo "")
+    dsn=$(echo "$credentials" | jq -r '.sentry_dsn // empty' 2>/dev/null || echo "")
 
-    if [ -n "$dsn" ]; then
+    if [ -n "$dsn" ] && [ "$dsn" != "null" ]; then
         SENTRY_DSN="$dsn"
         log_success "SENTRY_DSN fetched from WorkOS Vault"
         return 0
     fi
+
     return 1
 }
 
@@ -202,9 +271,13 @@ GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 GIT_COMMIT_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 
+# Generate unique deployment ID to prevent race conditions
+DEPLOYMENT_ID="${CUSTOMER_ID}-${DEPLOYMENT_TYPE}-${TIMESTAMP_EPOCH}-$$"
+
 # Write start timestamp for duration calculation (always write, even if Sentry disabled)
 cat > "$START_TIMESTAMP_FILE" <<EOF
 {
+  "deployment_id": "$DEPLOYMENT_ID",
   "started_at": "$TIMESTAMP",
   "started_at_epoch": $TIMESTAMP_EPOCH,
   "customer_id": "$CUSTOMER_ID",
@@ -216,7 +289,9 @@ EOF
 
 # Copy to a persistent location for completion script to read
 mkdir -p /tmp/runlayer-deployments 2>/dev/null || true
-cp "$START_TIMESTAMP_FILE" "/tmp/runlayer-deployments/${CUSTOMER_ID}-${DEPLOYMENT_TYPE}-start.json" 2>/dev/null || true
+cp "$START_TIMESTAMP_FILE" "/tmp/runlayer-deployments/${DEPLOYMENT_ID}.json" 2>/dev/null || true
+# Also create a symlink with the old naming for backward compatibility (will be overwritten by concurrent deploys)
+ln -sf "${DEPLOYMENT_ID}.json" "/tmp/runlayer-deployments/${CUSTOMER_ID}-${DEPLOYMENT_TYPE}-start.json" 2>/dev/null || true
 
 # =============================================================================
 # Capture Diff Based on Deployment Type

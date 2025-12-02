@@ -49,10 +49,21 @@ spec:
               fi
               echo ""
               echo "Running deployment failure telemetry..."
-              SENTRY_DSN="{{ .Values.backend.secrets.SENTRY_DSN | default "" }}" \
-              ENVIRONMENT="{{ .Values.global.environment | default "production" }}" \
               bash /scripts/capture-deployment-completion.sh \
                 eks "{{ .Values.global.domain }}" "{{ .Values.global.deployment.infraVersion | default .Chart.Version }}" failure "Helm rollback occurred"
+          env:
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: SENTRY_DSN
+            - name: AUTH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: AUTH_API_KEY
+            - name: ENVIRONMENT
+              value: "{{ .Values.global.environment | default "production" }}"
           volumeMounts:
             - name: script
               mountPath: /scripts/capture-deployment-completion.sh

@@ -38,6 +38,39 @@ resource "aws_iam_role_policy_attachment" "secrets_manager_access" {
   policy_arn = aws_iam_policy.secrets_manager_access.arn
 }
 
+# Policy for pulling images from external ECR repositories (cross-account)
+resource "aws_iam_policy" "external_ecr_access" {
+  name        = "${var.project}-external-ecr-access-${var.environment}"
+  description = "Policy for pulling container images from external ECR repositories"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ECRPullExternalImages"
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:DescribeImages",
+          "ecr:DescribeRepositories",
+          "ecr:ListImages"
+        ]
+        # CustomerDistribution account - contains shared container images for customer deployments
+        Resource = [
+          "arn:aws:ecr:us-east-1:088332244652:repository/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "external_ecr_access" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.external_ecr_access.arn
+}
+
 data "aws_iam_policy_document" "assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]

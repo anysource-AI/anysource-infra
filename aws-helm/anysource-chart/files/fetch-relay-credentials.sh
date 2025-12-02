@@ -29,11 +29,61 @@ set -euo pipefail
 : "${WORKOS_VAULT_SECRET_NAME:=runlayer-sentry-credentials}"
 : "${CREDENTIALS_DIR:=/credentials}"
 
-echo "Installing required tools..." >&2
-apk add --no-cache curl jq ca-certificates >/dev/null 2>&1 || {
-    echo "Error: Failed to install required tools (curl, jq, ca-certificates)" >&2
-    exit 1
+# Function to install dependencies based on available package manager
+install_dependencies() {
+    local deps="curl jq ca-certificates"
+
+    # Check if dependencies are already installed
+    local missing_deps=""
+    for dep in curl jq; do
+        if ! command -v "$dep" >/dev/null 2>&1; then
+            missing_deps="$missing_deps $dep"
+        fi
+    done
+
+    # All dependencies present, nothing to do
+    if [ -z "$missing_deps" ]; then
+        echo "Required tools already installed" >&2
+        return 0
+    fi
+
+    echo "Installing required tools:$missing_deps..." >&2
+
+    # Try Alpine (apk)
+    if command -v apk >/dev/null 2>&1; then
+        apk add --no-cache $deps >/dev/null 2>&1 || {
+            echo "Error: Failed to install required tools using apk" >&2
+            return 1
+        }
+        return 0
+    fi
+
+    # Try Debian/Ubuntu (apt-get)
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update >/dev/null 2>&1 && \
+        apt-get install -y curl jq ca-certificates >/dev/null 2>&1 || {
+            echo "Error: Failed to install required tools using apt-get" >&2
+            return 1
+        }
+        return 0
+    fi
+
+    # Try Red Hat/CentOS (yum)
+    if command -v yum >/dev/null 2>&1; then
+        yum install -y curl jq ca-certificates >/dev/null 2>&1 || {
+            echo "Error: Failed to install required tools using yum" >&2
+            return 1
+        }
+        return 0
+    fi
+
+    # No supported package manager found
+    echo "Error: No supported package manager found (tried: apk, apt-get, yum)" >&2
+    echo "Please install curl and jq manually" >&2
+    return 1
 }
+
+install_dependencies
 
 # Validate required environment variables
 if [ -z "${WORKOS_API_KEY:-}" ]; then

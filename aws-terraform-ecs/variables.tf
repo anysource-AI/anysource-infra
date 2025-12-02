@@ -498,7 +498,7 @@ variable "enable_runlayer_tool_guard" {
 variable "runlayer_tool_guard_image_uri" {
   type        = string
   description = "Docker image URI for the Runlayer ToolGuard Flask server"
-  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202511261110"
+  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202511282325"
 }
 
 variable "runlayer_tool_guard_desired_count" {
@@ -610,4 +610,11 @@ variable "vpc_peering_connections" {
     ])
     error_message = "VPC peering CIDR blocks must not overlap with the current VPC CIDR. Overlapping CIDR blocks cause routing conflicts and are not allowed. Please ensure peer_vpc_cidr does not overlap with vpc_cidr."
   }
+}
+
+# VPC Endpoints Configuration
+variable "enable_vpc_endpoints" {
+  description = "Enable VPC endpoints for AWS services to reduce NAT Gateway costs. Creates endpoints for S3 (gateway, FREE), ECR API, ECR Docker, and CloudWatch Logs (3 interface endpoints, ~$21.60/month). Only applies when creating a new VPC (not with existing_vpc_id)."
+  type        = bool
+  default     = true
 }

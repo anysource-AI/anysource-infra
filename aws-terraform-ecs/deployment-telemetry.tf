@@ -19,6 +19,10 @@ locals {
   # This matches the pattern used throughout the module for sentry_dsn
   effective_sentry_dsn = var.sentry_dsn != "" ? var.sentry_dsn : local.sentry_dsn
 
+  # Default infra_version to backend_image_tag if not explicitly provided
+  # This matches the comment in variables.tf about defaulting to app image tag
+  effective_infra_version = var.infra_version != "" ? var.infra_version : local.backend_image_tag
+
   # Determine if we should run telemetry (requires sentry_dsn to be set from either source)
   should_run_telemetry = local.effective_sentry_dsn != ""
 }
@@ -47,10 +51,13 @@ resource "null_resource" "deployment_telemetry" {
 
     # Pass through SENTRY_DSN and ENVIRONMENT to the script
     # Uses the effective DSN (override or vault value)
+    # Uses effective_infra_version which defaults to backend_image_tag if not explicitly set
+    # NOTE: AUTH_API_KEY is NOT needed here because SENTRY_DSN is already resolved
     environment = {
-      SENTRY_DSN  = local.effective_sentry_dsn
-      SENTRY_ORG  = "anysource-er"
-      ENVIRONMENT = var.environment
+      SENTRY_DSN    = local.effective_sentry_dsn
+      SENTRY_ORG    = "anysource-er"
+      ENVIRONMENT   = var.environment
+      INFRA_VERSION = local.effective_infra_version
     }
 
     # Working directory should be the calling module's directory
@@ -63,4 +70,9 @@ resource "null_resource" "deployment_telemetry" {
 output "deployment_telemetry_enabled" {
   description = "Whether deployment telemetry is enabled (requires sentry_dsn)"
   value       = local.should_run_telemetry
+}
+
+output "deployment_telemetry_infra_version" {
+  description = "The infrastructure version that will be reported in telemetry"
+  value       = local.should_run_telemetry ? local.effective_infra_version : "telemetry disabled"
 }

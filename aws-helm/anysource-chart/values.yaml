@@ -102,9 +102,7 @@ backend:
     MASTER_SALT: "your-master-salt-here-change-in-production"
     AUTH_API_KEY: "sk_live_your_auth_api_key_here"
     # Sentry DSN for error tracking
-    # In production: Automatically fetched from WorkOS Vault via helm-fetch-vault-credentials.sh
-    # For testing/development only (will be overridden by vault values in production):
-    SENTRY_DSN: "https://your-key@your-org.ingest.sentry.io/project-id"
+    SENTRY_DSN: ""
 
   # Configuration (non-sensitive environment variables)
   config: {}
