@@ -35,7 +35,7 @@ resource "aws_cloudwatch_log_group" "directory_sync_logs" {
 resource "terraform_data" "directory_sync_image_trigger" {
   count = var.directory_sync_enabled ? 1 : 0
 
-  input = var.ecr_repositories["backend"]
+  input = local.ecr_repositories["backend"]
 }
 
 # ECS Task Definition for directory sync
@@ -69,7 +69,7 @@ resource "aws_ecs_task_definition" "directory_sync" {
 
   container_definitions = jsonencode([{
     name    = "directory-sync"
-    image   = var.ecr_repositories["backend"]
+    image   = local.ecr_repositories["backend"]
     command = ["uv", "run", "python", "-m", "app.directory_sync.worker"]
     environment = concat(
       [for k, v in local.backend_env_vars : { name = k, value = tostring(v) }],
@@ -88,9 +88,9 @@ resource "aws_ecs_task_definition" "directory_sync" {
   }])
 }
 
-# IAM Role for CloudWatch Events to execute ECS tasks (shared by sync and reconciliation)
+# IAM Role for CloudWatch Events to execute ECS tasks
 resource "aws_iam_role" "events_role" {
-  count = (var.directory_sync_enabled || var.directory_reconciliation_enabled) ? 1 : 0
+  count = var.directory_sync_enabled ? 1 : 0
 
   name = "${var.project}-events-role-${var.environment}"
 
@@ -114,9 +114,9 @@ resource "aws_iam_role" "events_role" {
   }
 }
 
-# IAM Policy for Events Role to run ECS tasks (allows both sync and reconciliation)
+# IAM Policy for Events Role to run ECS tasks
 resource "aws_iam_role_policy" "events_policy" {
-  count = (var.directory_sync_enabled || var.directory_reconciliation_enabled) ? 1 : 0
+  count = var.directory_sync_enabled ? 1 : 0
 
   name = "${var.project}-events-policy-${var.environment}"
   role = aws_iam_role.events_role[0].id
@@ -129,14 +129,9 @@ resource "aws_iam_role_policy" "events_policy" {
         Action = [
           "ecs:RunTask"
         ]
-        Resource = concat(
-          var.directory_sync_enabled ? [
-            "arn:aws:ecs:${var.region}:*:task-definition/${var.project}-directory-sync-${var.environment}:*"
-          ] : [],
-          var.directory_reconciliation_enabled ? [
-            "arn:aws:ecs:${var.region}:*:task-definition/${var.project}-directory-reconciliation-${var.environment}:*"
-          ] : []
-        )
+        Resource = [
+          "arn:aws:ecs:${var.region}:*:task-definition/${var.project}-directory-sync-${var.environment}:*"
+        ]
       },
       {
         Effect = "Allow"

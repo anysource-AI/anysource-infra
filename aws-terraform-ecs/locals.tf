@@ -1,5 +1,32 @@
 # Shared locals for consistent logic across modules
 locals {
+  # Default application images for Runlayer services
+  # NOTE: default_app_version is updated automatically by CI
+  default_app_version = "1.12.0"
+
+  app_version = coalesce(var.app_version, local.default_app_version)
+
+  default_ecr_repositories = {
+    backend  = "public.ecr.aws/anysource/anysource-api:${local.app_version}"
+    frontend = "public.ecr.aws/anysource/anysource-web:${local.app_version}"
+    worker   = "public.ecr.aws/anysource/anysource-worker:${local.app_version}"
+  }
+
+  ecr_repositories = var.ecr_repositories != null ? var.ecr_repositories : local.default_ecr_repositories
+
+  image_tags = {
+    for svc, uri in local.ecr_repositories :
+    svc => (
+      length(regexall("@", uri)) > 0
+      ? split("@", uri)[1]          # digest case
+      : reverse(split(":", uri))[0] # tag is the last colon segment
+    )
+  }
+
+  backend_image_tag  = local.image_tags.backend
+  frontend_image_tag = local.image_tags.frontend
+  worker_image_tag   = local.image_tags.worker
+
   # VPC and subnet references - use existing VPC if provided, otherwise use created VPC
   vpc_id             = var.existing_vpc_id != null ? var.existing_vpc_id : module.vpc[0].vpc_id
   private_subnet_ids = var.existing_vpc_id != null ? var.existing_private_subnet_ids : module.vpc[0].private_subnets
