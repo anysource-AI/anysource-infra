@@ -42,7 +42,7 @@ resource "aws_ecs_task_definition" "worker_task" {
   container_definitions = jsonencode([
     {
       name      = "worker"
-      image     = var.ecr_repositories["worker"]
+      image     = local.ecr_repositories["worker"]
       cpu       = var.worker_config.cpu
       memory    = var.worker_config.memory
       essential = true

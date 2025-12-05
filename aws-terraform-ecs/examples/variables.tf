@@ -29,12 +29,8 @@ variable "auth_api_key" {
 
 variable "ecr_repositories" {
   type        = map(string)
-  description = "Map of service names to their ECR repository URIs (backend, worker, frontend required)"
-  default = {
-    backend  = "public.ecr.aws/anysource/anysource-api:v1.0.0"
-    frontend = "public.ecr.aws/anysource/anysource-web:v1.0.0"
-    worker   = "public.ecr.aws/anysource/anysource-worker:v1.0.0"
-  }
+  description = "Map of service names to their ECR repository URIs (backend, worker, frontend required). Overrides app_version/module defaults and cannot be set alongside app_version."
+  default     = null
 }
 
 # ========================================

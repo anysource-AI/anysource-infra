@@ -44,13 +44,12 @@ release_version = "v1.0.0"
 auth_client_id = "CHANGE_ME_AUTH_CLIENT_ID" # Replace with your auth client ID
 auth_api_key   = "CHANGE_ME_AUTH_API_KEY"   # Replace with your auth API key
 
-# Container Images (required)
-# Use the public images provided by Runlayer or your own private ECR images
-ecr_repositories = {
-  backend  = "public.ecr.aws/anysource/anysource-api:v1.0.0"
-  frontend = "public.ecr.aws/anysource/anysource-web:v1.0.0"
-  worker   = "public.ecr.aws/anysource/anysource-worker:v1.0.0"
-}
+#Use the public images provided by Runlayer (default) or override with your own private ECR images
+# ecr_repositories = {
+#   backend  = "public.ecr.aws/mycompany/anysource-api:v1.0.0"
+#   frontend = "public.ecr.aws/mycompany/anysource-web:v1.0.0"
+#   worker   = "public.ecr.aws/mycompany/anysource-worker:v1.0.0"
+# }
 
 # ACM Certificate ARN for your domain (required for HTTPS)
 # ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"

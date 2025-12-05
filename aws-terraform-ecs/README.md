@@ -37,15 +37,9 @@ Deploy Runlayer on AWS ECS using Terraform. This infrastructure supports develop
 Production-ready with SSL termination via AWS Certificate Manager (ACM).
 
 ```hcl
-environment     = "production"
-region          = "us-east-1"
-domain_name     = "mcp.yourcompany.com"  # Your domain
-
-ecr_repositories = {
-  backend  = "public.ecr.aws/anysource/anysource-api:v1.0.0"
-  frontend = "public.ecr.aws/anysource/anysource-web:v1.0.0"
-  worker   = "public.ecr.aws/anysource/anysource-worker:v1.0.0"
-}
+environment = "production"
+region      = "us-east-1"
+domain_name = "mcp.yourcompany.com"  # Your domain
 ```
 
 **Access:** https://mcp.yourcompany.com
@@ -172,12 +166,11 @@ All deployments need these values:
 
 | Variable           | Description                                           | Example                 |
 | ------------------ | ----------------------------------------------------- | ----------------------- |
-| `account`          | AWS account ID                                        | `"123456789012"`        |
-| `region`           | AWS region                                            | `"us-east-1"`           |
-| `domain_name`      | Custom domain for HTTPS access                        | `"mcp.yourcompany.com"` |
-| `auth_client_id`   | Auth client ID (will be provided by Runlayer support) | `"your-auth-client-id"` |
-| `auth_api_key`     | Auth API key (will be provided by Runlayer support)   | `"your-auth-api-key"`   |
-| `ecr_repositories` | Container image URIs                                  | See examples            |
+| `account`        | AWS account ID                                        | `"123456789012"`        |
+| `region`         | AWS region                                            | `"us-east-1"`           |
+| `domain_name`    | Custom domain for HTTPS access                        | `"mcp.yourcompany.com"` |
+| `auth_client_id` | Auth client ID (will be provided by Runlayer support) | `"your-auth-client-id"` |
+| `auth_api_key`   | Auth API key (will be provided by Runlayer support)   | `"your-auth-api-key"`   |
 
 ## Optional Configuration
 

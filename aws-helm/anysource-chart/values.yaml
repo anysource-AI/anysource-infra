@@ -441,25 +441,6 @@ directorySync:
     limits:
       memory: 2048Mi
 
-  # Reconciliation job configuration (full state sync from WorkOS)
-  reconciliation:
-    # Enable reconciliation CronJob
-    enabled: false
-
-    # Cron schedule for reconciliation (defaults to "0 4 * * *" - daily at 4 AM)
-    # Override with custom schedule if needed:
-    # schedule: "0 3 * * *"     # daily at 3 AM
-    # schedule: "0 4 * * 0"     # weekly on Sunday at 4 AM
-    schedule: "0 4 * * *"
-
-    # Resource configuration for reconciliation jobs (may need more resources than event sync)
-    resources:
-      requests:
-        cpu: 1000m
-        memory: 2048Mi
-      limits:
-        memory: 2048Mi
-
 # ========================================
 # Sentry Relay Configuration
 # ========================================

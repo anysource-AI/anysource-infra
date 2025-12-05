@@ -38,17 +38,54 @@ variable "auth_api_key" {
   }
 }
 
-variable "ecr_repositories" {
-  type        = map(string)
-  description = "Map of service names to their ECR repository URIs (backend, worker, frontend required)"
-  default     = {}
+variable "app_version" {
+  type        = string
+  description = "Application version used to build default ECR image tags (mutually exclusive with ecr_repositories)."
+  default     = null
 
   validation {
-    condition = alltrue([
+    condition     = var.app_version == null || length(trimspace(var.app_version)) > 0
+    error_message = "app_version cannot be an empty string."
+  }
+
+  validation {
+    condition     = !(var.app_version != null && var.ecr_repositories != null)
+    error_message = "Provide either app_version or ecr_repositories, not both."
+  }
+}
+
+variable "ecr_repositories" {
+  type        = map(string)
+  description = "Map of service names to their ECR repository URIs (backend, worker, frontend required). Overrides the module defaults."
+  default     = null
+
+  validation {
+    condition     = var.ecr_repositories == null || length(var.ecr_repositories) > 0
+    error_message = "ecr_repositories cannot be an empty map. Provide image URIs for all services or omit to use defaults."
+  }
+
+  validation {
+    condition = var.ecr_repositories == null ? true : alltrue([
       for service_name, uri in var.ecr_repositories :
       can(regex("^(public\\.ecr\\.aws/[^/]+/[^:]+:[^:]+|[0-9]+\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+)$", uri))
     ])
     error_message = "ECR repository URIs must be either public ECR (public.ecr.aws/namespace/repo:tag) or private ECR (account.dkr.ecr.region.amazonaws.com/repo:tag) format"
+  }
+
+  validation {
+    condition = var.ecr_repositories == null ? true : alltrue([
+      for _, uri in var.ecr_repositories :
+      can(regex(":[^/:@]+$|@sha256:[0-9a-fA-F]{64}$", uri))
+    ])
+    error_message = "Each ECR repository URI must include an explicit image tag or digest (no implicit latest)."
+  }
+
+  validation {
+    condition = var.ecr_repositories == null ? true : alltrue([
+      for required in ["backend", "frontend", "worker"] :
+      contains(keys(var.ecr_repositories), required)
+    ])
+    error_message = "ecr_repositories must include backend, frontend, and worker entries."
   }
 }
 
@@ -458,17 +495,6 @@ variable "directory_sync_interval_minutes" {
   }
 }
 
-variable "directory_reconciliation_enabled" {
-  type        = bool
-  description = "Enable SCIM / Directory Reconciliation scheduled task (full state sync)"
-  default     = false
-}
-
-variable "directory_reconciliation_schedule" {
-  type        = string
-  description = "Cron expression for directory reconciliation schedule (e.g., 'cron(0 4 * * ? *)' for daily at 4 AM UTC)"
-  default     = "cron(0 4 * * ? *)"
-}
 variable "worker_config" {
   description = "Worker configuration for background job processing"
   type = object({
@@ -498,7 +524,7 @@ variable "enable_runlayer_tool_guard" {
 variable "runlayer_tool_guard_image_uri" {
   type        = string
   description = "Docker image URI for the Runlayer ToolGuard Flask server"
-  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202511282325"
+  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202512021453"
 }
 
 variable "runlayer_tool_guard_desired_count" {

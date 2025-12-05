@@ -70,11 +70,6 @@ Runlayer application Helm chart for Kubernetes deployment
 | certManager.issuer.name | string | `"letsencrypt-prod"` |  |
 | certManager.issuer.server | string | `"https://acme-v02.api.letsencrypt.org/directory"` |  |
 | directorySync.enabled | bool | `true` |  |
-| directorySync.reconciliation.enabled | bool | `false` |  |
-| directorySync.reconciliation.resources.limits.memory | string | `"2048Mi"` |  |
-| directorySync.reconciliation.resources.requests.cpu | string | `"1000m"` |  |
-| directorySync.reconciliation.resources.requests.memory | string | `"2048Mi"` |  |
-| directorySync.reconciliation.schedule | string | `"0 4 * * *"` |  |
 | directorySync.resources.limits.memory | string | `"2048Mi"` |  |
 | directorySync.resources.requests.cpu | string | `"1000m"` |  |
 | directorySync.resources.requests.memory | string | `"2048Mi"` |  |
