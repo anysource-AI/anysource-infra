@@ -524,7 +524,7 @@ variable "enable_runlayer_tool_guard" {
 variable "runlayer_tool_guard_image_uri" {
   type        = string
   description = "Docker image URI for the Runlayer ToolGuard Flask server"
-  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202512021453"
+  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202512081738"
 }
 
 variable "runlayer_tool_guard_desired_count" {
@@ -573,6 +573,13 @@ variable "enable_runlayer_deploy" {
   default     = false
 }
 
+# Skills Feature Flag
+variable "enable_runlayer_skills" {
+  type        = bool
+  description = "Enable RunLayer Skills feature. Set to true to show Skills navigation item in the UI."
+  default     = true
+}
+
 # Bedrock Guardrail Configuration
 variable "bedrock_prompt_guard_sensitivity" {
   type        = string
@@ -608,6 +615,20 @@ variable "backend_cors_origins" {
     condition     = length(var.backend_cors_origins) == 0 || alltrue([for origin in var.backend_cors_origins : can(regex("^https?://", origin))])
     error_message = "backend_cors_origins entries must start with http:// or https://"
   }
+}
+
+# Client IP Header Configuration for Rate Limiting
+variable "client_ip_header" {
+  type        = string
+  description = "HTTP header to extract client IP from for rate limiting. When set, uses this header's value directly. When empty (default), uses x-forwarded-for with comma-split logic for proxy chains. For ECS with ALB, leave empty as ALB appends client IP to x-forwarded-for."
+  default     = ""
+}
+
+# OAuth Client Registration Rate Limit
+variable "oauth_client_registration_rate_limit_per_hour" {
+  type        = number
+  description = "Maximum number of OAuth client registration requests per hour per IP address. Used to prevent abuse of the dynamic client registration endpoint."
+  default     = 1000
 }
 
 # VPC Peering Configuration

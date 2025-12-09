@@ -2,7 +2,7 @@
 locals {
   # Default application images for Runlayer services
   # NOTE: default_app_version is updated automatically by CI
-  default_app_version = "1.12.0"
+  default_app_version = "1.15.0"
 
   app_version = coalesce(var.app_version, local.default_app_version)
 
@@ -54,7 +54,11 @@ locals {
     APP_URL              = local.app_url
     AUTH_CLIENT_ID       = var.auth_client_id
     BACKEND_CORS_ORIGINS = local.backend_cors_origins
-    WORKERS              = var.workers
+    # HTTP header to extract client IP from for rate limiting
+    CLIENT_IP_HEADER = var.client_ip_header
+    # OAuth client registration rate limit
+    OAUTH_CLIENT_REGISTRATION_RATE_LIMIT_PER_HOUR = var.oauth_client_registration_rate_limit_per_hour
+    WORKERS                                       = var.workers
     # AWS region for Bedrock and other AWS services
     AWS_REGION = var.region
     # Bedrock Guardrail for prompt attack detection
@@ -122,5 +126,7 @@ locals {
     PUBLIC_OAUTH_BROKER_URL = var.oauth_broker_url
     # Conditionally set PUBLIC_RUNLAYER_DEPLOY based on enable_runlayer_deploy variable
     PUBLIC_RUNLAYER_DEPLOY = var.enable_runlayer_deploy ? "ECS" : ""
+    # Conditionally set PUBLIC_RUNLAYER_SKILLS based on enable_runlayer_skills variable
+    PUBLIC_RUNLAYER_SKILLS = var.enable_runlayer_skills ? "true" : ""
   }
 }

@@ -140,6 +140,21 @@ resource "aws_cloudwatch_log_group" "prestart_cw_log_group" {
   retention_in_days = 365
 }
 
+# Trigger for backend service replacement when Service Connect config changes
+# AWS ECS does not allow modifying Service Connect on existing services - they must be recreated
+resource "terraform_data" "backend_service_connect_trigger" {
+  input = {
+    enabled                     = true
+    namespace                   = aws_service_discovery_http_namespace.service_connect.arn
+    port_name                   = "http"
+    discovery_name              = var.services_configurations["backend"].name
+    dns_name                    = var.services_configurations["backend"].name
+    port                        = var.services_configurations["backend"].container_port
+    idle_timeout_seconds        = 300
+    per_request_timeout_seconds = 300
+  }
+}
+
 resource "aws_ecs_service" "private_service" {
   for_each                          = var.services_configurations
   name                              = "${each.key}-service"
@@ -181,6 +196,8 @@ resource "aws_ecs_service" "private_service" {
   # Service Connect configuration
   # - Backend: Enabled as both server (publishable) and client (can discover relay)
   # - Frontend: Disabled (doesn't need service discovery)
+  # IMPORTANT: AWS ECS does NOT allow updating Service Connect on existing services
+  # Any changes to this block will force recreation of the service
   dynamic "service_connect_configuration" {
     for_each = each.key == "backend" ? [1] : []
     content {
@@ -199,6 +216,12 @@ resource "aws_ecs_service" "private_service" {
         }
       }
     }
+  }
+
+  # Note: This applies to all services but only triggers when backend Service Connect
+  # config changes (which is rare). Simpler than splitting into separate resources.
+  lifecycle {
+    replace_triggered_by = [terraform_data.backend_service_connect_trigger]
   }
 }
 

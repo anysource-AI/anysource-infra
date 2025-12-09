@@ -137,6 +137,20 @@ resource "aws_ecs_task_definition" "relay" {
   ]
 }
 
+# Trigger for relay service replacement when Service Connect config changes
+# AWS ECS does not allow modifying Service Connect on existing services - they must be recreated
+resource "terraform_data" "relay_service_connect_trigger" {
+  count = local.deploy_relay ? 1 : 0
+  input = {
+    enabled        = true
+    namespace      = module.ecs.service_connect_namespace_arn
+    port_name      = "relay-http"
+    discovery_name = "relay"
+    dns_name       = "relay"
+    port           = var.sentry_relay_config.container_port
+  }
+}
+
 # ECS Service for Relay (internal-only, no ALB)
 resource "aws_ecs_service" "relay" {
   count           = local.deploy_relay ? 1 : 0
@@ -153,6 +167,8 @@ resource "aws_ecs_service" "relay" {
 
   # Enable Service Connect for service discovery
   # This allows backend to reach relay via "relay" hostname
+  # IMPORTANT: AWS ECS does NOT allow updating Service Connect on existing services
+  # Any changes to this block will force recreation of the service
   service_connect_configuration {
     enabled   = true
     namespace = module.ecs.service_connect_namespace_arn
@@ -164,6 +180,14 @@ resource "aws_ecs_service" "relay" {
         dns_name = "relay"
       }
     }
+  }
+
+  lifecycle {
+    # Force service replacement when Service Connect configuration changes
+    # This ensures Service Connect changes are properly applied (AWS doesn't allow updates)
+    replace_triggered_by = [
+      terraform_data.relay_service_connect_trigger[0]
+    ]
   }
 
   depends_on = [
