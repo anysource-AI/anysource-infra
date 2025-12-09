@@ -524,7 +524,7 @@ variable "enable_runlayer_tool_guard" {
 variable "runlayer_tool_guard_image_uri" {
   type        = string
   description = "Docker image URI for the Runlayer ToolGuard Flask server"
-  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202512021453"
+  default     = "public.ecr.aws/anysource/anysource-models:runlayer-multimodel-guard-v202512081738"
 }
 
 variable "runlayer_tool_guard_desired_count" {
@@ -571,6 +571,13 @@ variable "enable_runlayer_deploy" {
   type        = bool
   description = "Enable RunLayer deployment features (requires ECS infrastructure). Set to true to allow deploying custom MCP servers."
   default     = false
+}
+
+# Skills Feature Flag
+variable "enable_runlayer_skills" {
+  type        = bool
+  description = "Enable RunLayer Skills feature. Set to true to show Skills navigation item in the UI."
+  default     = true
 }
 
 # Bedrock Guardrail Configuration

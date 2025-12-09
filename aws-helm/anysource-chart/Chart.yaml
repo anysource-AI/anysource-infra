@@ -2,8 +2,8 @@ apiVersion: v2
 name: anysource
 description: Runlayer application Helm chart for Kubernetes deployment
 type: application
-version: 0.16.1
-appVersion: "1.11.0"
+version: 0.18.1
+appVersion: "1.14.1"
 keywords:
   - runlayer
   - api

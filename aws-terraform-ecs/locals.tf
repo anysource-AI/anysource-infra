@@ -2,7 +2,7 @@
 locals {
   # Default application images for Runlayer services
   # NOTE: default_app_version is updated automatically by CI
-  default_app_version = "1.12.0"
+  default_app_version = "1.14.1"
 
   app_version = coalesce(var.app_version, local.default_app_version)
 
@@ -122,5 +122,7 @@ locals {
     PUBLIC_OAUTH_BROKER_URL = var.oauth_broker_url
     # Conditionally set PUBLIC_RUNLAYER_DEPLOY based on enable_runlayer_deploy variable
     PUBLIC_RUNLAYER_DEPLOY = var.enable_runlayer_deploy ? "ECS" : ""
+    # Conditionally set PUBLIC_RUNLAYER_SKILLS based on enable_runlayer_skills variable
+    PUBLIC_RUNLAYER_SKILLS = var.enable_runlayer_skills ? "true" : ""
   }
 }
