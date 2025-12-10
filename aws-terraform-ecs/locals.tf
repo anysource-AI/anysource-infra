@@ -2,7 +2,7 @@
 locals {
   # Default application images for Runlayer services
   # NOTE: default_app_version is updated automatically by CI
-  default_app_version = "1.15.0"
+  default_app_version = "1.16.0"
 
   app_version = coalesce(var.app_version, local.default_app_version)
 
